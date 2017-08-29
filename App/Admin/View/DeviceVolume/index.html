@@ -1,0 +1,74 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="row">
+                <form class="form-inline" action="{:U('index')}" method="post">
+                    <label class="inline">酒店：</label>
+                        <if condition="$personhid neq ''">
+                        <select id="hid" name="hid" class="select2" style="width:300px;">
+                          <option value=""></option>
+                          <option value="hid-1gg">{查询所有酒店}</option>
+                          <volist name="personhid" id="phid">
+                            <option value="{$phid}" <if condition="$hid eq $phid">selected</if> >{$phid|getHotelnameByHid}</option>
+                          </volist>
+                        </select>
+                        <else />
+                        <select id="hid" name="hid" class="select2" style="width:300px;">
+                            <option></option>
+                            <option value="hid-1gg">{查询所有酒店}</option>
+                            {$pHotel}
+                        </select>
+                        </if>
+                    <button type="submit" class="btn btn-purple btn-sm">
+                        <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>查询
+                    </button>
+                </form>
+            </div>
+            <div class="space-8"></div>
+            <div class="row">
+                <form id="form" method="post" action="">
+                    <table class="table table-striped table-bordered">
+                      <thead>
+                        <tr>
+                          <th class="center"><input class="check-all" type="checkbox" value=""></th>
+                          <th>酒店编号</th>
+                          <th>酒店名称</th>
+                          <th>酒店申请容量(单位：MB)</th>
+                          <th>酒店剩余容量(单位：MB)</th>
+                          <th>盒子负荷容量(单位：MB)</th>
+                          <th>酒店已用容量(单位：MB)</th>
+                          <th>弹窗广告容量(单位：MB)</th>
+                          <th>轮播容量(单位：MB)</th>
+                          <th>通用栏目（测试 MB）</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      <volist name="list" id="val">
+                        <tr>
+                          <td class="center"><input class="aids" type="checkbox" name="ids[]" value="{$val['id']}"></td>
+                          <td>{$val['hid']}</td>
+                          <td>{$val['hid']|getHotelnameByHid}</td>
+                          <td>{$val['space']}</td>
+                          <td>{$val['lastspace']}</td>
+                          <td>{$val['content_size']+$val['topic_size']+$val['ad_size']+$val['devicebg_size']+$val['chg_size']}</td>
+                          <td>{$val['content_size']+$val['devicebg_size']+$val['chg_size']}</td>
+                          <td>{$val['popupad_size']}</td>
+                          <td>{$val['carousel_size']}</td>
+                          <td>{$val['topic_size']}</td>
+                          <!-- <td>{$val['space']-($val['content_size']+$val['topic_size']+$val['ad_size']+$val['devicebg_size'])}</td> -->
+                        </tr>
+                      </volist>
+                      </tbody>
+                    </table>
+                </form>
+                {$page}
+            </div>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+    <script type="text/javascript">
+    $('#hid').select2({ placeholder : '--请选择--' });
+    </script>
+</block>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <!-- #以上代码IE=edge告诉IE使用最新的引擎渲染网页，chrome=1则可以激活Chrome Frame.
+        根据官网定义X-UA-compatible 标头不区分大小写；不过，它必须显示在网页中除 title 元素和其他 meta 元素以外的所有其他元素之前 -->
+        <meta charset="utf-8" />
+        <title>{$current['title']} - {$Think.config.system_name} - {$Think.config.company}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+        <!-- 外接css -->
+        <link rel="stylesheet" href="__PUBLIC__/sortablepublic/css/sortable.css" />
+
+        <!-- initial-scale=1.0 确保网页加载时，以 1:1 的比例呈现，不会有任何的缩放 -->
+        <link rel="stylesheet" href="__PUBLIC__/hyadmin/css/bootstrap.css" />
+        <link rel="stylesheet" href="__PUBLIC__/hyadmin/css/font-awesome.css" />
+        <link rel="stylesheet" href="__PUBLIC__/hyadmin/css/ace-fonts.css" />
+        <link rel="stylesheet" href="__PUBLIC__/hyadmin/css/ace.css" class="ace-main-stylesheet" id="main-ace-style" />
+        
+        <link rel="stylesheet" href="__PUBLIC__/hyadmin/css/dataTables.bootstrap.min.css" />
+        
+        <link rel="stylesheet" href="__PUBLIC__/statics/jqueryuploadfile/css/jquery.fileupload-ui.css" media="screen">
+        <link rel="stylesheet" href="__PUBLIC__/statics/select2/select2.css">
+        
+        <!--[if lte IE 9]>
+        <link rel="stylesheet" href="__PUBLIC__/hyadmin/css/ace-part2.css" class="ace-main-stylesheet" />
+        <![endif]-->
+        <!--[if lte IE 9]>
+        <link rel="stylesheet" href="__PUBLIC__/hyadmin/css/ace-ie.css" />
+        <![endif]-->
+        <script src="__PUBLIC__/hyadmin/js/ace-extra.js"></script>
+        <!--[if lte IE 8]>
+        <script src="__PUBLIC__/hyadmin/js/html5shiv.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/respond.js"></script>
+        <![endif]-->
+    </head>
+    <body class="no-skin">
+        <div id="navbar" class="navbar navbar-default">
+            <script type="text/javascript">
+            	try{ace.settings.check('navbar' , 'fixed')}catch(e){}
+            </script>
+            <!-- 页面顶端栏目-->
+            <div class="navbar-container" id="navbar-container">
+                <!-- 侧栏弹出框按钮 用于小屏幕的侧栏弹出 -->
+                <button type="button" class="navbar-toggle menu-toggler pull-left" id="menu-toggler" data-target="#sidebar">
+                    <span class="sr-only">Toggle sidebar</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <!-- 顶端栏目左侧 -->
+                <div class="navbar-header pull-left">
+                    <a href="{:U('Index/index')}" class="navbar-brand">
+                        <small><i class="fa fa-home"></i>{$Think.config.system_name}</small>
+                    </a>
+                </div>
+                <!-- 顶端栏目 右侧 -->
+                <div class="navbar-header pull-right" role="navigation">
+                    <ul class="nav ace-nav">
+                        <li class="light-blue"><a><img class="nav-user-photo" src="<if condition=" $user.head eq '' ">{:C('UPLOADPATH')}/hyadmin/img/avatar.png<else />{:C('UPLOADPATH')}{$user.head}</if>" alt="{$user.user}" />欢迎您,{$user.user}</a></li>
+                        <li class="red"><a href="{:U('Index/index')}"><i class="ace-icon fa fa-home"></i>后台首页</a></li>
+                        <li class="purple"><a href="{:U('Index/setting')}"><i class="ace-icon fa fa-cog"></i>设置</a></li>
+                        <li class="green"><a href="{:U('Index/profile')}"><i class="ace-icon fa fa-user"></i>个人资料</a></li>
+                        <li class="light-blue"><a href="{:U('Index/logout')}"><i class="ace-icon fa fa-power-off"></i>退出</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="main-container" id="main-container">
+            <script type="text/javascript">
+            	try{ace.settings.check('main-container' , 'fixed')}catch(e){}
+            </script>
+            <div id="sidebar" class="sidebar responsive">
+                <script type="text/javascript">
+                	try{ace.settings.check('sidebar' , 'fixed')}catch(e){}
+                </script>
+                <div class="sidebar-shortcuts" id="sidebar-shortcuts">
+                    <div class="sidebar-shortcuts-large" id="sidebar-shortcuts-large">
+                        <button class="btn btn-success"><a href="{:U('Index/index')}" style="color:white;"><i class="ace-icon fa fa-signal"></i></a></button>
+                        <button class="btn btn-info"><a href="{:U('Index/index')}" style="color:white;"><i class="ace-icon fa fa-pencil"></i></a></button>
+                        <button class="btn btn-warning"><a href="{:U('Index/index')}" style="color:white;"><i class="ace-icon fa fa-users"></i></a></button>
+                        <button class="btn btn-danger"><a href="{:U('Index/index')}" style="color:white;"><i class="ace-icon fa fa-cogs"></i></a></button>
+                    </div>
+                    <div class="sidebar-shortcuts-mini" id="sidebar-shortcuts-mini">
+                        <span class="btn btn-success"></span>
+                        <span class="btn btn-info"></span>
+                        <span class="btn btn-warning"></span>
+                        <span class="btn btn-danger"></span>
+                    </div>
+                </div>
+                <!-- 第一级侧栏菜单 -->
+                <ul class="nav nav-list">
+                    <volist name="menu" id="v">
+                    <li <if condition="($v['id'] eq $current['id']) OR ($v['id'] eq $current['pid']) OR ($v['id'] eq $current['ppid'])">class="active  <if condition="$current['pid'] neq '0'">open</if>"</if>>
+                        <a href="<empty name="v.name">#<else />{:U($v['name'])}</empty>" <notempty name="v.children">class="dropdown-toggle"</notempty>>
+                            <i class="{$v.icon}"></i>
+							<span class="menu-text">{$v.title}</span>
+                            <notempty name="v.children">
+                            <b class="arrow fa fa-angle-down"></b>
+                            </notempty>
+                        </a>
+                        <b class="arrow"></b>
+                        <!-- 子菜单 -->
+                        <notempty name="v.children">
+                        <ul class="submenu">
+                            <volist name="v.children" id="vv">
+                            <li <if condition="($vv['id'] eq $current['id']) OR ($vv['id'] eq $current['pid'])">class="active <if condition="$current['ppid'] neq '0'">open</if>"</if>>
+                                <a href="<empty name="vv.children">{:U($vv['name'])}<else />#</empty>" <notempty name="vv.children">class="dropdown-toggle"</notempty>>
+                                    <i class="{$vv.icon}"></i>{$vv.title}<notempty name="vv.children"><b class="arrow fa fa-angle-down"></b></notempty>
+                                </a>
+                                <b class="arrow"></b>
+                                <!-- 第三集子菜单项目 -->
+                                <notempty name="vv.children">
+                                <ul class="submenu">
+                                    <volist name="vv.children" id="vvv">
+                                    <li <if condition="$vvv['id'] eq $current['id']">class="active"</if>>
+                                        <a href="{:U($vvv['name'])}"><i class="{$vvv.icon}"></i>{$vvv.title}</a>
+                                        <b class="arrow"></b>
+                                    </li>
+                                    </volist>
+                                </ul>
+                                </notempty>
+                            </li>
+                            </volist>
+                        </ul>
+                        </notempty>
+                    </li>
+                    </volist>
+                </ul>
+                <div class="sidebar-toggle sidebar-collapse" id="sidebar-collapse">
+                    <i class="ace-icon fa fa-angle-double-left" data-icon1="ace-icon fa fa-angle-double-left" data-icon2="ace-icon fa fa-angle-double-right"></i>
+                </div>
+                <script type="text/javascript">
+                	try{ace.settings.check('sidebar' , 'collapsed')}catch(e){}
+                </script>
+            </div>
+			<div class="main-content">
+				<div class="main-content-inner">
+					<!-- #section:basics/content.breadcrumbs -->
+                    <!-- 图标索引 -->
+                    <block name="page-breadcrumbs">
+                    <div class="breadcrumbs" id="breadcrumbs">
+						<script type="text/javascript">
+							try{ace.settings.check('breadcrumbs' , 'fixed')}catch(e){}
+						</script>
+						<ul class="breadcrumb">
+							<li>
+								<i class="ace-icon fa fa-home home-icon"></i>
+								<a href="{:U('Index/index')}">首页</a>
+							</li>
+							<li>
+								<a href="#">{$current['ptitle']}</a>
+							</li>
+                            <block name="breadcrumb_sub_title">
+							<li class="active">{$current['title']}</li>
+                            </block>
+						</ul><!-- /.breadcrumb -->
+					</div>
+                    </block>
+					<!-- /section:basics/content.breadcrumbs -->
+					<div class="page-content">
+                        <!-- tip 友情提示 -->
+                        <if condition="$current.tips neq ''">
+                        <div class="alert alert-block alert-success">
+                            <button type="button" class="close" >
+                                <i class="ace-icon fa fa-times"></i>
+                            </button>
+                            {$current.tips}
+                        </div>
+                        </if>
+                        <block name="page-content-row">
+						<!-- 页面主体内容部分 -->
+                        </block>
+					</div><!-- /.page-content -->
+				</div>
+			</div><!-- /.main-content -->
+            <div class="footer">
+                <div class="footer-inner">
+                    <div class="footer-content">
+                        <span class="bigger-120"><small>{$Think.config.copyright}&nbsp;{$Think.config.company}</small></span>
+                    </div>
+                </div>
+            </div>
+            <!-- 滚动条 上滚 -->
+            <a href="#" id="btn-scroll-up" class="btn-scroll-up btn btn-sm btn-inverse">
+                <i class="ace-icon fa fa-angle-double-up icon-only bigger-110"></i>
+            </a>
+		</div><!-- /.main-container -->
+		
+        <!--[if !IE]> -->
+        <script type="text/javascript">
+        	window.jQuery || document.write("<script src='__PUBLIC__/hyadmin/js/jquery.js'>"+"<"+"/script>");
+        </script>
+        <!-- <![endif]-->
+        <!--[if IE]>
+        <script type="text/javascript">
+            window.jQuery || document.write("<script src='__PUBLIC__/hyadmin/js/jquery1x.js'>"+"<"+"/script>");
+        </script>
+        <![endif]-->
+        <script type="text/javascript">
+        	if('ontouchstart' in document.documentElement) document.write("<script src='__PUBLIC__/hyadmin/js/jquery.mobile.custom.js'>"+"<"+"/script>");
+        </script>
+        <script src="__PUBLIC__/hyadmin/js/bootstrap.js"></script>
+        <script charset="utf-8" src="__PUBLIC__/kindeditor/kindeditor-min.js"></script>
+        <script charset="utf-8" src="__PUBLIC__/kindeditor/lang/zh_CN.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/bootbox.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/elements.scroller.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/elements.colorpicker.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/elements.fileinput.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/elements.typeahead.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/elements.wysiwyg.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/elements.spinner.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/elements.treeview.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/elements.wizard.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/elements.aside.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/ace.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/ace.ajax-content.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/ace.touch-drag.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/ace.sidebar.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/ace.sidebar-scroll-1.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/ace.submenu-hover.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/ace.widget-box.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/ace.settings.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/ace.settings-rtl.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/ace.settings-skin.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/ace.widget-on-reload.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/ace/ace.searchbox-autocomplete.js"></script>
+        
+        <script src="__PUBLIC__/hyadmin/js/jquery.dataTables.min.js"></script>
+        <script src="__PUBLIC__/hyadmin/js/dataTables.bootstrap.min.js"></script>
+        
+        <script src="__PUBLIC__/statics/jqueryuploadfile/js/vendor/jquery.ui.widget.js"></script>
+        <script src="__PUBLIC__/statics/jqueryuploadfile/js/jquery.iframe-transport.js"></script>
+        <script src="__PUBLIC__/statics/jqueryuploadfile/js/jquery.fileupload.js"></script>
+        <script src="__PUBLIC__/statics/select2/select2.js"></script>
+        <script src="__PUBLIC__/statics/select2/select2_locale_zh-CN.js"></script>
+        <script src="__PUBLIC__/statics/main.js"></script>
+    
+        <block name="currentPageJS">
+        <!-- 当前页面脚本部分 -->
+        </block>
+	</body>
+</html>

@@ -1,0 +1,56 @@
+﻿<extend name="Public:layout"/>
+<block name="page-content-row">
+
+		<i class="icon-ok green"></i>
+
+		欢迎使用
+		<strong class="green" style="font-size: 1.5em">
+			广东中信通
+		</strong>
+		云媒体中心管理系统.	
+	</div>
+	<div class="row">
+		<div class="col-xs-12">
+			<div class="space-6"></div>
+			<div class="col-xs-4">
+				<div style="text-align: center;padding-top: 2%;font-size: 1.5em" class="navbar">酒店数目</div>
+			</div>
+			<div class="col-xs-4">
+				<div style="text-align: center;padding-top: 2%;font-size: 1.5em" class="navbar">房间总数</div>
+			</div>
+			<div class="col-xs-4">
+				<div style="text-align: center;padding-top: 2%;font-size: 1.5em" class="navbar">在线设备数</div>
+			</div>
+		</div>
+
+		<div class="col-xs-12">
+			<div class="col-xs-4">
+				<div class="infobox infobox-green infobox-big infobox-dark">
+					<div class="infobox-data">
+						<span class="infobox-data-number">{$hotelCount}</span>
+					</div>
+				</div>
+			</div>
+			<div class="col-xs-4">
+				<div class="infobox infobox-green infobox-big infobox-dark">
+					<div class="infobox-data">
+						<span class="infobox-data-number">{$deviceCount}</span>
+					</div>
+				</div>
+			</div>
+			<div class="col-xs-4">
+				<div class="infobox infobox-green infobox-big infobox-dark">
+					<div class="infobox-data">
+						<span class="infobox-data-number">{$deviceOnlineCount}/{$deviceCount}</span>
+					</div>	
+				</div>
+				<div class="progress progress-striped">
+					<div class="progress-bar progress-bar-pink" style="width: {$percer}%">{$percer}%</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</block>
+<block name="currentPageJS">
+</block>

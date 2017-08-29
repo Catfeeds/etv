@@ -1,0 +1,224 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal" id="form" method="post" action="{:U('update')}" enctype="multipart/form-data">
+            <input type="hidden" name="id" value="{$vo.id}"/>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">栏目：</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="name" id="title" placeholder="栏目" class="col-xs-10 col-sm-5" value="{$vo.name}">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">模型：</label>
+                    <div class="col-sm-9">
+                        <select name="modeldefineid" id="modeldefineid" class="rcol-xs-10 col-sm-5">
+                           <volist name="modeList" id="md">
+                            <option value="{$md.id}" <eq name="vo.modeldefineid" value="$md.id">selected</eq>>{$md.name}</option>
+                        </volist>
+                        </select>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red">*</span>必选</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">语言：</label>
+                    <div class="col-sm-9">
+                        <select name="langcodeid" id="langcodeid" class="rcol-xs-10 col-sm-5" >
+                            <option value="">请选择</option>
+                            <volist name="langList" id="langList">
+                                <option value="{$langList.id}" <eq name="vo.langcodeid" value="$langList.id">selected</eq>>{$langList.name}</option>
+                            </volist>
+                        </select>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必选</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-6">专题：</label>
+                    <div class="col-sm-9">
+                        <select name="groupid" id="groupid" class="rcol-xs-10 col-sm-5">
+                            <option value="">请选择</option>
+                            <volist name="groupList" id="gl">
+                            <option value="{$gl.id}" <eq name="vo.groupid" value="$gl.id">selected</eq>>{$gl.title}</option>
+                        </volist>
+                        </select>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必选</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-6">排序：</label>
+                    <div class="col-sm-9">
+                       <input type="text" name="sort" class="col-xs-10 col-sm-5" value="{$vo.sort}" />
+                       <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-4">栏目图标</label>
+                    <div class="col-sm-9">
+                        <img id="image" class="img-polaroid" src="{:C('UPLOADPATH')}{$vo.icon}" style="width:80px;height:80px;background:#ccc;" />
+                        <input type="hidden" name="icon" value="{$vo.icon}">
+                        <input type="hidden" name="size" value="{$vo.size|mbToKb}" id="size">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-5">图标上传</label>
+                    <div class="col-sm-9">
+                        <span class="btn btn-success fileinput-button" style="text-align:left;">
+                            <span>请选择图标&nbsp;&nbsp;<i class="icon-upload icon-white"></i></span>
+                            <input id=fileupload name="fileupload"  type="file" name="fileupload" />
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-6">&nbsp;</label>
+                    <div class="col-sm-9">
+                        <span class="col-xs-10 col-sm-12">目前支持'jpg'，'png'，'jpeg'格式的图片</span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7">上传进度</label>
+                    <div class="col-sm-9" style="width:40%;">
+                        <div class="progress progress-striped active" role="progressbar" aria-valuemin="10" aria-valuemax="100" aria-valuenow="0">
+                            <div id="weixin_progress" class="progress-bar progress-bar-success" style="width:0%;"></div>
+                        </div> 
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="col-md-offset-2 col-md-9">
+                    <button class="btn btn-info submit" type="button">
+                        <i class="icon-ok bigger-110"></i>提交
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="btn btn-primary" type="reset">
+                        <i class="icon-undo bigger-110"></i>重置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+<script type="text/javascript">
+    $(function () {
+        $(".btn-info.submit").click(function(){
+            var name = $("#name").val();
+            var modeldefineid = $("#modeldefineid").val();
+            var langcodeid = $("#langcodeid").val();
+            var groupid = $("#groupid").val();
+            var sort = $("input[name='sort']").val();
+            var re = /^[1-9]\d*|0$/;
+            if(name==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "栏目必须填写！", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(modeldefineid==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "请选择模型", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(langcodeid==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "请选择语言", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(groupid==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "请选择专题", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(!re.test(sort)){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "请正确填写排序", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            $("#form").submit();
+        });
+        $("#fileupload").fileupload({
+            url: "{:U('upload_icon?name=fileupload')}",
+            dataType: 'json',
+            sequentialUploads: true  
+        }).bind('fileuploaddone', function (e, data) {  
+            var json = data.result;
+            if(json.status==1){
+                $("input[name=icon]").val(json.storename);
+                $("#size").val(json.size);
+                $("img#image").attr("src","{:C('UPLOADPATH')}"+json.storename);
+            }else if(json.status == 0){
+                $("#weixin_progress").css('width','0');  
+                $("#weixin_progress").html('0');
+            }
+            mainAjaxMsg(json.status,json.info);
+        }).bind('fileuploadprogress', function (e, data) {  
+            var progress = parseInt(data.loaded / data.total * 100, 10);  
+            $("#weixin_progress").css('width',progress + '%');  
+            $("#weixin_progress").html(progress + '%');  
+        });
+    });
+</script>
+</block>

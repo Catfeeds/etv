@@ -1,0 +1,217 @@
+<extend name="Public:layout"/>
+
+<block name="page-content-row">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="row">
+                <a class="label label-xlg label-primary" href="{:U('Carousel/resource_add')}?category_id={$current_category['id']}&ctype={$ctype}&incontroller={$incontroller}"><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;添加</a>
+                <a class="label label-xlg label-success" href="javascript:;" id="edit" val="{:U('Carousel/resource_edit')}"><i class="ace-icon fa fa-pencil bigger-100"></i>&nbsp;修改</a>
+                <a class="label label-xlg label-info" href="javascript:;" id="unlock" val="{:U('Carousel/resource_unlock')}" ><i class="ace-icon fa fa-unlock bigger-100"></i>&nbsp;启用</a>
+                <a class="label label-xlg label-warning" href="javascript:;" id="lock" val="{:U('Carousel/resource_lock')}"><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;禁用</a>
+                <a class="label label-xlg label-danger" href="javascript:;" id="delete" val="{:U('Carousel/resource_delete')}"><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除</a>
+                <a class="label label-xlg label-pink" href="javascript:;" id="sort"><i class="ace-icon fa fa-sort bigger-100"></i>&nbsp;更新排序</a>
+                <a class="label label-xlg label-purple" href="{$prevcontroller}?hid={$current_category['hid']}"><i class="ace-icon fa fa-undo bigger-100"></i>&nbsp;返回</a>
+            </div>
+            <div class="space-8"></div>
+            <div class="row">
+                <form id="form" method="post" action="">
+                    <table class="table table-striped table-bordered">
+                      <thead>
+                        <tr>
+                          <th class="center"><input class="check-all" type="checkbox" value=""></th>
+                          <th>资源标题</th>
+                          <th>资源文件</th>
+                          <th>文件类型</th>
+                          <th>资源描述</th>
+                          <th>视频封面</th>
+                          <th>排序</th>
+                          <th>上传时间</th>
+                          <th>状态</th>
+                          <th>审核状态</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      <volist name="list" id="val">
+                        <tr>
+                          <td class="center"><input class="aids" type="checkbox" name="ids[]" value="{$val['id']}"></td>
+                          <td>{$val['title']}</td>
+                          <td>
+                          <a href="{:C('UPLOADPATH')}{$val['filepath']}" target="_blank">{$val['filepath']}</a>
+                          </td>
+                          <td>{$val['file_type']|get_resource_filetype}</td>
+                          <td>{$val['intro']|str_cut=25}</td>
+                          <td>
+                          <if condition="$val['video_image'] neq ''">
+                          <img src="{:C('UPLOADPATH')}{$val['video_image']}" style="width:45px;height:45px;"/>
+                          </if>
+                          </td>
+                          <td><input type="text" class="sort" rowid="{$val['id']}" value="{$val['sort']}" style="width:30px;"/></td>
+                          <td>{$val['upload_time']}</td>
+                          <td>{$val['status']|get_status}</td>
+                          <td>{$val['audit_status']|get_audit_status}</td>
+                        </tr>
+                      </volist>
+                      </tbody>
+                    </table>
+                </form>
+                {$page}
+            </div>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+    <script type="text/javascript">
+    $(function(){
+		$(".check-all").click(function(){
+			$(".aids").prop("checked", this.checked);
+		});
+		$(".aids").click(function(){
+			var option = $(".aids");
+			option.each(function(i){
+				if(!this.checked){
+					$(".check-all").prop("checked", false);
+					return false;
+				}else{
+					$(".check-all").prop("checked", true);
+				}
+			});
+		});
+		$("#edit").click(function(){
+			var len = $("input[name='ids[]']:checked").length;
+      if(len!=1){
+          bootbox.confirm({
+          title: "系统提示",
+          message: "仅能对一条数据进行操作", 
+          callback:function(result){},
+              buttons: {
+                  "cancel" : {"label" : "取消"},
+                  "confirm" : {
+                      "label" : "确定",
+                      "className" : "btn-danger"
+                  }
+              }
+          });
+          return;
+      }
+			$("#form").attr("action",$("#edit").attr("val")+"?category_id={$current_category['id']}");
+			$("#form").submit();
+		});
+		$("#sort").click(function(){
+			var menuid = [];
+		    var remarks  = [];
+		    var ctype = "{$ctype}";
+
+		    $.each($(".sort"),function(index){
+		    	menuid[index]=$(this).attr("rowid");
+		    	remarks[index]=$(this).val();
+			});
+
+			$.ajax({
+				url: "{:U('Carousel/resource_sort')}",
+				type: 'POST',
+				dataType: 'json',
+				data: {'menuid': menuid.join(),'remarks':remarks.join(),'ctype':ctype},
+			})
+			.done(function(data) {
+				if(data == true){
+                    var str = "更新成功";
+                }else{
+                    var str = "更新失败";
+                }
+                bootbox.confirm({
+                    title: "更新排序",
+                    message: str, 
+                    callback:function(result){},
+                    buttons: {
+                        "cancel" : {"label" : "取消"},
+                        "confirm" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+            })
+            .fail(function() {
+                console.log("error");
+            })
+            .always(function() {
+                console.log("complete");
+            });
+		});
+
+		$("#unlock").click(function(){
+			bootbox.confirm({
+				title: "系统提示",
+				message: "是否要启用所选资源？", 
+				callback:function(result){
+					if(result){
+						$("#form").attr("action",$("#unlock").attr("val")+"?category_id={$current_category['id']}&ctype={$ctype}&gocontroller={$gocontroller}");
+						$("#form").submit();
+					}
+				},
+				buttons: {
+					"cancel" : {"label" : "取消"},
+					"confirm" : {
+							"label" : "确定",
+							"className" : "btn-danger"
+						}
+				}
+			});
+		});
+		$("#lock").click(function(){
+			bootbox.confirm({
+				title: "系统提示",
+				message: "是否要禁用所选资源？", 
+				callback:function(result){
+					if(result){
+						$("#form").attr("action",$("#lock").attr("val")+"?category_id={$current_category['id']}&ctype={$ctype}&gocontroller={$gocontroller}");
+						$("#form").submit();
+					}
+				},
+				buttons: {
+					"cancel" : {"label" : "取消"},
+					"confirm" : {
+							"label" : "确定",
+							"className" : "btn-danger"
+						}
+				}
+			});
+		});
+		$("#delete").click(function(){
+      var len = $("input[name='ids[]']:checked").length;
+      if(len!=1){
+          bootbox.confirm({
+          title: "系统提示",
+          message: "仅能对一条数据进行操作", 
+          callback:function(result){},
+              buttons: {
+                  "cancel" : {"label" : "取消"},
+                  "confirm" : {
+                      "label" : "确定",
+                      "className" : "btn-danger"
+                  }
+              }
+          });
+          return;
+      }
+			bootbox.confirm({
+				title: "系统提示",
+				message: "是否要删除所选资源？", 
+				callback:function(result){
+					if(result){
+						$("#form").attr("action",$("#delete").attr("val")+"?category_id={$current_category['id']}&ctype={$ctype}&gocontroller={$gocontroller}");
+						$("#form").submit();
+					}
+				},
+				buttons: {
+					"cancel" : {"label" : "取消"},
+					"confirm" : {
+							"label" : "确定",
+							"className" : "btn-danger"
+						}
+				}
+			});
+		});
+	})
+    </script>
+</block>

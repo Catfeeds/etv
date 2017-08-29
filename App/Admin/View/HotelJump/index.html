@@ -1,0 +1,215 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="row">
+                <form class="form-inline" action="{:U('index')}" method="post">
+                    <label class="inline">酒店：</label>
+                        <if condition="$personhid neq ''">
+                        <select id="hid" name="hid" class="select2" style="width:300px;">
+                          <option value=""></option>
+                          <option value="hid-1gg">{查询所有酒店}</option>
+                          <volist name="personhid" id="phid">
+                            <option value="{$phid}" <if condition="$hid eq $phid">selected</if> >{$phid|getHotelnameByHid}</option>
+                          </volist>
+                        </select>
+                         <else />
+                        <select id="hid" name="hid" class="select2" style="width:300px;">
+                            <option></option>
+                            <option value="hid-1gg">{查询所有酒店}</option>
+                            {$pHotel}
+                        </select>
+                        </if>
+                    <button type="submit" class="btn btn-purple btn-sm">
+                        <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>查询
+                    </button>
+                </form>
+            </div>
+            <div class="space-8"></div>
+            <div class="row">
+                <a class="label label-xlg label-primary" href="{:U('add')}" ><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;添加</a>
+                <a class="label label-xlg label-success" href="javascript:;" id="edit" val="{:U('edit')}" ><i class="ace-icon fa fa-pencil bigger-100"></i>&nbsp;修改</a>
+                <a class="label label-xlg label-info" href="javascript:;" id="unlock" val="{:U('unlock')}" ><i class="ace-icon fa fa-unlock bigger-100"></i>&nbsp;启用</a>
+                <a class="label label-xlg label-warning" href="javascript:;" id="lock" val="{:U('lock')}" ><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;禁用</a>
+                <a class="label label-xlg label-danger" href="javascript:;" id="delete" val="{:U('delete')}" ><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除</a>
+            </div>
+            <div class="space-8"></div>
+            <div class="row">
+                <form id="form" method="post" action="">
+                    <table class="table table-striped table-bordered">
+                      <thead>
+                        <tr>
+                          <th class="center"><input class="check-all" type="checkbox" value=""></th>
+                          <th class="col-xs-1">酒店状态</th>
+                          <th class="col-xs-2">酒店名称</th>
+                          <th class="col-xs-3">视频文件</th>
+                          <th class="col-xs-4">跳转设置</th>
+                          <th class="col-xs-1">视频审核状态</th>
+                          <if condition="$list[0]['video'] neq ''">
+                          <th class="col-xs-1">状态</th>
+                          </if>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      <volist name="list" id="val">
+                        <tr>
+                          <td class="center"><input class="aids" type="checkbox" name="ids[]" value="{$val['id']}"></td>
+                          <td>{$val['hid']}</td>
+                          <td>{$val['hid']|getHotelnameByHid}</td>
+                          <td>
+                          <if condition="$val['video'] neq ''">
+                          <a href="{:C('UPLOADPATH')}{$val.video}" target="_blank">{$val['video']}</a>
+                          <else/>无
+                          </if>
+                          </td>
+                          <td>{$val['jumpinfo']}</td>
+                          <td>{$val['audit_status']|get_audit_status}</td>
+                          <if condition="$val['video'] neq ''">
+                          <th>{$val['status']|get_status}</th>
+                          </if>
+                        </tr>
+                      </volist>
+                      </tbody>
+                    </table>
+                </form>
+                {$page}
+            </div>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+    <script type="text/javascript">
+    $('#hid').select2({ placeholder : '--请选择--' });
+    $(function(){
+        $(".check-all").click(function(){
+            $(".aids").prop("checked", this.checked);
+        });
+        $(".aids").click(function(){
+            var option = $(".aids");
+            option.each(function(i){
+                if(!this.checked){
+                    $(".check-all").prop("checked", false);
+                    return false;
+                }else{
+                    $(".check-all").prop("checked", true);
+                }
+            });
+        });
+        $("#edit").click(function(){
+            var len = $("input[name='ids[]']:checked").length;
+            if(len!=1){
+                bootbox.confirm({
+                title: "系统提示",
+                message: "仅能对一条数据进行操作", 
+                callback:function(result){},
+                    buttons: {
+                        "cancel" : {"label" : "取消"},
+                        "confirm" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            $("#form").attr("action",$("#edit").attr("val"));
+            $("#form").submit();
+        });
+        $("#unlock").click(function(){
+            var hadvideo = "{$list['0']['video']}";
+            if($.trim(hadvideo)==""){
+                bootbox.confirm({
+                    title: "系统提示",
+                    message: "此记录无需启用功能", 
+                    callback:function(result){
+                        
+                    },
+                    buttons: {
+                        "cancel" : {"label" : "取消"},
+                        "confirm" : {
+                                "label" : "确定",
+                                "className" : "btn-danger"
+                            }
+                    }
+                });
+                return;
+            }
+
+            bootbox.confirm({
+                title: "系统提示",
+                message: "是否要启用跳转视频？", 
+                callback:function(result){
+                    if(result){
+                        $("#form").attr("action",$("#unlock").attr("val"));
+                        $("#form").submit();
+                    }
+                },
+                buttons: {
+                    "cancel" : {"label" : "取消"},
+                    "confirm" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                }
+            });
+        });
+        $("#lock").click(function(){
+            var hadvideo = "{$list['0']['video']}";
+            if($.trim(hadvideo)==""){
+                bootbox.confirm({
+                    title: "系统提示",
+                    message: "此记录无需禁用功能", 
+                    callback:function(result){
+                        
+                    },
+                    buttons: {
+                        "cancel" : {"label" : "取消"},
+                        "confirm" : {
+                                "label" : "确定",
+                                "className" : "btn-danger"
+                            }
+                    }
+                });
+                return;
+            }
+
+            bootbox.confirm({
+                title: "系统提示",
+                message: "是否要禁用跳转视频？", 
+                callback:function(result){
+                    if(result){
+                        $("#form").attr("action",$("#lock").attr("val"));
+                        $("#form").submit();
+                    }
+                },
+                buttons: {
+                    "cancel" : {"label" : "取消"},
+                    "confirm" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                }
+            });
+        });
+        $("#delete").click(function(){
+            bootbox.confirm({
+                title: "系统提示",
+                message: "是否要删除跳转视频？", 
+                callback:function(result){
+                    if(result){
+                        $("#form").attr("action",$("#delete").attr("val"));
+                        $("#form").submit();
+                    }
+                },
+                buttons: {
+                    "cancel" : {"label" : "取消"},
+                    "confirm" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                }
+            });
+        });
+    })
+    </script>
+</block>

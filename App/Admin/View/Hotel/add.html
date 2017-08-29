@@ -1,0 +1,463 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal" id="form" method="post" action="{:U('update')}">
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-0">上级 </label>
+                    <div class="col-sm-9">
+                        <select id="pid" name="pid" class="col-xs-10 col-sm-5">
+							<option value="0">无上级</option>
+							{$pHotel}
+						</select>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle">选择客户上级，默认无上级。</span>
+                        </span>
+                     </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">客户名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="name" id="name" placeholder="客户名称" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-2">酒店名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="hotelname" id="hotelname" placeholder="酒店名称" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-3">酒店编号</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="hid" id="hid" placeholder="酒店编号" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-4">皮肤UI</label>
+                    <div class="col-sm-9">
+                        <select id="skinid" name="skinid" class="col-xs-10 col-sm-5">
+                            <option value="0">--请选择--</option>
+                            <volist name="skinlist" id="sl">
+                                <option value="{$sl['id']}">{$sl['name']}</option>
+                            </volist>
+                         </select>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>终端使用的皮肤UI，请选择合适版本</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-4">Launcher皮肤</label>
+                    <div class="col-sm-9">
+                        <select id="skinid" name="launcher_skinid" class="col-xs-10 col-sm-5">
+                            <option value="0">--请选择--</option>
+                            <volist name="launcherSkin" id="sl">
+                                <option value="{$sl['id']}">{$sl['name']}</option>
+                            </volist>
+                         </select>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>Launcher网页版皮肤,该功能暂未开放</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-5">联系人</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="manager" id="manager" placeholder="联系人" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-6">联系人电话</label>
+                    <div class="col-sm-9">
+                        <input type="number" name="mobile" id="mobile" placeholder="联系人电话" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7">酒店电话</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="tel" id="tel" placeholder="酒店电话" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-8">所处省市</label>
+                    <div class="col-sm-9">
+                        <select id="province" name="provinceid" class="col-xs-10 col-sm-2" onchange="changeCity()">
+                            <option value="">省份</option>
+                            <volist name="plist" id="pl">
+                            <option value="{$pl.id}">{$pl.name}</option>
+                            </volist>
+                        </select>
+                        <select id="city" name="cityid" class="col-xs-10 col-sm-2" >
+                            <option value="">城市</option>
+                        </select>
+                        <span class="help-inline col-xs-12 col-sm-8">
+                            <span class="middle"><span class="red"> * </span>必选</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-9">地址</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="address" id="address" placeholder="地址" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-9">酒店容量</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="space" id="space" placeholder="酒店设备容量" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle">(MB)</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-10">简介</label>
+                    <div class="col-sm-9">
+                        <textarea name="intro" id="intro" placeholder="酒店简介" class="col-xs-10 col-sm-5" rows="5"></textarea>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                
+                <div style="padding:3px 0px;border-bottom: 1px dotted #e2e2e2;"></div>
+                <h4>酒店管理员帐号</h4><hr>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">用户名</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="user" id="user" placeholder="用户名" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">电话号码</label>
+                    <div class="col-sm-9">
+                        <input type="number" name="phone" id="phone" placeholder="电话号码" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">密码</label>
+                    <div class="col-sm-9">
+                        <input type="password" name="password" id="password" placeholder="密码" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">确认密码</label>
+                    <div class="col-sm-9">
+                        <input type="password" name="password2" id="password2" placeholder="再次填写相同密码" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="col-md-offset-2 col-md-9">
+                    <button class="btn btn-info submit" type="button">
+                        <i class="icon-ok bigger-110"></i>提交
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="btn btn-primary" type="reset">
+                        <i class="icon-undo bigger-110"></i>重置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+	<script type="text/javascript">
+	$(function() {
+		$(".btn-info.submit").click(function(){
+            var name = $("#name").val();
+            var hotelname = $("#hotelname").val();
+            var hid = $("#hid").val();
+            var skinid = $("#skinid").val();
+            var manager = $("#manager").val();
+            var mobile = $("#mobile").val();
+            var tel = $("#tel").val();
+            var province = $("#province").val();
+            var city = $("#city").val();
+            var address = $("#address").val();
+            var user = $("#user").val();
+            var phone = $("#phone").val();
+            var password = $("#password").val();
+            var password2 = $("#password2").val();
+            if(name==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "客户名称必须填写", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(hotelname==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "酒店名称必须填写", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(hid==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "酒店编号必须填写", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(skinid==0){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "皮肤UI必须选择", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(manager==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "酒店联系人必须填写", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(mobile==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "酒店联系人联系电话必须填写", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(province==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "省份必须选择", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(city==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "城市必须选择", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(address==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "地址必须填写", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(user==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "酒店管理员姓名必须填写", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(phone==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "酒店管理员电话号码必须填写", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(password==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "酒店管理员登陆密码不能为空", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(password2==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "酒店管理员确认密码不能为空", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(password != password2){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "两次密码不一致", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            $.ajax({
+                url: "{:U('checkUsername')}",
+                type: 'POST',
+                dataType: 'json',
+                data: {'user': user},
+            })
+            .done(function(data) {
+                if(data==0){
+                    bootbox.dialog({
+                        title: '友情提示：',
+                        message: "该酒店管理员名称已存在", 
+                        buttons: {
+                            "success" : {
+                                "label" : "确定",
+                                "className" : "btn-danger"
+                            }
+                        }
+                    });
+                    return;
+                }
+                $("#form").submit();
+            });
+            
+        });
+	});
+	function changeCity() {
+        var pid = parseInt($("#province").val());
+        $.ajax({
+            type : "get",
+            url : "{:U('get_city')}?pid=" + pid,
+            dataType : "json",
+            success : function(jsondata) {
+                var options = '<option value="">城市</option>';
+                if (jsondata) {
+                    $.each(jsondata, function(i, item) {
+                        options += '<option value="'+item.id+'">' + item.name
+                                + '</option>';
+                    });
+                }
+                $("#city").html(options);
+            },
+            error : function() {
+                alert("ajaxError");
+            }
+        });
+    }
+	</script>
+</block>

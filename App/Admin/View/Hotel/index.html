@@ -1,0 +1,364 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="row">
+                <form class="form-inline" action="{:U('index')}" method="post">
+                    <span><label style="width:auto;">省市：</label></span>
+                    <span>
+                      <select id="province" name="provinceid" style="width:120px;" onchange="changeCity()">
+                          <option value=''>省份</option>
+                          <volist name="plist" id="provinceList">
+                          <option value="{$provinceList.id}" <eq name="provinceid" value="$provinceList.id">selected</eq>>{$provinceList.name}</option>
+                          </volist>
+                      </select>
+                    </span>
+                    <span>
+                    <select id="city" name="cityid" style="width:120px;">
+                        <option value=''>市区</option>
+                        <volist name="clist" id="cityList">
+                        <option value="{$cityList.id}" <eq name="cityid" value="$cityList.id">selected</eq>>{$cityList.name}</option>
+                        </volist>
+                    </select>
+                    </span>
+                    &nbsp;&nbsp;<label class="inline">酒店名称：</label>
+                    <input type="text" name="hotelname" class="form-control" placeholder="酒店名称" value="{$hotelname}">
+                    &nbsp;&nbsp;<label class="inline">客户名称：</label>
+                    <input type="text" name="name" class="form-control" placeholder="客户名称" value="{$name}">
+                    <if condition="$personhid neq ''">
+                      &nbsp;&nbsp;<label class="inline">酒店编号：</label>
+                      <select name="hid" style="width: 120px;">
+                        <option value=""></option>
+                        <volist name="personhid" id="phid">
+                          <option value="{$phid}" <if condition="$hid eq $phid">selected</if> >{$phid|getHotelnameByHid}</option>
+                        </volist>
+                      </select>
+                    <else />
+                      &nbsp;&nbsp;<label class="inline">酒店编号：</label>
+                      <input type="text" name="hid" class="form-control" placeholder="酒店编号" value="{$hid}">
+                    </if>
+                   
+                    <button type="submit" class="btn btn-purple btn-sm">
+                        <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>查询
+                    </button>
+                </form>
+            </div>
+            <div class="space-8"></div>
+            <div class="row">
+                <a class="label label-xlg label-primary" href="{:U('add')}" ><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;添加</a>
+                <a class="label label-xlg label-success" href="javascript:;" id="edit" val="{:U('edit')}" ><i class="ace-icon fa fa-pencil bigger-100"></i>&nbsp;修改</a>
+                <a class="label label-xlg label-info" href="javascript:;" id="unlock" val="{:U('unlock')}" ><i class="ace-icon fa fa-unlock bigger-100"></i>&nbsp;启用</a>
+                <a class="label label-xlg label-warning" href="javascript:;" id="lock" val="{:U('lock')}" ><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;禁用</a>
+                <a class="label label-xlg label-danger" href="javascript:;" id="delete" val="{:U('delete')}" ><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除</a>
+                <a class="label label-xlg label-yellow" href="javascript:;" id="copy"><i class="ace-icon fa fa-leaf bigger-100"></i>&nbsp;复制酒店</a>
+                <a class="label label-xlg label-primary" href="javascript:;" id="relatetopic" val="{:U('relatetopic')}"><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;关联专题</a>
+                <a class="label label-xlg label-primary" href="javascript:;" id="relatechg" val="{:U('relatechg')}"><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;关联集团栏目</a>
+                <a class="label label-xlg label-success" href="javascript:;" target="_blank" id="launchershow"><i class="glyphicon glyphicon-film"></i>&nbsp;Launcher演示</a>
+            </div>
+            <div class="space-8"></div>
+            <div class="row">
+                <form id="form" method="post" action="">
+                    <table class="table table-striped table-bordered">
+                      <thead>
+                        <tr>
+                          <th class="center"><input class="check-all" type="checkbox" value=""></th>
+                          <th>酒店名称</th>
+                          <th>客户名称</th>
+                          <th>客户上级</th>
+                          <th>酒店编号</th>
+                          <th>联系人</th>
+                          <th>联系人电话</th>
+                          <th>酒店位置</th>
+                          <th>皮肤</th>
+                          <th>在线设备</th>
+                          <th>申请容量(MB)</th>
+                          <th>状态</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      <volist name="list" id="val">
+                        <tr>
+                          <td class="center"><input class="aids" type="checkbox" pid="{$val['pid']}" name="ids[]" value="{$val['id']}"></td>
+                          <td>{$val['hotelname']}</td>
+                          <td>{$val['name']}</td>
+                          <!-- getHotelCustomerNameById 根据ID返回酒店业务名称 -->
+                          <td>{$val['pid']|getHotelCustomerNameById}</td>
+                          <td>{$val['hid']}</td>
+                          <td>{$val['manager']}</td>
+                          <td>{$val['mobile']}</td>
+                          <!-- 获取行政区划名称 -->
+                          <td>{$val.provinceid|get_regionname}&nbsp;{$val.cityid|get_regionname}</td>
+                          <!-- 获取皮肤名称 -->
+                          <td>{$val.skinid|get_skin_by_id}</td>
+                          <!-- 获取当前酒店在线设备数 -->
+                          <td>{$val.hid|get_online_device_online}</td>
+                          <td>{$val.space}</td>
+                          <!-- 返回状态名称 -->
+                          <td>{$val['status']|get_status}</td>
+                        </tr>
+                      </volist>
+                      </tbody>
+                    </table>
+                </form>
+                {$page}
+            </div>
+        </div>
+    </div>
+<!--复制酒店模态框 (COPYMODAL)-->
+   <div class="modal fade" id="COPYMODAL" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+   <form class="form-horizontal ajaxForm2" name="pushxml" method="post" action="{:U('copy')}">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                  <h4 class="modal-title" id="myModalLabel">酒店复制</h4>
+              </div>
+              <div class="modal-body">
+                  <div class="row">
+                      <div class="col-xs-12">
+                          <div class="form-group">
+                              <label class="col-sm-2 control-label no-padding-right" for="form-field-1">酒店编号</label>
+                              <div class="col-sm-9">
+                                  <input type="text" name="hid" class="col-sm-9">
+                              </div>
+                              <input type="hidden" name="copyid" class="copyid" value="">
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary" id="xmlsubmit">提交</button>
+                  <button class="btn btn-info" type="reset" id="xmlrest">重置</button>
+                  <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+              </div>
+          </div>
+      </div>
+   </form>
+   </div>
+<!---/ .COPYMODAL-->
+</block>
+<block name="currentPageJS">
+  <script type="text/javascript">
+  $(function(){
+    // 酒店全选
+		$(".check-all").click(function(){
+			$(".aids").prop("checked", this.checked);
+		});
+    //酒店单选
+		$(".aids").click(function(){
+			var option = $(".aids");
+			option.each(function(i){
+				if(!this.checked){
+					$(".check-all").prop("checked", false);
+					return false;
+				}else{
+					$(".check-all").prop("checked", true);
+				}
+			});
+		});
+    //提交某条记录的修改
+		$("#edit").click(function(){
+      var len = $("input[name='ids[]']:checked").length;
+      if(len!=1){
+        bootbox.confirm({
+          title: "系统提示",
+          message: "仅能对一条数据进行操作", 
+          callback:function(result){},
+            buttons: {
+                "cancel" : {"label" : "取消"},
+                "confirm" : {
+                    "label" : "确定",
+                    "className" : "btn-danger"
+                }
+            }
+        });
+        return;
+      }
+			$("#form").attr("action",$("#edit").attr("val"));
+			$("#form").submit();
+		});
+    $("#relatetopic").click(function(){
+      $("#form").attr("action",$("#relatetopic").attr("val"));
+      $("#form").submit();
+    });
+
+    //集团栏目关联
+    $("#relatechg").click(function() {
+      var checkinput = $("input[name='ids[]']:checked");
+      var len = checkinput.length;
+      if(len!=1){
+          bootbox.confirm({
+          title: "系统提示",
+          message: "仅能对一条数据进行操作", 
+          callback:function(result){},
+              buttons: {
+                  "cancel" : {"label" : "取消"},
+                  "confirm" : {
+                      "label" : "确定",
+                      "className" : "btn-danger"
+                  }
+              }
+          });
+          return;
+      }
+      var pid = checkinput.attr("pid");
+      if(pid==0){
+        bootbox.confirm({
+          title: "系统提示",
+          message: "仅能集团子酒店进行操作", 
+          callback:function(result){},
+              buttons: {
+                  "cancel" : {"label" : "取消"},
+                  "confirm" : {
+                      "label" : "确定",
+                      "className" : "btn-danger"
+                  }
+              }
+          });
+          return;
+      }
+      $("#form").attr("action",$("#relatechg").attr("val"));
+      $("#form").submit();
+    });
+
+
+		$("#unlock").click(function(){
+			bootbox.confirm({
+				title: "系统提示",
+				message: "是否要启用所选酒店？", 
+				callback:function(result){
+					if(result){
+						$("#form").attr("action",$("#unlock").attr("val"));
+						$("#form").submit();
+					}
+				},
+				buttons: {
+					"cancel" : {"label" : "取消"},
+					"confirm" : {
+							"label" : "确定",
+							"className" : "btn-danger"
+						}
+				}
+			});
+		});
+		$("#lock").click(function(){
+			bootbox.confirm({
+				title: "系统提示",
+				message: "是否要禁用所选酒店？", 
+				callback:function(result){
+					if(result){
+						$("#form").attr("action",$("#lock").attr("val"));
+						$("#form").submit();
+					}
+				},
+				buttons: {
+					"cancel" : {"label" : "取消"},
+					"confirm" : {
+							"label" : "确定",
+							"className" : "btn-danger"
+						}
+				}
+			});
+		});
+		$("#delete").click(function(){
+			bootbox.confirm({
+				title: "系统提示",
+				message: "是否要删除所选酒店？", 
+				callback:function(result){
+					if(result){
+						$("#form").attr("action",$("#delete").attr("val"));
+						$("#form").submit();
+					}
+				},
+				buttons: {
+					"cancel" : {"label" : "取消"},
+					"confirm" : {
+							"label" : "确定",
+							"className" : "btn-danger"
+						}
+				}
+			});
+		});
+    //复制酒店信息
+    $("#copy").click(function(){
+        var len = $("input[name='ids[]']:checked").length;
+        if(len>1){
+            bootbox.confirm({
+                title: "系统提示",
+                message: "针对一家酒店进行复制，请不要多选！", 
+                callback:function(result){},
+                buttons: {
+                    "cancel" : {"label" : "取消"},
+                    "confirm" : {
+                        "label" : "确定",
+                        "className" : "btn-danger"
+                    }
+                }
+            });
+        }else if(len<1){
+            bootbox.confirm({
+                title: "系统提示",
+                message: "请选择需要复制的酒店", 
+                callback:function(result){},
+                buttons: {
+                    "cancel" : {"label" : "取消"},
+                    "confirm" : {
+                        "label" : "确定",
+                        "className" : "btn-danger"
+                    }
+                }
+            });
+        }else{
+            var ids = $("input[name='ids[]']:checked").val();
+            $(".copyid").attr('value', ids);
+            $('div#COPYMODAL').modal('show');  
+        }
+    });
+    //launcher演示
+    $("#launchershow").click(function(event) {
+      var checkinput = $("input[name='ids[]']:checked");
+      var len = checkinput.length;
+      if(len!=1){
+          bootbox.confirm({
+          title: "系统提示",
+          message: "仅能对一条数据进行操作", 
+          callback:function(result){},
+              buttons: {
+                  "cancel" : {"label" : "取消"},
+                  "confirm" : {
+                      "label" : "确定",
+                      "className" : "btn-danger"
+                  }
+              }
+          });
+          return;
+      }
+      var ids = checkinput.val();
+      var $url = "{:U('Templet/gettemplet')}?id="+ids;
+      $(this).attr("href",$url);
+    });
+   
+	});
+function changeCity() {
+    var pid = parseInt($("#province").val());
+    $.ajax({
+        type : "get",
+        url : "{:U('get_city')}?pid=" + pid,
+        dataType : "json",
+        success : function(jsondata) {
+            var options = '<option value="">市区</option>';
+            if (jsondata) {
+                $.each(jsondata, function(i, item) {
+                    options += '<option value="'+item.id+'">' + item.name
+                            + '</option>';
+                });
+            }
+            $("#city").html(options);
+        },
+        error : function() {
+            alert("ajaxError");
+        }
+    });
+}
+    </script>
+</block>

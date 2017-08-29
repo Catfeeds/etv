@@ -1,0 +1,46 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+<div class="row">
+                            <div class="col-xs-12">
+                                <!-- PAGE CONTENT BEGINS -->
+                                    <form class="form-horizontal" id="form" role="form" method="post" action="{:U('update')}">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label no-padding-right" for="form-field-1">系统名称 </label>
+                                        <div class="col-sm-9">
+                                            <input type="text" name="system_name" id="system_name" placeholder="系统名称" class="col-xs-10 col-sm-5" value="{$Think.CONFIG.system_name}">
+                                        </div>
+                                    </div>
+                                    <div class="space-4"></div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label no-padding-right" for="form-field-1">公司名称 </label>
+                                        <div class="col-sm-9">
+                                            <input type="text" name="company" id="company" placeholder="公司名称" class="col-xs-10 col-sm-5" value="{$Think.CONFIG.company}">
+                                        </div>
+                                    </div>
+
+                                    <div class="space-4"></div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label no-padding-right" for="form-field-2">版权声明</label>
+                                        <div class="col-sm-9">
+                                            <textarea name="copyright" id="copyright" placeholder="版权声明" class="col-xs-10 col-sm-5" rows="5">{$Think.CONFIG.copyright}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-4"></div>
+                                    <div class="col-md-offset-2 col-md-9">
+                                        <button class="btn btn-info submit" type="button"><i class="icon-ok bigger-110"></i>提交</button>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;
+                                        <button class="btn btn-primary" type="reset"><i class="icon-undo bigger-110"></i>重置</button>
+                                    </div>
+                                </form>
+                                <!-- PAGE CONTENT ENDS -->
+                            </div><!-- /.col -->
+                        </div>
+</block>
+<block name="currentPageJS">
+		<script type="text/javascript">
+		$(".submit").click(function(){
+			$("#form").submit();
+		})
+		</script>
+</block>

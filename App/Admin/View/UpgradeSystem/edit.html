@@ -1,0 +1,338 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal" id="form" method="post" action="{:U('update')}" enctype="multipart/form-data">
+                <input type="hidden" name="id" value="{$vo.id}" />
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">文件名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="name" id="name" placeholder="文件名称" class="col-xs-10 col-sm-5" value="{$vo.name}" readonly>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle">上传后自动填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-2">版本号</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="version" id="version" placeholder="版本号" class="col-xs-10 col-sm-5" value="{$vo.version}" readonly>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle">上传后从升级包读取</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-3">UTC版本</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="utc" id="utc" placeholder="UTC" class="col-xs-10 col-sm-5" value="{$vo.utc}" readonly>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle">上传后从升级包读取</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-4">文件大小</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="size" id="size" placeholder="文件大小" class="col-xs-10 col-sm-5" value="{$vo.size}" readonly>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle">上传后从升级包读取，单位：字节</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-5">状态</label>
+                    <div class="col-sm-9" style="padding-top:7px;">
+                        <input type="radio" name="status" id="status1" value="1" <eq name="vo.status" value="1">checked</eq>>启用
+                        <input type="radio" name="status" id="status2" value="0" <eq name="vo.status" value="0">checked</eq>>禁用
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-6">备注</label>
+                    <div class="col-sm-9">
+                        <textarea name="description" id="description" placeholder="备注" class="col-xs-10 col-sm-5" rows="5">{$vo.description}</textarea>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7">升级包文件</label>
+                    <div class="col-sm-9" style="width:400px;">
+                        <a id="showfilename"  href="{:C('UPLOADPATH')}{$vo.filename}" target="_blank">{$vo.filename}</a>
+                        <input type="hidden" name="filename" value="{$vo.filename}">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-8">文件上传</label>
+                    <div class="col-sm-9" style="width:300px;">
+                        <span class="btn btn-success fileinput-button" style="text-align:left;">
+                            <span>请选择升级包&nbsp;&nbsp;<i class="icon-upload icon-white"></i></span>
+                            <input id=fileupload name="fileupload"  type="file" name="fileupload" />
+                        </span>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-9">上传进度</label>
+                    <div class="col-sm-9" style="width:40%;">
+                        <div class="progress progress-striped active" role="progressbar" aria-valuemin="10" aria-valuemax="100" aria-valuenow="0">
+                            <div id="weixin_progress" class="progress-bar progress-bar-success" style="width:0%;"></div>
+                        </div> 
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7"></label>
+                    <div class="col-sm-9">
+                        <span class="btn btn-primary fileinput-button" style="text-align:left;">
+                            <span id="choosedevice"><i class="ace-icon fa fa-search bigger-100"></i>&nbsp;选择房间号</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7">房间号：</label>
+                    <div class="col-sm-9">
+                        <input type="hidden" name="maclist" value="{$vo.maclist}" />
+                        <textarea name="room" id="intro" readonly="true" class="col-xs-10 col-sm-5" rows="5">{$roomlist}</textarea>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="col-md-offset-2 col-md-9">
+                    <button class="btn btn-info submit" type="button">
+                        <i class="icon-ok bigger-110"></i>提交
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="btn btn-primary" type="reset">
+                        <i class="icon-undo bigger-110"></i>重置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- 显示选择酒店模态框（DeviceModal） -->
+    <div class="modal fade" id="DeviceModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <form class="form-horizontal ajaxForm2" name="setbackgroud" method="post" action="{:U('setSleepImage')}">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h4 class="modal-title" id="myModalLabel">选择要升级的房间号</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="panel-group" id="accordion">
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading">
+                                            <h4 class="panel-title"><input type="checkbox" name="allHotel" id="allDevice" class="checkDeviceAll" value="allDevice" >&nbsp;&nbsp;全部</h4>
+                                        </div>
+                                    </div>
+                                    <volist name="menuTree" id="list">
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading">
+                                            <h4 class="panel-title">
+                                                <input type="checkbox" name="r[]" id="list_{$list.id}" class="checkAccessAll" value="{$list.id}" >&nbsp;&nbsp;{$list.hotelname}
+                                                <a data-toggle="collapse" data-parent="#accordion" href="#collapse{$list.id}" style="float:right;">展开/折叠 </a>
+                                            </h4>
+                                        </div>
+                                        <div id="collapse{$list.id}" class="panel-collapse collapse in">
+                                            <div class="panel-body">
+                                                <volist name="list['sub']" id="sub">
+                                                <label class="checkbox inline" style="padding-left: 30px;">
+                                                    <input type="checkbox" name="eDevice" cid="list_{$list.id}" class="checkAccessSingle" value="{$sub.mac}" roomname="{$sub.room}" <eq name="sub.flag" value="1">checked</eq> >{$sub.room}(版本:{$sub.firmware_version})(详细地址备注：{$sub.room_remark})
+                                                </label>
+                                                </volist>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </volist>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="selectedDevice()">提交</button>
+                        <button class="btn btn-info" type="reset" id="restimage">重置</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->     
+        </form>
+    </div>
+    <!--  / .DeviceModal-->
+</block>
+<block name="currentPageJS">
+<script type="text/javascript">
+    $(function(){
+        $(".panel-collapse").collapse({
+            toggle:false
+        });      
+    });
+	$(function () {
+		$("#fileupload").fileupload({
+            url: "{:U('upload?name=fileupload')}", 
+            dataType: 'json',
+            sequentialUploads: true  
+        }).bind('fileuploaddone', function (e, data) {  
+        	var json = data.result;
+        	if(json.status==1){
+    			$("input[name=filename]").val(json.storename);
+    			$("a#showfilename").attr("href","{:C('UPLOADPATH')}"+json.storename);
+    			$("a#showfilename").text(json.storename);
+    			$("input[name=name]").val(json.name);
+    			$("input[name=size]").val(json.size);
+    			$("input[name=version]").val(json.version);
+    			$("input[name=utc]").val(json.utc);
+    		}else if(json.status == 0){
+                $("#weixin_progress").css('width','0');  
+                $("#weixin_progress").html('0');
+            }
+        	mainAjaxMsg(json.status,json.info);
+        }).bind('fileuploadprogress', function (e, data) {  
+            var progress = parseInt(data.loaded / data.total * 100, 10);  
+            $("#weixin_progress").css('width',progress + '%');  
+            $("#weixin_progress").html(progress + '%');  
+        });
+		
+		$(".btn-info.submit").click(function(){
+            var name = $("#name").val();
+            var version = $("#version").val();
+            var utc = $("#utc").val();
+            var filename = $("#filename").val();
+            if(name==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "文件名称必须填写！", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(version==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "版本号必须填写！", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(utc==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "UTC版本必须填写！", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(filename==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "请上传系统软件文件！", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            $("#form").submit();
+        });
+
+        //选择房间静态模板
+        $("#choosedevice").click(function(){
+            $('div#DeviceModal').modal('show');  
+        });
+
+        $("input[type=checkbox].checkDeviceAll").on("click",function(){
+            var ischeck = this.checked;
+            $.each($("input.checkAccessSingle"),function(i,item){
+                item.checked=ischeck;
+            });
+            $.each($("input.checkAccessAll"),function(i,item){
+                item.checked=ischeck;
+            });
+        });
+        $("input[type=checkbox].checkAccessAll").on("click",function(){
+            var ischeck = this.checked;
+            $.each($("input[cid="+this.id+"].checkAccessSingle"),function(i,item){
+                item.checked=ischeck;
+            });
+        });
+        $("input[type=checkbox].checkAccessSingle").on("click",function(){
+            var ischeck = false;
+            $checkbocparent = $("input[id='"+$(this).attr('cid')+"']");
+            $.each($("input[cid="+$(this).attr('cid')+"].checkAccessSingle"),function(i,item){
+                if(item.checked==true){
+                    ischeck=true;
+                }
+            });
+            if(ischeck==true){
+                $checkbocparent.prop('checked', true);
+            }else{
+                $checkbocparent.prop('checked', false);
+            }
+        });
+	});
+    function selectedDevice(){
+        var roomIDs=[];
+        var roomNames=[];
+        var i=0;
+        var allischecked = $("input[type=checkbox].checkDeviceAll").is(':checked');//所有选中
+        $("input[type=checkbox].checkAccessSingle ").each(function(){
+            if(this.checked){
+                roomIDs[i]=$(this).val();
+                roomNames[i]=$(this).attr('roomname');
+                i++;
+            }
+        });
+        if(roomNames.join()=="" || roomNames.join()=="NULL" || allischecked){
+            $("textarea[name=room]").val("全部房间");
+        }else{
+            $("textarea[name=room]").val(roomNames.join());
+        }
+        if(roomNames.join()=="" || roomNames.join()=="NULL" || allischecked){
+            $("input[name=maclist]").val("all");
+        }else{
+            $("input[name=maclist]").val(roomIDs.join());
+        }
+        $('div#DeviceModal').modal('hide');
+    }
+	</script>
+</block>

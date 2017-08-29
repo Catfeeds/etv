@@ -1,0 +1,98 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal" id="form" method="post" action="{:U('update')}">
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="name" id="name" placeholder="名称" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">标识</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="code" id="code" placeholder="标识" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填(与终端协定的语言标识)</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">ISO语言代码</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="language" id="language" placeholder="ISO语言代码" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>选填(与终端协定的语言代码)</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">ISO国家代码</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="nation" id="nation" placeholder="ISO国家代码" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>选填(与终端协定的国家代码)</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="col-md-offset-2 col-md-9">
+                    <button class="btn btn-info submit" type="button">
+                        <i class="icon-ok bigger-110"></i>提交
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="btn btn-primary" type="reset">
+                        <i class="icon-undo bigger-110"></i>重置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+	<script type="text/javascript">
+	$(function() {
+		$(".btn-info.submit").click(function(){
+			var name = $("#name").val();
+			var code = $("#code").val();
+			if(name==''){
+				bootbox.dialog({
+					title: '友情提示：',
+					message: "语言名称必须填写！", 
+					buttons: {
+						"success" : {
+							"label" : "确定",
+							"className" : "btn-danger"
+						}
+					}
+				});
+				return;
+			}
+			if(code==''){
+				bootbox.dialog({
+					title: '友情提示：',
+					message: "标识必须填写！", 
+					buttons: {
+						"success" : {
+							"label" : "确定",
+							"className" : "btn-danger"
+						}
+					}
+				});
+				return;
+			}
+			$("#form").submit();
+		});
+	});
+	</script>
+</block>

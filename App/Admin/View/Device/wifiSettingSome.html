@@ -1,0 +1,121 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " href="{:U('wifiindex')}">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal" id="form" method="post" action="{:U('doWifiSettingSome')}">
+                <input type="hidden" name="ids" value="{$ids}">
+                <input type="hidden" name="roomstr" value="{$roomstr}">
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-2">MAC地址</label>
+                    <div class="col-sm-8">
+                        <textarea style="width:50%;" name="content" disabled="disabled">{$macstr}</textarea>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-5">热点状态</label>
+                    <div class="col-sm-8" style="padding-top:0.5%;">
+                    <label style="width: 13%"><input type="radio" name="wifi_status" value="0" />关闭</label>
+                    <label><input type="radio" name="wifi_status" value="1" />开启</label>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right">SSID</label>
+                    <div class="col-sm-8" style="padding-top: 0.5%">
+                        <label style="width: 13%"><input type="radio" name="ssid_way" id="ssid_way" value="0" />手动输入</label>
+                        <label><input type="radio" name="ssid_way" id="ssid_way1" value="1" />用房间号设置(SSID=前缀+房间号+后缀)</label>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group" style="display:none;" id="ssid_ssid">
+                    <label class="col-sm-2 control-label no-padding-right"></label>
+                    <div class="col-sm-8">
+                        <input type="text" name="wifi_ssid" id="wifi_ssid" placeholder="SSID" class="col-xs-10 col-sm-5" value="">
+                    </div>
+                </div>
+                <div id="ssid_room" style="display:none;">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right"></label>
+                    <div class="col-sm-8">
+                        <div><input type="text" name="wifi_prefix" placeholder="前缀" class="col-xs-10 col-sm-5" value=""></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right"></label>
+                    <div class="col-sm-8">
+                        <div><input type="text" name="wifi_subffix" placeholder="后缀" class="col-xs-10 col-sm-5" value=""></div>
+                    </div>
+                </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-5">安全性</label>
+                    <div class="col-sm-8" style="padding-top:0.5%">
+                    <label style="width: 13%"><input type="radio" name="security" id="security" value="0" />none</label>
+                    <label ><input type="radio" name="security" id="security1" value="1" />psk2</label>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group" id="wifi_passwd_show" style="display:none;">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-6">密码</label>
+                    <div class="col-sm-8" style="padding-top:0.5%">
+                        <label style="width: 13%"><input type="radio" name="pw_way" id="pw_way" value="0" />手动输入</label>
+                        <label><input type="radio" name="pw_way" id="pw_way1" value="1" />设置SSID为密码</label>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group" id="wifi_passwd_input" style="display:none;">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-6"></label>
+                    <div class="col-sm-8" style="padding-top:0.5%">
+                        <input type="text" name="wifi_passwd" id="wifi_passwd" placeholder="" class="col-xs-10 col-sm-5" value="">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="col-md-offset-2 col-md-9">
+                    <button class="btn btn-info submit" type="button">
+                        <i class="icon-ok bigger-110"></i>提交
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="btn btn-primary" type="reset">
+                        <i class="icon-undo bigger-110"></i>重置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+    <script type="text/javascript">
+    $(document).ready(function() {
+        $("#security1").click(function() {
+            $("#wifi_passwd_show").show();
+        });
+        $("#security").click(function() {
+            $("#wifi_passwd_show").hide();
+            $("#wifi_passwd").attr('value', '');
+        });
+        $(".btn-info.submit").click(function(){
+            $("#form").submit();
+        });
+        $("#ssid_way").click(function() {
+            $("#ssid_ssid").show();
+            $("#ssid_room").hide();
+        });
+        $("#ssid_way1").click(function() {
+            $("#ssid_room").show();
+            $("#ssid_ssid").hide();
+        });
+        $("#pw_way").click(function() {
+            $("#wifi_passwd_input").show();
+        });
+          $("#pw_way1").click(function() {
+            $("#wifi_passwd_input").hide();
+        });
+    });
+    </script>
+</block>

@@ -1,0 +1,212 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " onclick="javascript:history.go(-1);">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal" id="form" method="post" action="{:U('resourceadd')}" enctype="multipart/form-data">
+                <input type="hidden" name="resType" value="{$resType}">
+                <input type="hidden" name="menuid" value="{$menuid}">
+                <input type="hidden" name="maxsort" value="{$maxsort}">
+                <input type="hidden" name="groupid" value="{$groupid}">
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">标题</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="title" id="title" placeholder="标题" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red">*</span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-2">描述</label>
+                    <div class="col-sm-9">
+                        <textarea name="intro" id="intro" placeholder="描述" class="col-xs-10 col-sm-5" rows="5"></textarea>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-4">文件</label>
+                    <div class="col-sm-9">
+                        <a id="showfilename"  href="" target="_blank"></a>
+                        <input type="hidden" name="filepath" id="filepath" value="">
+                        <input type="hidden" name="size" id="size" value="">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-5">文件上传</label>
+                    <div class="col-sm-9">
+                        <span class="btn btn-success fileinput-button" style="text-align:left;">
+                            <span>请选择文件&nbsp;&nbsp;<i class="icon-upload icon-white"></i></span>
+                            <input id="fileupload" name="fileupload"  type="file"/>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-6">&nbsp;</label>
+                    <div class="col-sm-9">
+                        <span class="col-xs-10 col-sm-12">
+                          <eq name="resType" value="2">目前支持'jpg'，'png'，'jpeg'格式的图片</eq>
+                          <eq name="resType" value="1">目前支持'mp4'格式的视频</eq>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7">上传进度</label>
+                    <div class="col-sm-9" style="width:40%;">
+                        <div class="progress progress-striped active" role="progressbar" aria-valuemin="10" aria-valuemax="100" aria-valuenow="0">
+                            <div id="weixin_progress" class="progress-bar progress-bar-success" style="width:0%;"></div>
+                        </div> 
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+
+                <eq name="resType" value="1">
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-4">视频封面</label>
+                    <div class="col-sm-9" >
+                        <img id="vimage_image" class="img-polaroid" src="" style="width:150px;height:150px;background:#ccc;" />
+                        <input type="hidden" name="vimage" value="">
+                        <input type="hidden" name="size2" value="" id="size2">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-5">上传</label>
+                    <div class="col-sm-9">
+                        <span class="btn btn-success fileinput-button" style="text-align:left;">
+                            <span>请选择视频封面&nbsp;&nbsp;<i class="icon-upload icon-white"></i></span>
+                            <input id="fileupload_vimage" name="fileupload_vimage"  type="file" />
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-6">&nbsp;</label>
+                    <div class="col-sm-9">
+                        <span class="col-xs-10 col-sm-12">目前支持'jpg'，'png'，'jpeg'格式的图片</span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7">上传进度</label>
+                    <div class="col-sm-9" style="width:40%;">
+                        <div class="progress progress-striped active" role="progressbar" aria-valuemin="10" aria-valuemax="100" aria-valuenow="0">
+                            <div id="vimage_progress" class="progress-bar progress-bar-success" style="width:0%;"></div>
+                        </div> 
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                </eq>
+
+                <div class="space-4"></div>
+                <div class="col-md-offset-2 col-md-9">
+                    <button class="btn btn-info submit" type="button">
+                        <i class="icon-ok bigger-110"></i>提交
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="btn btn-primary" type="reset">
+                        <i class="icon-undo bigger-110"></i>重置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+<script type="text/javascript">
+    $(function () {
+        $("#fileupload").fileupload({
+            url: "{:U('upload')}?name=fileupload&filetype={$resType}",
+            dataType: 'json',
+            sequentialUploads: true  
+        }).bind('fileuploaddone', function (e, data) {  
+            var json = data.result;
+            if(json.status==1){
+                $("input[name=filepath]").val(json.storename);
+                $("#size").val(json.size);
+                $("a#showfilename").attr("href","{:C('UPLOADPATH')}"+json.storename);
+                $("a#showfilename").text(json.storename);
+            }else if(json.status == 0){
+                $("#weixin_progress").css('width','0');  
+                $("#weixin_progress").html('0');
+            }
+            mainAjaxMsg(json.status,json.info);
+        }).bind('fileuploadprogress', function (e, data) {  
+            var progress = parseInt(data.loaded / data.total * 100, 10);  
+            $("#weixin_progress").css('width',progress + '%');  
+            $("#weixin_progress").html(progress + '%');  
+        });
+
+        //视频海报图标
+        $("#fileupload_vimage").fileupload({
+            url: "{:U('upload_icon')}?name=fileupload_vimage",
+            dataType: 'json',
+            sequentialUploads: true  
+        }).bind('fileuploaddone', function (e, data) {  
+            var json = data.result;
+            if(json.status==1){
+                $("input[name=vimage]").val(json.storename);
+                $("#size2").val(json.size);
+                $("img#vimage_image").attr("src","{:C('UPLOADPATH')}"+json.storename);
+            }else if(json.status == 0){
+                $("#vimage_progress").css('width','0');  
+                $("#vimage_progress").html('0');
+            }
+            mainAjaxMsg(json.status,json.info);
+        }).bind('fileuploadprogress', function (e, data) {  
+            var progress = parseInt(data.loaded / data.total * 100, 10);  
+            $("#vimage_progress").css('width',progress + '%');  
+            $("#vimage_progress").html(progress + '%');  
+        });
+        
+        $(".btn-info.submit").click(function(){
+            var title = $("#title").val();
+            var filepath = $("input[name='filepath']").val();
+            var intro = $("#intro").val();
+            if(title==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "标题必须填写！", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(filepath==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "资源必须上传", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            $("#form").submit();
+        });
+    });
+    </script>
+</block>

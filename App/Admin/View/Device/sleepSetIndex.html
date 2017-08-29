@@ -1,0 +1,414 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+
+	<div class="row">
+		<div>
+			<div class="space-8"></div>
+			<div class="col-xs-12">
+				<span><a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a></span>&nbsp;&nbsp;
+				<span><a class="label label-xlg label-inverse" id="sleep_set" ><i class="ace-icon fa fa-wrench bigger-100"></i>&nbsp;休眠设置</a></span>
+				&nbsp;&nbsp;&nbsp;
+                <span><label style="width:auto;font-size: 1.2em">省市：</label></span>
+                <span>
+                  <select id="province" name="provinceid" style="width:120px;" onchange="changeCity()">
+                      <option value=''>省份</option>
+                      <volist name="plist" id="provinceList">
+                      <option value="{$provinceList.id}" <eq name="provinceid" value="$provinceList.id">selected</eq>>{$provinceList.name}</option>
+                      </volist>
+                  </select>
+                </span>
+                <span>
+                <select id="city" name="cityid" style="width:120px;" onchange="changeHotelByCity()">
+                    <option value>市区</option>
+                    <volist name="clist" id="cityList">
+                    <option value="{$cityList.id}" <eq name="cityid" value="$cityList.id">selected</eq>>{$cityList.name}</option>
+                    </volist>
+                </select>
+                </span>
+
+            	<span>
+            	<select id="selecthotel" name="hotelid" style="width: 120px;">
+            		<option value="">酒店列表</option>
+            		<volist name="chotel" id="hotelList">
+            		<option value="{$hotellist.id}">{$hotellist.hotelname}</option>
+            		</volist>
+            	</select>
+            	</span>
+
+   
+                <span><label style="width:auto;font-size: 1.2em">酒店名称：</label></span>
+                <span>
+                	<input type="text" name="hotelname" placeholder="酒店名称" value="">
+                </span>                 
+                <button type="button" class="btn btn-purple btn-sm search">
+                    <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>查询
+                </button>
+            </div>
+		</div>
+		<div class="space-8"></div>
+		<div class="col-xs-12">
+			<div class="space-8"></div>
+			<div class="col-xs-6">
+				<div style="text-align: center;padding-top: 2%;font-size: 1.5em" class="navbar">待选设备</div>
+			</div>
+			<div class="col-xs-6">
+				<div style="text-align: center;padding-top: 2%;font-size: 1.5em" class="navbar">设置休眠设备</div>
+			</div>
+		</div>
+
+		<div class="col-xs-12">
+			<!-- 待选设备 -->
+			<div class="col-xs-6">
+				<div class="row">
+                    <div class="col-xs-12">
+                        <div class="panel-group" id="accordion">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h4 class="panel-title"><span><input type="checkbox" name="allHotel" id="allHotel" class="checkHotelAll" value="allHotel" >&nbsp;&nbsp;全部</span><span style="float: right;"><button class="beconfirm_device">确定</button></span></h4>
+                                </div>
+                                <input type="hidden" id="checkhidchange" value="">
+                                <div class="panel-body" id="sub">
+                                
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+			</div>
+			<!-- 已选设备 -->
+			<div class="col-xs-6">
+				<div class="row">
+                    <div class="col-xs-12">
+                        <div class="panel-group" id="accordion">
+                            <div class="panel panel-default">
+                                <div class="panel-heading"> 
+                                <h4 class="panel-title">
+                                    <span style="font-size: 1em">(取消勾选即取消该已选设备)</span>
+                                    <span style="float: right;"><button class="cancel_all">全部取消</button></span>
+                                </h4>
+                                </div>
+                                <div class="panel-body" id="csub">
+                                    <label></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+			</div>
+		</div>
+		<div class="col-xs-12">
+			<div class="space-8"></div>
+			<div class="col-xs-6"><button type="button" class="btn btn-primary reboot">提交</button></div>
+		</div>
+	</div>
+
+	<!-- 显示模态框（Modal） -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <form id="form" class="form-horizontal ajaxForm2" name="sleep_set" method="post" action="{:U('sleep_set_d')}">
+            <input type="hidden" name="macid" class="macid" value="">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h4 class="modal-title" id="myModalLabel">休眠设置</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label no-padding-right" for="form-field-1">休眠状态： </label>
+                                    <div class="col-sm-10" style="padding-top:7px;">
+                                        <input type="radio" name="sleep_status" value="1" >开启
+                                        <input type="radio" name="sleep_status" value="0" >关闭
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label no-padding-right" for="form-field-1">WIFI状态： </label>
+                                    <div class="col-sm-10" style="padding-top:7px;">
+                                        <input type="radio" name="wifi_order" value="1" checked="true">开启
+                                        <input type="radio" name="wifi_order" value="0" >关闭
+                                    </div>
+                                </div>
+                                <div class="space-4"></div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label no-padding-right" for="form-field-1">开始时间：  </label>
+                                    <div class="col-sm-10">
+                                        <span style="padding-top:5px;" class="text-error">设备于</span>
+                                        <select name="starthour" style="width:80px;margin-right:5px;">
+                                            <volist name="hour" id="sh">
+                                                <option value="{$sh}">{$sh}</option>
+                                            </volist>
+                                        </select>
+                                        <span style="padding-top:5px;">:</span>
+                                        <select name="startminute" style="width:80px;margin-right:5px;">
+                                            <volist name="minute" id="sm">
+                                                <option value="{$sm}">{$sm}</option>
+                                            </volist>
+                                        </select>
+                                        <span style="padding-top:5px;" class="text-error">开始休眠</span>
+                                    </div>
+                                </div>
+                                <div class="space-4"></div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label no-padding-right" for="form-field-1">结束时间：  </label>
+                                    <div class="col-sm-10">
+                                        <span style="padding-top:5px;" class="text-error">休眠至</span>
+                                        <select name="endhour" style="width:80px;margin-right:5px;">
+                                            <volist name="hour" id="h">
+                                                <option value="{$h}">{$h}</option>
+                                            </volist>
+                                        </select>
+                                        <span style="padding-top:5px;">:</span>
+                                        <select name="endminute" style="width:80px;margin-right:5px;">
+                                            <volist name="minute" id="m">
+                                                <option value="{$m}">{$m}</option>
+                                            </volist>
+                                        </select>
+                                        <span style="padding-top:5px;" class="text-error">自动重启。</span>
+                                    </div>
+                                </div>
+                                <div class="space-4"></div>
+                                <div class="form-group">
+                                	<label class="col-sm-2 control-label no-padding-right" for="form-field-1">提示语：  </label>
+                                	<div class="col-sm-10">
+                                		<input type="text" name="sleep_marked_word">
+                                	</div>                    
+                                </div>
+                                <div class="space-4"></div>
+                                <div class="form-group">
+                                	<label class="col-sm-2 control-label no-padding-right" for="form-field-1">休眠倒计时：</label>
+                                	<div class="col-sm-10">
+                                		<span><input type="text" name="sleep_countdown_time"></span>
+                                		<span style="padding-top:5px;" class="text-error">(秒)</span>
+                                	</div>                    
+                                </div>
+                                <div class="space-4"></div>
+                                <div class="form-group">
+                                	<label class="col-sm-2 control-label no-padding-right" for="form-field-1">选择背景图：</label>
+                                	<div class="col-sm-10">
+                                		<select class="macimageselect" name="macimageid" style="width:80px;margin-right:5px;">
+                                			<volist name="imageinfo" id="i">  
+                        						<option value="{$i['id']}" name="{$i['image_path']}" <eq name="onemessage['sleep_imageid']" value="$i['id']">selected</eq>
+                        						>{$i['image_name']}</option>
+                   							</volist>
+                                		</select>
+                                	</div>
+                                </div>
+                                <div class="space-4"></div>
+                                <div class="form-group">
+                                	<label class="col-sm-2 control-label no-padding-right" for="form-field-4">图片：</label>
+				                    <div class="col-sm-10" >
+                                        <img id="selectimage" class="img-polaroid" src="{:C('UPLOADPATH')}{$imageinfo['0']['image_path']}" style="width:240px;height:135px;background:#ccc;" />
+				                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">提交</button>
+                        <button class="btn btn-info" type="reset">重置</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </form>
+    </div><!-- /.modal -->
+</block>
+<block name="currentPageJS">
+<script type="text/javascript">
+	function changeCity() {
+	    var pid = parseInt($("#province").val());
+	    $.ajax({
+	        type : "get",
+	        url : "{:U('get_city_hotel')}?pid=" + pid,
+	        dataType : "json",
+	        success : function(jsondata) {
+	            var cityoptions = '<option value="">城市</option>';
+	            if (jsondata['citylist']) {
+	                $.each(jsondata['citylist'], function(i, item) {
+	                    cityoptions += '<option value="'+item.id+'">' + item.name
+	                            + '</option>';
+	                });
+	            }
+	            $("#city").html(cityoptions);
+
+	            var hoteloptions = '<option value="">酒店列表</option>';
+	            if(jsondata['hotellist']){
+	            	$.each(jsondata['hotellist'],function(index, el) {
+	            		hoteloptions += '<option value="'+el.id+'">' + el.hotelname
+	                            + '</option>';
+	            	});
+	            }
+	            $("#selecthotel").html(hoteloptions);
+	        },
+	        error : function() {
+	            alert("ajaxError");
+	        }
+	    });
+	}
+	function changeHotelByCity(){
+		var pid = $("#city").val();
+        if(pid ==''){
+            return;
+        }
+		var type = 2;
+		$.ajax({
+			url: "{:U('ajax_findHotel_byArea')}",
+			type: 'POST',
+			dataType: 'json',
+			data: {'areaid': pid,'type':type},
+		})
+		.done(function(data) {
+			if(data == -1){
+				bootbox.dialog({
+	                title: '友情提示：',
+	                message: "参数错误", 
+	                buttons: {
+	                    "success" : {
+	                        "label" : "确定",
+	                        "className" : "btn-danger"
+	                    }
+	                }
+	            });
+	            return;
+			}
+			if(data == 0){
+				bootbox.dialog({
+	                title: '友情提示：',
+	                message: "该城市没有对应酒店", 
+	                buttons: {
+	                    "success" : {
+	                        "label" : "确定",
+	                        "className" : "btn-danger"
+	                    }
+	                }
+	            });
+	            return;
+			}
+			var hoteloptions = '<option value="">酒店列表</option>';
+			$.each(data,function(index, el) {
+        		hoteloptions += '<option value="'+el.id+'">' + el.hotelname
+                        + '</option>';
+        	});
+        	$("#selecthotel").html(hoteloptions);
+		}).fail(function() {
+			console.log("error");
+		});
+	}
+		
+	$(".search").click(function(event) {
+		var $provinceid = $("#province").val();
+		var $cityid = $("#city").val();
+		var $hotelid = $("#selecthotel").val();
+		var $hotelname = $("input[name='hotelname']").val();
+		$.ajax({
+			url: "{:U('search_device')}",
+			type: 'POST',
+			dataType: 'json',
+			data: {'provinceid': $provinceid,'cityid':$cityid,'hotelid':$hotelid,'hotelname':$hotelname},
+		})
+		.done(function(data) {
+			if($.trim(data)==0){
+				$("#sub").html('');
+	            bootbox.dialog({
+	                title: '友情提示：',
+	                message: "没有搜索到可用设备", 
+	                buttons: {
+	                    "success" : {
+	                        "label" : "确定",
+	                        "className" : "btn-danger"
+	                    }
+	                }
+	            });
+	            return;
+	        }
+	        label = '';
+	        for(var key in data){
+                label +='<div calss="panel panel-default"><div class="panel-heading" style="background-color:#f5f5f5;border:1px solid #ddd;"><h4 class="panel-title"><input type="checkbox" class="checkAccessAll" id="list_'+key+'">&nbsp;&nbsp;'+key+'</h4></div><div class="panel-body">';
+                var $count = data[key].length;
+                for(var i=0; i<$count; i++){
+                    label += '<label class="checkbox inline" style="padding-left: 30px;"><input type="checkbox" name="eHotel" cid="list_'+key+'" class="checkAccessSingle" value="'+data[key][i]['id']+'"><span class="beconfirm_name">'+data[key][i]['hotelname']+'_'+data[key][i]['room']+'房</span></label>';
+                }
+                label += '</div></div>'
+            }
+	        $("#sub").html(label);
+		})
+		.fail(function() {
+			console.log("error");
+		});
+	});
+	//全选
+	$("input[type=checkbox].checkHotelAll").on("click",function(){
+        var ischeck = this.checked;
+        $.each($("input.checkAccessSingle"),function(i,item){
+            item.checked=ischeck;
+        });
+    });
+    //酒店选择
+    $("#sub").delegate('input[type=checkbox].checkAccessAll', 'click', function() {
+        var ischeck = this.checked;
+        $.each($("input[cid="+this.id+"].checkAccessSingle"),function(i,item){
+            item.checked=ischeck;
+        });
+    });
+    $(".beconfirm_device").click(function() {
+    	clabel = '';
+    	var $macid = $(".macid").val();
+    	$.each($("input.checkAccessSingle:checked"),function(i,item){
+    		var $id = item['value'];
+    		if($macid.indexOf($id) == -1){
+    			var $name = $(this).next(".beconfirm_name").text();
+        		clabel += '<label class="checkbox inline" style="padding-left: 30px;"><input type="checkbox" name="" class="delete_checkbox" value="'+item['value']+'" checked>'+$name+'</label>';
+
+        		$macid += ','+$id;
+    		}
+    		   
+   		});
+   		$(".macid").attr('value', $macid);
+   		$("#csub").children('label').append(clabel);
+    });
+    //取消勾选
+    $("#csub").delegate('.delete_checkbox', 'click', function() {
+    	$id = $(this).val();
+    	var $macid = $(".macid").val();
+    	$macid = $macid.replace(','+$id,"");
+    	$(".macid").attr('value', $macid);
+    	$(this).parent("label").remove();
+    });
+    //取消全部勾选
+    $(".cancel_all").click(function(event) {
+        $("#csub").html('<label></label>');
+        $(".macid").attr("value",'');
+    });
+    //提交
+    $(".reboot").click(function(event) {
+    	var $macid = $(".macid").val();
+    	if ($macid.substr(0,1)==',') {
+    		$macid = $macid.substr(1);
+    	}
+    	if($.trim($macid) == ''){
+    		bootbox.dialog({
+                title: '友情提示：',
+                message: "请选择需要设置休眠的设备", 
+                buttons: {
+                    "success" : {
+                        "label" : "确定",
+                        "className" : "btn-danger"
+                    }
+                }
+            });
+            return;
+    	}
+    	$("#form").submit();
+    });
+    //设置休眠弹窗
+    $("#sleep_set").click(function(event) {
+    	$('div#myModal').modal('show');
+    });
+    //选择背景图更改
+    $(".macimageselect").on("change",function(event) {
+        var path = $(this).find('option:selected').attr("name");
+        $("#selectimage").attr('src', "{:C('UPLOADPATH')}"+path);
+    });
+</script>
+</block>

@@ -1,0 +1,82 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+        <form class="form-horizontal" id="form" method="" action="" enctype="multipart/form-data">
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">名称</label>
+                <div class="col-sm-9">
+                    <input type="text" name="app_name" readonly="true" value="{$list['app_name']} ">
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">APK标识</label>
+                <div class="col-sm-9">
+                    <input type="text" name="app_identifier" readonly="true" value="{$list['app_identifier']} ">
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">大小</label>
+                <div class="col-sm-9">
+                    <input type="text" name="app_size" readonly="true" value="{$list['app_size']} ">
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">包名</label>
+                <div class="col-sm-9">
+                    <input type="text" name="app_package" readonly="true" value="{$list['app_package']} ">
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">apk文件</label>
+                <div class="col-sm-9">
+                    <a href="{:C('UPLOADPATH')}{$list['app_file']}" target="_blank">{$list['app_file']}</a>
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">apk图标</label>
+                <div class="col-sm-9">
+                    <img src="{:C('UPLOADPATH')}{$list['app_pic']}">
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">房间</label>
+                <div class="col-sm-9">
+                    <textarea class="col-xs-9 col-sm-6">{$list['maclist']}</textarea> 
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">简介</label>
+                <div class="col-sm-9">
+                    <textarea class="col-xs-9 col-sm-6">{$list['app_introduce']}</textarea>
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">上传时间</label>
+                <div class="col-sm-9">
+                    <input type="text" name="app_uploadtime" readonly="true" value="{$list['app_uploadtime']} ">
+                </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">是否启用</label>
+                <div class="col-sm-9">
+                    {$list['status']|get_status}
+                </div>
+            </div>
+            <div class="space-4"></div>
+        </form>
+        </div>
+    </div>
+</block>

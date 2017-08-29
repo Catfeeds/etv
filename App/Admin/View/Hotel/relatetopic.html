@@ -1,0 +1,110 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal" id="form" method="post" action="{:U('saverelatetopic')}" enctype="multipart/form-data">
+                <input type="hidden" name="hid" value="{$hid}">
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7"></label>
+                    <div class="col-sm-9">
+                        <span class="btn btn-primary fileinput-button" style="text-align:left;">
+                            <span id="chooseHotel"><i class="ace-icon fa fa-search bigger-100"></i>&nbsp;选择专题</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7"></label>
+                    <div class="col-sm-9">
+                        <input type="hidden" name="ids" value="{$topic_id_str}" />
+                        <input type="hidden" name="passids" value="{$topic_id_str}" />
+                        <textarea name="hotel" id="intro" readonly="true" class="col-xs-10 col-sm-5" rows="5">{$topicName}</textarea>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="col-md-offset-2 col-md-9">
+                    <button class="btn btn-info submit" type="submit">
+                        <i class="icon-ok bigger-110"></i>提交
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="btn btn-primary" type="reset">
+                        <i class="icon-undo bigger-110"></i>重置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 显示选择酒店模态框（HotelModal） -->
+    <div class="modal fade" id="HotelModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title" id="myModalLabel">选择要添加的专题</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="panel-group" id="accordion">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h4 class="panel-title"><input type="checkbox" name="allHotel" id="allHotel" class="checkHotelAll" value="allHotel" >&nbsp;&nbsp;全部</h4>
+                                    </div>
+                                    <div class="panel-body">
+                                        <volist name="topiclist" id="sub">
+                                            <label class="checkbox inline" style="padding-left: 30px;"><input type="checkbox" name="eHotel" class="checkAccessSingle" value="{$sub.id}" hotelname="{$sub.title}" <if condition="$sub.isselect eq 1">checked</if>>{$sub.title}</label>
+                                        </volist>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="selectedHotel()">确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div>
+    <!--  / .HotelModal-->
+
+</block>
+<block name="currentPageJS">
+<script type="text/javascript">
+    $(function () {
+        //选择酒店静态模板
+        $("#chooseHotel").click(function(){
+            $('div#HotelModal').modal('show');  
+        });
+    });
+
+    $("input[type=checkbox].checkHotelAll").on("click",function(){
+        var ischeck = this.checked;
+        $.each($("input.checkAccessSingle"),function(i,item){
+            item.checked=ischeck;
+        });
+    });
+
+    function selectedHotel(){
+        var hotelIDs=[];
+        var hotelNames=[];
+        var i=0;
+        $("input[type=checkbox].checkAccessSingle ").each(function(){
+            if(this.checked){
+                hotelIDs[i]=$(this).val();
+                hotelNames[i]=$(this).attr('hotelname');
+                i++;
+            }
+        });
+        $("textarea[name=hotel]").val(hotelNames.join());
+        $("input[name=ids]").val(hotelIDs.join());
+        $('div#HotelModal').modal('hide');
+    }
+    </script>
+</block>

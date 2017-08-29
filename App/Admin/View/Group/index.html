@@ -1,0 +1,122 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="row">
+                <a class="label label-xlg label-primary" href="{:U('add')}" ><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;添加</a>
+                <a class="label label-xlg label-info" href="javascript:;" id="unlock" val="{:U('unlock')}" ><i class="ace-icon fa fa-unlock bigger-100"></i>&nbsp;启用</a>
+                <a class="label label-xlg label-warning" href="javascript:;" id="lock" val="{:U('lock')}" ><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;禁用</a>
+                <a class="label label-xlg label-danger" href="javascript:;" id="delete" val="{:U('del')}" ><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除</a>
+            </div>
+            <div class="space-8"></div>
+                                <div class="row">
+                                <form id="form" method="post" action="">
+                                    <table class="table table-striped table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th class="center"><input class="check-all" type="checkbox" value=""></th>
+                                            <th>角色</th>
+                                            <th>状态</th>
+                                            <th class="center">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <volist name="list" id="val">
+                                        <tr>
+                                            <td class="center">
+                                                <if condition="$val['id'] neq 1"><input class="ids" type="checkbox" name="ids[]" value="{$val['id']}"><else /><span title="超级管理员，禁止删除">--</span></if>
+                                            </td>
+                                            <td>{$val['title']}</td>
+                                            <td>{$val['status']|get_status}</td>
+                                            <td class="center"><a href="{:U('edit')}?id={$val['id']}" ><i class="ace-icon fa fa-pencil bigger-100"></i>修改</a></td>
+                                        </tr>
+                                    </volist>
+                                    </tbody>
+                                </table>
+                                </form>
+                                </div>
+                                <!-- PAGE CONTENT ENDS -->
+                            </div><!-- /.col -->
+                        </div><!-- /.row -->
+</block>
+<block name="currentPageJS">
+    <script type="text/javascript">
+        $(function(){
+            $(".check-all").click(function(){
+                $(".ids").prop("checked", this.checked);
+            });
+            $(".ids").click(function(){
+                var option = $(".ids");
+                option.each(function(i){
+                    if(!this.checked){
+                        $(".check-all").prop("checked", false);
+                        return false;
+                    }else{
+                        $(".check-all").prop("checked", true);
+                    }
+                });
+            });
+            $("#edit").click(function(){
+    			$("#form").attr("action",$("#edit").attr("val"));
+    			$("#form").submit();
+    		});
+    		$("#unlock").click(function(){
+    			bootbox.confirm({
+    				title: "系统提示",
+    				message: "是否要启用所选角色？", 
+    				callback:function(result){
+    					if(result){
+    						$("#form").attr("action",$("#unlock").attr("val"));
+    						$("#form").submit();
+    					}
+    				},
+    				buttons: {
+    					"cancel" : {"label" : "取消"},
+    					"confirm" : {
+    							"label" : "确定",
+    							"className" : "btn-danger"
+    						}
+    				}
+    			});
+    		});
+    		$("#lock").click(function(){
+    			bootbox.confirm({
+    				title: "系统提示",
+    				message: "是否要禁用所选角色？", 
+    				callback:function(result){
+    					if(result){
+    						$("#form").attr("action",$("#lock").attr("val"));
+    						$("#form").submit();
+    					}
+    				},
+    				buttons: {
+    					"cancel" : {"label" : "取消"},
+    					"confirm" : {
+    							"label" : "确定",
+    							"className" : "btn-danger"
+    						}
+    				}
+    			});
+    		});
+    		$("#delete").click(function(){
+    			bootbox.confirm({
+    				title: "系统提示",
+    				message: "是否要删除所选角色？", 
+    				callback:function(result){
+    					if(result){
+    						$("#form").attr("action",$("#delete").attr("val"));
+    						$("#form").submit();
+    					}
+    				},
+    				buttons: {
+    					"cancel" : {"label" : "取消"},
+    					"confirm" : {
+    							"label" : "确定",
+    							"className" : "btn-danger"
+    						}
+    				}
+    			});
+    		});
+        })
+    </script>
+</block>

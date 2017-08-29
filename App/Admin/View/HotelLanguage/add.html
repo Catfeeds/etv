@@ -1,0 +1,205 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal" id="form" method="post" action="{:U('update')}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-0">酒店</label>
+                    <div class="col-sm-9">
+                        <if condition="$personhid neq ''">
+                        <select id="hid" name="hid" class="col-xs-10 col-sm-5 select2">
+                            <option value=""></option>
+                            <volist name="personhid" id="phid">
+                            <option value="{$phid}" <if condition="$hid eq $phid">selected</if> >{$phid|getHotelnameByHid}</option>
+                            </volist>
+                        </select>
+                        <else />
+                        <select id="hid" name="hid" class="col-xs-10 col-sm-5 select2">
+                            <option></option>
+                            {$pHotel}
+                        </select>
+                        </if>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>所属酒店，必选。</span>
+                        </span>
+                     </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">显示名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="name" id="name" placeholder="显示名称" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-2">语言分类</label>
+                    <div class="col-sm-9">
+                        <select id="langcodeid" name="langcodeid" class="rcol-xs-10 col-sm-5">
+                            <option value="">请选择</option>
+                            <volist name="langlist" id="langlist">
+                                <option value="{$langlist['id']}" <if condition="$langlist['id'] eq $vo['langcodeid']">selected="selected"</if>>{$langlist['name']}</option>
+                            </volist>
+                        </select>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必选</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-3">称谓</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="appellation" id="appellation" placeholder="称谓" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-4">欢迎辞</label>
+                    <div class="col-sm-9">
+                        <textarea name="content" id="content" placeholder="欢迎辞" class="col-xs-10 col-sm-5" rows="5"></textarea>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-5">署名</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="signer" id="signer" placeholder="署名" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-6">排序</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="sort" id="sort" placeholder="排序值" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle">越小越靠前</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="col-md-offset-2 col-md-9">
+                    <button class="btn btn-info submit" type="button">
+                        <i class="icon-ok bigger-110"></i>提交
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="btn btn-primary" type="reset">
+                        <i class="icon-undo bigger-110"></i>重置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+<script type="text/javascript">
+    $('#hid').select2({ placeholder : '--请选择--' });
+	$(function () {
+		$(".btn-info.submit").click(function(){
+            var hid = $("#hid").val();
+            var name = $("#name").val();
+            var langcodeid = $("#langcodeid").val();
+            var appellation = $("#appellation").val();
+            var content = $("#content").val();
+            var signer = $("#signer").val();
+            if(hid==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "所属酒店必须选择", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(name==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "显示名称必须填写", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(langcodeid==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "语言分类必须选择", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(appellation==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "称谓必须填写", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(content==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "欢迎辞必须填写", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(signer==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "署名必须填写", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+			$("#form").submit();
+		});
+	});
+	</script>
+</block>

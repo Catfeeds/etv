@@ -1,0 +1,370 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal" id="form" method="post" action="{:U('update')}" enctype="multipart/form-data">
+                <input type="hidden" name="id" value="{$vo['id']}">
+                <input type="hidden" name="hid" value="{$vo['hid']}">
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">广告时间</label>
+                    <div class="col-sm-9">
+                        <span style="padding-top:5px;" class="text-error"></span>
+                        <select name="hour" style="width:80px;">
+                            <volist name="hour" id="sh">
+                                <option value="{$sh}" <?php if($vo['hour']==$sh){echo "selected";} ?>>{$sh}</option>
+                            </volist>
+                        </select>
+                        <span style="padding-top:5px;">： </span>
+                        <select name="minute" style="width:80px;margin-right:5px;">
+                            <volist name="minute" id="sm">
+                                <option value="{$sm}" <?php if($vo['minute']==$sm){echo "selected";} ?>>{$sm}</option>
+                            </volist>
+                        </select>
+                        <span style="padding-top:5px;" class="text-error">开始显示广告</span>
+                    </div>
+                </div>
+                 <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">广告类型</label>
+                    <div class="col-sm-9">
+                        <select name="ad_type" class="ad_type" style="width: 100px;">
+                            <option value="0">请选择</option>
+                            <option value="1" <?php if($vo['ad_type']==1){echo "selected";} ?> >视频广告</option>
+                            <option value="2" <?php if($vo['ad_type']==2){echo "selected";} ?> >图片广告</option>
+                            <option value="3" <?php if($vo['ad_type']==3){echo "selected";} ?> >文字广告</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">设置退出</label>
+                    <div class="col-sm-9">
+                        <input type="radio" class="can_quit" name="can_quit" value="0" <?php if($vo['can_quit']==0){echo "checked";} ?>>禁止
+                        <input type="radio" class="can_quit" name="can_quit" value="1" <?php if($vo['can_quit']==1){echo "checked";} ?>>允许
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">停留时间</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="play_time" id="play_time" placeholder="广告至少停留时间" class="col-xs-10 col-sm-5" value="{$vo['play_time']}" onkeyup="this.value=this.value.replace(/[^0-9-]+/,'');">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle">(秒)  <span class="red">&nbsp;允许中途退出需填写</span></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+
+                <!-- 模板一  视频模板 -->
+                <div class="ad_type_1_1" <?php if($vo['ad_type']!=1){echo "style='display: none;'";}?> >
+                <hr style="border: 1px solid;" />
+                    <div class="form-group">
+                        <div class="col-sm-1 control-label no-padding-right">资源列表:</div>
+                        <div class="col-sm-9">
+                            <ul id="foo" class="block__list block__list_words">
+                                <volist name="videoHadList" id="vhList">
+                                    <li rid="{$vhList.id}">{$vhList.title}</li>
+                                </volist>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="space-4"></div>
+                    <hr style="border: 1px solid;" />
+                    <input type="hidden" id="resourceId" name="videoresourceId" value="{$resourceId_str}">
+                    <div class="form-group">
+                        <div class="col-sm-1 control-label no-padding-right">所选资源:</div>
+                        <div class="col-sm-9">
+                            <ul id="bar" class="block__list block__list_tags">
+                                <volist name="videoSelectList" id="vsList">
+                                    <li rid="{$vsList.id}">{$vsList.title}</li>
+                                </volist>
+                            </ul>
+                        </div>
+                    </div>
+                    <hr style="border: 1px solid;" />
+                </div>
+                <div class="space-4"></div>
+                <!-- 模板二  图片模板 -->
+                <div class="ad_type_2" <?php if($vo['ad_type']!=2){echo "style='display: none;'";}?>>
+                    <div class="space-4"></div>
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label no-padding-right" for="form-field-1">弹窗图片：</label>
+                        <div class="col-sm-9">
+                            <select class="macimageselect" name="imageid" style="width:180px;">
+                                <volist name="imageSelectList" id="isList">  
+                                    <option value="{$isList.id}" name="{$isList.filepath}" selected>{$isList.title}</option>
+                                </volist> 
+                                <volist name="imageHadList" id="ihList">  
+                                    <option value="{$ihList.id}" name="{$ihList.filepath}">{$ihList.title}</option>
+                                </volist>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="space-4"></div>
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label no-padding-right" for="form-field-1">弹窗方位：</label>
+                        <div class="col-sm-9">
+                            <select name="video_ad_position" style="width:180px;">
+                                <option value="1" <?php if($vo['ad_position']==1){echo "selected";} ?> >屏幕左上方</option>
+                                <option value="2" <?php if($vo['ad_position']==2){echo "selected";} ?> >屏幕右上方</option>
+                                <option value="3" <?php if($vo['ad_position']==3){echo "selected";} ?> >屏幕左下方</option>
+                                <option value="4" <?php if($vo['ad_position']==4){echo "selected";} ?> >屏幕右下方</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="space-4"></div>
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label no-padding-right" for="form-field-1">图片：</label>
+                        <div class="col-sm-9" >
+                            <?php 
+                                if(!empty($imageSelectList)){  ?>
+                                    <img id="selectimage" class="img-polaroid" src="{:C('UPLOADPATH')}{$imageSelectList['0']['filepath']}" style="width:240px;height:135px;background:#ccc;" />
+                                <?php }else{ ?>
+                                    <img id="selectimage" class="img-polaroid" src="{:C('UPLOADPATH')}{$imageHadList['0']['filepath']}" style="width:240px;height:135px;background:#ccc;" />
+                                <?php }
+                            ?>
+                        </div>
+                    </div>
+                </div>
+                <!-- 模板三  文字模板 -->
+                <div class="ad_type_3" <?php if($vo['ad_type']!=3){echo "style='display: none;'";}?>>
+                    <div class="space-4"></div>
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label no-padding-right" for="form-field-1">弹窗文字：</label>
+                        <div class="col-sm-9">
+                            <textarea name="ad_word" maxlength="100" placeholder="最大长度100个字" style="height: 120px;width:500px;">{$vo['ad_word']}</textarea>
+                        </div>
+                    </div>
+                    <div class="space-4"></div>
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label no-padding-right" for="form-field-1">弹窗方位：</label>
+                        <div class="col-sm-9">
+                            <select name="word_ad_position" style="width:180px;">
+                                <option value="1" <?php if($vo['ad_position']==1){echo "selected";} ?> >屏幕左上方</option>
+                                <option value="2" <?php if($vo['ad_position']==2){echo "selected";} ?> >屏幕右上方</option>
+                                <option value="3" <?php if($vo['ad_position']==3){echo "selected";} ?> >屏幕左下方</option>
+                                <option value="4" <?php if($vo['ad_position']==4){echo "selected";} ?> >屏幕右下方</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="space-4"></div>
+                <div class="col-md-offset-2 col-md-9" >
+                    <button class="btn btn-info submit" type="button">
+                        <i class="icon-ok bigger-110"></i>提交
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="btn btn-primary" type="reset">
+                        <i class="icon-undo bigger-110"></i>重置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+<script src="__PUBLIC__/sortablepublic/js/Sortable.js"></script>
+<script src="__PUBLIC__/sortablepublic/js/angular.min.js"></script>
+<script src="__PUBLIC__/sortablepublic/js/app.js"></script>
+<script type="text/javascript">
+    $('#hid').select2({ placeholder : '--请选择--' });
+	$(function () {
+        var hadAdtype = $(".ad_type").find('option:selected').val();
+        if(hadAdtype=="2" || hadAdtype=="3"){
+            checkradio_canquit_two();
+        }
+        $(".btn-info.submit").click(function(){
+            var hid = $("#hid").val();
+            var ad_type = $(".ad_type").find('option:checked').val();
+            var can_quit = $(".can_quit:checked").val();   //设置退出
+            var play_time = $("#play_time").val(); //停留时间
+
+            //判断是否选择酒店
+            if(hid==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "所属酒店必须选择", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            //判断广告类型
+            if(ad_type==0){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "请选择广告类型", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            //判断是否能中途退出
+            if(isNaN(can_quit)){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "请选择是否允许中途退出", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            
+
+            //视频广告
+            if(ad_type == 1){
+                //停留时间
+                if(can_quit==1){
+                    if(isNaN(play_time)){
+                        bootbox.dialog({
+                            title: '友情提示：',
+                            message: "请填写停留时间", 
+                            buttons: {
+                                "success" : {
+                                    "label" : "确定",
+                                    "className" : "btn-danger"
+                                }
+                            }
+                        });
+                        return;
+                    }
+                }
+                //选择广告资源
+                var rlistId = '';
+                $("#bar").find('li').each(function(index, el) {
+                    var theid = $(this).attr('rid');
+                    rlistId += theid + ",";
+                });
+                if(rlistId == ''){
+                    bootbox.dialog({
+                        title: '友情提示：',
+                        message: "请选择广告资源", 
+                        buttons: {
+                            "success" : {
+                                "label" : "确定",
+                                "className" : "btn-danger"
+                            }
+                        }
+                    });
+                    return;
+                }
+                $("#resourceId").val(rlistId);
+            }
+
+            //图片广告
+            if(ad_type == 2 || ad_type ==3){
+                if(isNaN(play_time) || play_time==""){
+                    bootbox.dialog({
+                        title: '友情提示：',
+                        message: "请填写停留时间", 
+                        buttons: {
+                            "success" : {
+                                "label" : "确定",
+                                "className" : "btn-danger"
+                            }
+                        }
+                    });
+                    return;
+                }
+            }
+
+            //文字广告
+            if(ad_type==3){
+                var ad_word = $("textarea[name='ad_word']").val();
+                if($.trim(ad_word)==""){
+                    bootbox.dialog({
+                        title: '友情提示：',
+                        message: "请填写文字内容", 
+                        buttons: {
+                            "success" : {
+                                "label" : "确定",
+                                "className" : "btn-danger"
+                            }
+                        }
+                    });
+                    return;
+                }
+            }
+
+            $("#form").submit();
+        });
+    });
+
+    //广告类型改变操作
+    $(".ad_type").change(function(event) {
+        var ad_type_val = $(".ad_type").find('option:selected').val();
+        switch(ad_type_val){
+            case "1":
+                $(".ad_type_1_1").css("display","");
+                $(".ad_type_2").css("display","none");
+                $(".ad_type_3").css("display","none");
+                recoveryradio_canquit();
+                break;
+            case "2":
+                $(".ad_type_2").css("display","");
+                $(".ad_type_1_1").css("display","none");
+                $(".ad_type_3").css("display","none");
+                checkradio_canquit_two();
+                break;
+            case "3":
+                $(".ad_type_3").css("display","");
+                $(".ad_type_1_1").css("display","none");
+                $(".ad_type_2").css("display","none");
+                checkradio_canquit_two();
+                break;
+            case "0":
+                $(".ad_type_1_1").css("display","none");
+                $(".ad_type_2").css("display","none");
+                $(".ad_type_3").css("display","none");
+                break;
+        }
+    });
+
+    //单选can_quit 选中第二个选项
+    function checkradio_canquit_two(){
+        $(".can_quit").eq(1).prop('checked',true);
+        $(".can_quit").eq(0).attr('disabled', 'true');
+        $("#play_time").attr('readonly', false);
+    }
+
+    //恢复can_quit 单选
+    function recoveryradio_canquit(){
+        $(".can_quit").eq(0).attr('disabled', false);
+    }
+
+    //单选can_quit 停留时间修改
+    $(".can_quit").click(function(event) {
+        if($(this).val() == 0){
+            $("#play_time").attr("value","");
+            $("#play_time").val("");
+            $("#play_time").attr('readonly', true);
+        }else if($(this).val() == 1){
+            $("#play_time").attr('readonly', false);
+        }
+    });
+
+    //图片选择切换
+    $(".macimageselect").on("change",function(event) {
+        var path = $(this).find('option:selected').attr("name");
+        $("#selectimage").attr('src', "{:C('UPLOADPATH')}"+path);
+    });
+	</script>
+</block>

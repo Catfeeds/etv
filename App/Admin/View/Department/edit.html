@@ -1,0 +1,120 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal" id="form" method="post" action="{:U('update')}" enctype="multipart/form-data">
+                <input type="hidden" name="id" value="{$list['id']}">
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-0">酒店 </label>
+                    <div class="col-sm-9">
+                        <input type="hidden" name="hid" value="{$list['hid']}">
+                        <input type="text" name="" readonly style="border: 0px;" value="{$list['hotelname']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">部门编号</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="identifier_d" id="identifier_d" placeholder="" class="col-xs-10 col-sm-5" value="{$list['identifier_d']}">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">部门名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="title" id="title" placeholder="" class="col-xs-10 col-sm-5" value="{$list['title']}">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-2">部门描述</label>
+                    <div class="col-sm-9">
+                        <textarea name="intro" id="intro" placeholder="" class="col-xs-10 col-sm-5" rows="5">{$list['intro']}</textarea>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-3">排序</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="sort" id="sort" placeholder="" class="col-xs-10 col-sm-5" value="{$list['sort']}">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-offset-2 col-md-9">
+                    <button class="btn btn-info submit" type="button">
+                        <i class="icon-ok bigger-110"></i>提交
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="btn btn-primary" type="reset">
+                        <i class="icon-undo bigger-110"></i>重置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+    <script type="text/javascript">
+        $(function () {
+            $(".btn-info.submit").click(function(){
+                var hid = $("#hid").val();
+                var title = $("#title").val();
+                var identifier_d = $("#identifier_d").val();
+                if(hid==''){
+                    bootbox.dialog({
+                        title: '友情提示：',
+                        message: "所属酒店必须选择",
+                        buttons: {
+                            "success" : {
+                                "label" : "确定",
+                                "className" : "btn-danger"
+                            }
+                        }
+                    });
+                    return;
+                }
+                if(title==''){
+                    bootbox.dialog({
+                        title: '友情提示：',
+                        message: "部门名称必须填写！",
+                        buttons: {
+                            "success" : {
+                                "label" : "确定",
+                                "className" : "btn-danger"
+                            }
+                        }
+                    });
+                    return;
+                }
+                if(identifier_d==''){
+                    bootbox.dialog({
+                        title: '友情提示：',
+                        message: "部门编号必须填写！",
+                        buttons: {
+                            "success" : {
+                                "label" : "确定",
+                                "className" : "btn-danger"
+                            }
+                        }
+                    });
+                    return;
+                }
+                $("#form").submit();
+            });
+        });
+    </script>
+</block>

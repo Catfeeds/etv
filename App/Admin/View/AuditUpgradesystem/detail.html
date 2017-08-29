@@ -1,0 +1,75 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+        <form class="form-horizontal" id="form" method="" action="" enctype="multipart/form-data">
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">UTC</label>
+                <div class="col-sm-9">
+                    <input type="text" name="utc" readonly="true" value="{$list['utc']} ">
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">版本号</label>
+                <div class="col-sm-9">
+                    <input type="text" name="version" readonly="true" value="{$list['version']} ">
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">大小</label>
+                <div class="col-sm-9">
+                    <input type="text" name="size" readonly="true" value="{$list['size']|format_size=###} ">
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">名称</label>
+                <div class="col-sm-9">
+                    <input type="text" name="name" readonly="true" value="{$list['name']} ">
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">升级包</label>
+                <div class="col-sm-9">
+                    <a href="{:C('UPLOADPATH')}{$list['filename']}" target="_blank">{$list['filename']}</a>
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">房间</label>
+                <div class="col-sm-9">
+                    <textarea class="col-xs-9 col-sm-6">{$list['maclist']}</textarea> 
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">描述</label>
+                <div class="col-sm-9">
+                    <textarea class="col-xs-9 col-sm-6">{$list['description']}</textarea>
+                 </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">上传时间</label>
+                <div class="col-sm-9">
+                    <input type="text" name="format_timestamp" readonly="true" value="{$list['upload_time']|format_timestamp} ">
+                </div>
+            </div>
+            <div class="space-4"></div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label no-padding-right" for="form-field-0">是否启用</label>
+                <div class="col-sm-9">
+                    {$list['status']|get_status}
+                </div>
+            </div>
+            <div class="space-4"></div>
+        </form>
+        </div>
+    </div>
+</block>

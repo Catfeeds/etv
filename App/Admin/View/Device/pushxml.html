@@ -1,0 +1,385 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal" id="form" method="post" action="{:U('xmlupdate')}">   
+                <input type="hidden" name="id" id="mapid" value="{$vo['id']}">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-1"></label>
+                    <div class="col-sm-8">
+                        <input type="text" class="col-xs-10 col-sm-5" name="" value="已存在的数值" readonly="true">
+                        <input type="text" class="col-xs-10 col-sm-5" name="" value="XML导入的数值" readonly="true">
+                    </div>
+                </div>
+                <if condition="$vo['id'] eq ''">
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-2">MAC地址</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_mac" id="had_mac" class="col-xs-10 col-sm-5" value="{$vo['mac']}" readonly="true">
+                        <input type="text" name="mac" id="mac" class="col-xs-10 col-sm-5" value="">
+                    </div>
+                </div>
+                </if>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-1">酒店编号</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_hid" id="had_hid" class="col-xs-10 col-sm-5" value="{$vo['hid']}" readonly="true">
+                        <input type="text" name="hid" id="hid" class="col-xs-10 col-sm-5" value="{$list['hid']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-1">房间号</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_room" id="had_room" class="col-xs-10 col-sm-5" value="{$vo['room']}" readonly="true" readonly="true">
+                        <input type="text" name="room" id="room" class="col-xs-10 col-sm-5" value="{$list['room']}" readonly="true">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-3">平台服务器地址</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_server_url" id="had_server_url" class="col-xs-10 col-sm-5" value="{$vo['server_url']}" readonly="true">
+                        <input type="text" name="server_url" id="server_url" class="col-xs-10 col-sm-5" value="{$list['server_url']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-4">IPTV接入模式</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_itv_mode" id="had_itv_mode" class="col-xs-10 col-sm-5" value="{$vo['itv_mode']}" readonly="true">
+                        <input type="text" name="itv_mode" id="itv_mode" class="col-xs-10 col-sm-5" value="">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-5">IPTV的PPPOE账号</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_itv_pppoe_user" id="had_itv_pppoe_user" class="col-xs-10 col-sm-5" value="{$vo['itv_pppoe_user']}" readonly="true">
+                        <input type="text" name="itv_pppoe_user" id="itv_pppoe_user" class="col-xs-10 col-sm-5" value="{$list['itv_pppoe_user']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-6">IPTV的PPPOE密码</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_itv_pppoe_pwd" id="had_itv_pppoe_pwd" class="col-xs-10 col-sm-5" value="{$vo['itv_pppoe_pwd']}" readonly="true">
+                        <input type="text" name="itv_pppoe_pwd" id="itv_pppoe_pwd" class="col-xs-10 col-sm-5" value="{$list['itv_pppoe_pwd']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-7">IPTV中PPPOE模式下的IP</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_itv_pppoe_ip" id="had_itv_pppoe_ip" class="col-xs-10 col-sm-5" value="{$vo['itv_pppoe_ip']}" readonly="true">
+                        <input type="text" name="itv_pppoe_ip" id="itv_pppoe_ip" class="col-xs-10 col-sm-5" value="">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-8">IPTV中DHCP模式下的IP</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_itv_dhcp_ip" id="had_itv_dhcp_ip" class="col-xs-10 col-sm-5" value="{$vo['itv_dhcp_ip']}" readonly="true">
+                        <input type="text" name="itv_dhcp_ip" id="itv_dhcp_ip" class="col-xs-10 col-sm-5" value="">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-9">IPTV中DHCP+模式下的IP</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_itv_dhcp_plus_ip" id="had_itv_dhcp_plus_ip" class="col-xs-10 col-sm-5" value="{$vo['itv_dhcp_plus_ip']}" >
+                        <input type="text" name="itv_dhcp_plus_ip" id="itv_dhcp_plus_ip" class="col-xs-10 col-sm-5" value="">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-10">IPTV中静态模式下的IP</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_itv_static_ip" id="had_itv_static_ip" class="col-xs-10 col-sm-5" value="{$vo['itv_static_ip']}" readonly="true">
+                        <input type="text" name="itv_static_ip" id="itv_static_ip" class="col-xs-10 col-sm-5" value="{$list['itv_static_ip']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-11">宽带DHCP模式下的IP</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_wan_dhcp_ip" id="had_wan_dhcp_ip" class="col-xs-10 col-sm-5" value="{$vo['wan_dhcp_ip']}" readonly="true">
+                        <input type="text" name="wan_dhcp_ip" id="wan_dhcp_ip" class="col-xs-10 col-sm-5" value="">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-12">宽带静态模式下的IP</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_wan_static_ip" id="had_wan_static_ip" class="col-xs-10 col-sm-5" value="{$vo['wan_static_ip']}" readonly="true">
+                        <input type="text" name="wan_static_ip" id="wan_static_ip" class="col-xs-10 col-sm-5" value="{$list['wan_static_ip']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-13">VLAN状态</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_vlan_status" id="had_vlan_status" class="col-xs-10 col-sm-5" value="{$vo['vlan_status']}" readonly="true">
+                        <input type="text" name="vlan_status" id="vlan_status" class="col-xs-10 col-sm-5" value="">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-14">WIFI的SSID</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_wifi_ssid" id="had_wifi_ssid" class="col-xs-10 col-sm-5" value="{$vo['wifi_ssid']}" readonly="true">
+                        <input type="text" name="wifi_ssid" id="wifi_ssid" class="col-xs-10 col-sm-5" value="{$list['wifi_ssid']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-15">WIFI密码</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_wifi_passwd" id="had_wifi_passwd" class="col-xs-10 col-sm-5" value="{$vo['wifi_passwd']}" readonly="true">
+                        <input type="text" name="wifi_passwd" id="wifi_passwd" class="col-xs-10 col-sm-5" value="{$list['wifi_passwd']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">WIFI加密方式</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_wifi_psk_type" id="had_wifi_psk_type" class="col-xs-10 col-sm-5" value="{$vo['wifi_psk_type']}" readonly="true">
+                        <input type="text" name="wifi_psk_type" id="wifi_psk_type" class="col-xs-10 col-sm-5" value="{$list['wifi_psk_type']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">wan_pppoe_user</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_wan_pppoe_user" id="had_wan_pppoe_user" class="col-xs-10 col-sm-5" value="{$vo['wan_pppoe_user']}" readonly="true">
+                        <input type="text" name="wan_pppoe_user" id="wan_pppoe_user" class="col-xs-10 col-sm-5" value="{$list['wan_pppoe_user']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">wan_netmask</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_wan_netmask" id="had_wan_netmask" class="col-xs-10 col-sm-5" value="{$vo['wan_netmask']}" readonly="true">
+                        <input type="text" name="wan_netmask" id="wan_netmask" class="col-xs-10 col-sm-5" value="{$list['wan_netmask']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">itv_dns1</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_itv_dns1" id="had_itv_dns1" class="col-xs-10 col-sm-5" value="{$vo['itv_dns1']}" readonly="true">
+                        <input type="text" name="itv_dns1" id="itv_dns1" class="col-xs-10 col-sm-5" value="{$list['itv_dns1']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">itv_dns2</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_itv_dns2" id="had_itv_dns2" class="col-xs-10 col-sm-5" value="{$vo['itv_dns2']}" readonly="true">
+                        <input type="text" name="itv_dns2" id="itv_dns2" class="col-xs-10 col-sm-5" value="{$list['itv_dns2']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">itv_dhcp_pwd</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_itv_dhcp_pwd" id="had_itv_dhcp_pwd" class="col-xs-10 col-sm-5" value="{$vo['itv_dhcp_pwd']}" readonly="true">
+                        <input type="text" name="itv_dhcp_pwd" id="itv_dhcp_pwd" class="col-xs-10 col-sm-5" value="{$list['itv_dhcp_pwd']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">itv_netmask</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_itv_netmask" id="had_itv_netmask" class="col-xs-10 col-sm-5" value="{$vo['itv_netmask']}" readonly="true">
+                        <input type="text" name="itv_netmask" id="itv_netmask" class="col-xs-10 col-sm-5" value="{$list['itv_netmask']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">wan_dns1</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_wan_dns1" id="had_wan_dns1" class="col-xs-10 col-sm-5" value="{$vo['wan_dns1']}" readonly="true">
+                        <input type="text" name="wan_dns1" id="wan_dns1" class="col-xs-10 col-sm-5" value="{$list['wan_dns1']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">wan_dns2</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_wan_dns2" id="had_wan_dns2" class="col-xs-10 col-sm-5" value="{$vo['wan_dns2']}" readonly="true">
+                        <input type="text" name="wan_dns2" id="wan_dns2" class="col-xs-10 col-sm-5" value="{$list['wan_dns2']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">wan_gateway</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_wan_gateway" id="had_wan_gateway" class="col-xs-10 col-sm-5" value="{$vo['wan_gateway']}" readonly="true">
+                        <input type="text" name="wan_gateway" id="wan_gateway" class="col-xs-10 col-sm-5" value="{$list['wan_gateway']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">wan_pppoe_pwd</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_wan_pppoe_pwd" id="had_wan_pppoe_pwd" class="col-xs-10 col-sm-5" value="{$vo['wan_pppoe_pwd']}" readonly="true">
+                        <input type="text" name="wan_pppoe_pwd" id="wan_pppoe_pwd" class="col-xs-10 col-sm-5" value="{$list['wan_pppoe_pwd']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">itv_dhcp_user</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_itv_dhcp_user" id="had_itv_dhcp_user" class="col-xs-10 col-sm-5" value="{$vo['itv_dhcp_user']}" readonly="true">
+                        <input type="text" name="itv_dhcp_user" id="itv_dhcp_user" class="col-xs-10 col-sm-5" value="{$list['itv_dhcp_user']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">network_mode</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_network_mode" id="had_network_mode" class="col-xs-10 col-sm-5" value="{$vo['network_mode']}" readonly="true">
+                        <input type="text" name="network_mode" id="network_mode" class="col-xs-10 col-sm-5" value="{$list['network_mode']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">itv_gateway</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_itv_gateway" id="had_itv_gateway" class="col-xs-10 col-sm-5" value="{$vo['itv_gateway']}" readonly="true">
+                        <input type="text" name="itv_gateway" id="itv_gateway" class="col-xs-10 col-sm-5" value="{$list['itv_gateway']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">aaa_account</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_aaa_account" id="had_aaa_account" class="col-xs-10 col-sm-5" value="{$vo['aaa_account']}" readonly="true">
+                        <input type="text" name="aaa_account" id="aaa_account" class="col-xs-10 col-sm-5" value="{$list['aaa_account']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">aaa_passwd</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_aaa_passwd" id="had_aaa_passwd" class="col-xs-10 col-sm-5" value="{$vo['aaa_passwd']}" readonly="true">
+                        <input type="text" name="aaa_passwd" id="aaa_passwd" class="col-xs-10 col-sm-5" value="{$list['aaa_passwd']}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label no-padding-right" for="form-field-16">vlan_status</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="had_vlan_status" id="had_vlan_status" class="col-xs-10 col-sm-5" value="{$vo['vlan_status']}" readonly="true">
+                        <input type="text" name="vlan_status" id="vlan_status" class="col-xs-10 col-sm-5" value="{$list['vlan_status']}">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+
+                <div class="col-md-offset-4 col-md-8" style="padding-left: 4%">
+                    <button class="btn btn-info submit" type="button">
+                        <i class="icon-ok bigger-110"></i>提交
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <a href="{:U('index')}">
+                        <button class="btn btn-danger" type="button">
+                            <i class="icon-undo bigger-110"></i>取消
+                        </button>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+    <script type="text/javascript">
+        $(function(){
+
+            $(".btn-info.submit").click(function(){
+
+                var mac = $("#mac").val();
+                var id = $("#mapid").val();
+                if(id == ''){
+                    resultmac = 1;
+                    
+                $.ajax({
+                        url: "{:U('checkmac')}",
+                        type: 'POST',
+                        dataType: 'json',
+                        data: {'mac': mac},
+                    })
+                    .done(function(data) {
+                        resultmac = data;
+                        if(resultmac == 0){
+                            bootbox.dialog({
+                                title: "系统提示",
+                                message: "MAC地址已存在", 
+                                buttons: {
+                                    "success" : {
+                                        "label" : "确定",
+                                        "className" : "btn-danger"
+                                    }
+                                }
+                            });
+                            return;
+                        }
+                        if(resultmac == 2){
+                            bootbox.dialog({
+                                title: "系统提示",
+                                message: "请填写MAC地址", 
+                                buttons: {
+                                    "success" : {
+                                        "label" : "确定",
+                                        "className" : "btn-danger"
+                                    }
+                                }
+                            });
+                            return;
+                        }
+                        
+                        bootbox.confirm({
+                            title: "系统提示",
+                            message: "确认提交数据？", 
+                            callback:function(result){
+                                if(result){
+                                    $("#form").submit();
+                                }
+                            },
+                            buttons: {
+                                "cancel" : {"label" : "取消"},
+                                "confirm" : {
+                                    "label" : "确定",
+                                    "className" : "btn-danger"
+                                }
+                            }
+                        });
+                    });
+                }else{
+                    bootbox.confirm({
+                        title: "系统提示",
+                        message: "确认提交数据？", 
+                        callback:function(result){
+                            if(result){
+                                $("#form").submit();
+                            }
+                        },
+                        buttons: {
+                            "cancel" : {"label" : "取消"},
+                            "confirm" : {
+                                "label" : "确定",
+                                "className" : "btn-danger"
+                            }
+                        }
+                    });
+                }
+
+            });
+
+        });
+    </script>
+</block>

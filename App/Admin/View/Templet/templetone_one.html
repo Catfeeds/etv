@@ -1,0 +1,156 @@
+<!DOCTYPE html><html><head>
+<style>
+html,
+body {
+    position: relative;
+    width: 100%;
+    background: linear-gradient(to left,#000055,#777777);
+    background: linear-gradient(to left,#000055,#777777);
+    background: linear-gradient(to left,#000055,#777777);
+    background: linear-gradient(to left,#000055,#777777);
+}
+.slider-ctr {
+    /*滚动条*/
+    overflow: auto;    
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 9;
+    width: 100%;
+}
+
+#form{
+    width: 100%;
+}
+
+.slider-scroll {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding:1% 5%;
+    box-sizing: content-box;
+    width: 100%;
+}
+.slider-scroll .slide {
+    float: left;
+    box-sizing: border-box;
+    padding: 4% 2%;
+    display: table;
+    width: 30%;
+}
+.slider-scroll figure {
+    display: table-cell;
+    vertical-align: middle;
+    width: 100%;
+}
+.slider-scroll .image-ctr {
+    position: relative;
+    transition: 0.2s all cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    will-change: transform;
+    width: 100%;
+}
+.slider-scroll .image-ctr img{
+    width: 100%;
+    height: 200px;
+}
+.slider-scroll .image-ctr:hover .img{
+    -webkit-transform: scale(1.2);
+    -moz-transform: scale(1.2);
+    -ms-transform: scale(1.2);
+    -o-transform: scale(1.2);
+    transform: scale(1.2);
+}
+.slider-scroll .image-ctr figcaption {
+    position: absolute;
+    right: 0;
+    bottom: -40px;
+    left: 0;
+    font-size: 16px;
+    text-align: center;
+    color: #fff;
+    letter-spacing: 0px;
+    opacity: 0;
+    outline: none;
+    border-color: transparent;
+}
+.slider-scroll .image-ctr:hover figcaption {
+    opacity: 1;
+    transition: .15s opacity ease .1s;
+}
+*{outline: none;}
+
+</style>
+</head>
+<body>
+
+<div class="slider-ctr">
+    <form id="form" action="{:U('templetone_second')}" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="hid" value="{$hid}">
+    <input type="hidden" name="pid" value="">
+    <input type="hidden" name="votype" value="">
+        <div class="slider-scroll">
+            
+        </div>
+    </form>
+</div>
+<script src="__PUBLIC__/templet/templet1/js/jquery-2.1.1.min.js"></script>
+<script type="text/javascript">
+    window.onload = function(){
+
+        var hid = $("input[name='hid']").attr("value");
+        $.ajax({
+            url: "{:U('templetone_getHotelCategory_firstlevel')}",
+            type: 'POST',
+            dataType: 'json',
+            data: {'hid': hid,'room':'room','mac':'mac'},
+        })
+        .done(function(data) {
+            var $data = data['data'];
+            if($data==null || $data=="" || $data==undefined){
+                alert('该酒店暂无数据');
+                return;
+            }
+
+            var $slides = "";
+            var $len = $data.length;
+            for (var i = 0; i < $len; i++) {
+                $slides += '<div class="slide">\
+                    <figure>\
+                    <div class="image-ctr" tabindex="'+i+'">\
+                    <div data-index="'+i+'">\
+                    <img class="img"  src="'+$data[i]["icon"]+'">\
+                    <input type="hidden" class="hidclass" hid="'+$data[i]["hid"]+'">\
+                    <input type="hidden" class="idclass" id="'+$data[i]["id"]+'">\
+                    <input type="hidden" class="votypeclass" votype="'+$data[i]["votype"]+'">\
+                    </div>\
+                    <figcaption>'+$data[i]["name"]+'</figcaption>\
+                    </div>\
+                    </figure>\
+                    </div>';
+            }
+            $(".slider-scroll").html($slides);
+
+        })
+        .fail(function() {
+            console.log("error");
+        });
+    }
+
+    $(".slider-scroll").delegate('.slide', 'click', function() {
+
+        
+        $pid = $(this).find('.idclass').attr("id");
+        $votype = $(this).find('.votypeclass').attr("votype");
+        $("input[name='pid']").attr("value",$pid);
+        $("input[name='votype']").attr("value",$votype);
+        $("#form").submit();
+        
+    });
+</script>
+</body>
+</html>

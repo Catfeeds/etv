@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title>二级菜单</title>
+<!-- <link rel="stylesheet" type="text/css" href="__PUBLIC__/templet/templet1/css/zoom.css"> -->
+<link rel="stylesheet" type="text/css" href="__PUBLIC__/templet/templet1/css/lightbox.css" />
+<link rel="stylesheet" type="text/css" href="__PUBLIC__/templet/templet1/css/screen.css" />
+<link rel="stylesheet" type="text/css" href="__PUBLIC__/templet/templet1/css/templet1_second.css" />
+</head>
+<!-- <body style="background-color:rgb(105,105,105);"> -->
+<body>
+<br>
+
+<div class="layout" id="floor_1">
+    <div class="carousel slide" id="carousel_news">
+        <div class="carousel-inner">
+            <div class="carousel-pos">
+               
+            </div>
+        </div>
+        <div class="carousel-panel">
+            <ul>
+                <volist name="list" id="val">
+                        <div class="clist" tabindex="{$key}" hid="{$val['hid']}" cid="{$val['id']}" votype="{$val['votype']}">
+                            <div data-index="{$key}">
+                                <li class="item{$key}">{$val['name']}</li>
+                            </div>
+                        </div>
+                </volist>
+            </ul>
+        </div> 
+    </div>
+</div>
+                                                                                                                    
+<script src="__PUBLIC__/templet/templet1/js/jquery-2.1.1.min.js"></script>
+<script src="__PUBLIC__/templet/templet1/js/lightbox.js"></script>
+<!-- <script src="__PUBLIC__/templet/templet1/js/zoom.js"></script> -->
+<script src="__PUBLIC__/templet/templet1/js/jquery.fitvids.js"></script>
+<script type="text/javascript">
+
+    //获取二级资源
+    $(".carousel-panel").delegate('.clist', 'click', function() {
+
+        var $hid = $(this).attr("hid");
+        var $cid = $(this).attr("cid");
+        var $votype = $(this).attr("votype");
+
+        $.ajax({
+            url: '{:U("templetone_getHotelResource_second")}',
+            type: 'POST',
+            dataType: 'json',
+            data: {'hid': $hid,'cid':$cid,"votype":$votype},
+        })
+        .done(function(data) {
+            var $data = data['data'];
+            if($data==null || $data=="" || $data==undefined){
+                $(".carousel-pos").html("");
+            }else{
+                var $len = $data.length;
+                var $slides = '<div class="f_out style01"><ul>';
+                for (var i=0; i<$len; i++) {
+                    
+                    if($data[i]['file_type'] == 2){
+                        $slides += '<li tabindex="'+i+'" class="li30"><span><a class="example-image-link" href="'+$data[i]['filepath']+'" data-lightbox="example-set" data-title="'+$data[i]["title"]+'">\
+                        <img class="example-image" style="height:220px;width:100%;" alt="" src="'+$data[i]['filepath']+'">\
+                        </a></span></li>';
+                        // $slides += '<li tabindex="'+i+'" class="li30"><span><a href="#" data-title="'+$data[i]["title"]+'">\
+                        // <img style="height:220px;width:100%;" alt="" src="'+$data[i]['filepath']+'" data-action="zoom">\
+                        // </a></span></li>';
+                    }else if($data[i]['file_type'] == 1){
+                       /* $slides += '<li><span><a href="#">\
+                                <video width="700px" height="400px" controls><source src="'+$data[i]["filepath"]+'" type="video/mp4">\
+                                </source></video</a></span></li>';*/
+                        // $slides += '<EMBED style=" margin: 5px auto; width:600px; height: 400px";\
+                        // src="'+$data[i]["filepath"]+'"\
+                        // quality= "high"\
+                        // type="application/x-shockwave-flash">';
+                        $slides += '<div class="videoClass">\
+                        <iframe width="600px;" height="350px;" src="'+$data[i]["filepath"]+'"></iframe></div>';
+                    }
+
+                }
+                $slides += '</ul></div>';
+                $(".carousel-pos").html($slides);
+            }
+
+        })
+        .fail(function() {
+            console.log("error");
+        });
+    });
+
+</script>
+</body>
+</html>
