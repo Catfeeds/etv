@@ -243,7 +243,18 @@ class HotelAdsetController extends ComController {
             }
     	}
 
-    	if($adsetId!==false && $releateResult!==false){
+        //判断容量是否符合
+        $hotelAdSpace_vo = D("hotel")->where('hid="'.$data['hid'].'"')->field('ad_space')->find();
+        $checkPopupResulet = $this->checkpopupad($data['hid'],$hotelAdSpace_vo['ad_space']);
+        if($checkPopupResulet === false){
+            $this->error('选取总容量超标',U('index'));
+            die();
+        }
+
+        //更新容量
+        $popupSizeResult = $this->updatePopupadSize($data['hid'],$checkPopupResulet);
+
+    	if($adsetId!==false && $releateResult!==false && $popupSizeResult!==false){
     		$model->commit();
     		addlog($remark."广告设置成功"."修改酒店编号为".$data['hid']);
     		$this->success($remark."成功",U('index'));
@@ -498,5 +509,37 @@ class HotelAdsetController extends ComController {
         }else{
             return false;
         }
+    }
+
+    /**
+     * [checkpopupad 判断弹窗广告容量是否超标]
+     * @param  string $hid        [酒店编号]
+     * @param  float $space_size  [酒店弹窗广告设定容量]
+     * @return $popupSize/false   [已用容量/超标标志false]
+     */
+    public function checkpopupad($hid="",$space_size){
+        $popupSize = D("hotel_adset_adresource")->where('zxt_hotel_adset_adresource.hid="'.$hid.'"')->join('zxt_hotel_adresource ON zxt_hotel_adset_adresource.adresource_id=zxt_hotel_adresource.id')->field('sum(zxt_hotel_adresource.size)')->find();
+        if ($popupSize['sum(zxt_hotel_adresource.size)']>$space_size) {
+            return false;
+        }else{
+            return $popupSize['sum(zxt_hotel_adresource.size)'];
+        }
+    }
+
+    /**
+     * [updatePopupadSize 更新容量表popupad_size]
+     * @param  [string] $hid  [酒店编号]
+     * @param  [float] $size  [更新容量值]
+     * @return $result        [返回结果]
+     */
+    public function updatePopupadSize($hid,$size){
+        if(D("hotel_volume")->where('hid="'.$hid.'"')->count()){
+            $result = D("hotel_volume")->where('hid="'.$hid.'"')->setField('popupad_size',$size);
+        }else{
+            $popupData['popupad_size'] = $size;
+            $popupData['hid'] = $hid;
+            $result = D("hotel_volume")->data($popupData)->add();
+        }
+        return $result;
     }
 }

@@ -644,7 +644,7 @@ class HotelController extends ComController {
 
         //查询酒店容量
         $hotelMap['hid'] = $hid;
-        $hotel = D("hotel")->where($hotelMap)->field('space')->find(); 
+        $hotel = D("hotel")->where($hotelMap)->field('space,carousel_space')->find(); 
         $hotelspace = floatval($hotel['space']); //酒店容量
         
         //查询已用容量（不包括关联集团） 
@@ -689,6 +689,27 @@ class HotelController extends ComController {
                 }
             }
 
+            if(!empty($ids)){
+                $CarouselSizeMap['zxt_hotel_chg_category.pid'] = array('in',$ids);
+                $CarouselSizeList = D("hotel_chg_category")->where($CarouselSizeMap)->join("zxt_hotel_carousel_resource ON zxt_hotel_chg_category.id = zxt_hotel_carousel_resource.cid")->field("sum(zxt_hotel_carousel_resource.size)")->select();
+                $CarouselSize = $CarouselSizeList['0']['sum(zxt_hotel_carousel_resource.size)'];
+                if($CarouselSize>$hotel['carousel_space']){
+                    $this->error('关联集团栏目中视频轮播容量超过酒店规定值,请重新选择关联集团栏目!',U('index'));
+                }
+            }else{
+                $CarouselSize = 0;
+            }
+
+            //查询对应的二级栏目的模型codevalue是否为501 找到其cid
+            if(!empty($delId_arr)){
+                $delCarouselMap['zxt_hotel_chg_category.pid'] = array('in',$delId_arr);
+                $delCarouselList = D("hotel_chg_category")->where($delCarouselMap)->join("zxt_hotel_carousel_resource ON zxt_hotel_chg_category.id = zxt_hotel_carousel_resource.cid")->field("zxt_hotel_carousel_resource.filepath,zxt_hotel_carousel_resource.video_image,zxt_hotel_carousel_resource.size")->select();
+            }
+            if(!empty($addId_arr)){
+                $addCarouselMap['zxt_hotel_chg_category.pid'] = array('in',$addId_arr);
+                $addCarouselList = D("hotel_chg_category")->where($addCarouselMap)->join("zxt_hotel_carousel_resource ON zxt_hotel_chg_category.id = zxt_hotel_carousel_resource.cid")->field("zxt_hotel_carousel_resource.filepath,zxt_hotel_carousel_resource.video_image,zxt_hotel_carousel_resource.size")->select();
+            }
+
             //删除（原有选定 现不选定）
             $result_del = true;
             $result_add = true;
@@ -717,12 +738,23 @@ class HotelController extends ComController {
                         $del_name_arr[] = $value['name'];
                     }
                 }
-
+                //通过501的cid找到allresource列表 进行删除
+                if(!empty($delCarouselList)){
+                    foreach ($delCarouselList as $key => $value) {
+                        $delCarouselName_arr = explode("/", $value['filepath']);
+                        $del_name_arr[] = $delCarouselName_arr[count($delCarouselName_arr)-1];
+                        if(!empty($value['video_image'])){
+                            $delCarouselName_arr = explode("/", $value['video_image']);
+                            $del_name_arr[] = $delCarouselName_arr[count($delCarouselName_arr)-1];
+                        }
+                    }
+                }
                 if(!empty($del_name_arr)){
                     $delAllResourceMap['name'] = array('in',$del_name_arr);
                     $delAllResourceMap['hid'] = $hid;
                     $delAllresourceResult = D("hotel_allresource")->where($delAllResourceMap)->delete();
                 }
+
             }
 
             //新增 （原来没选 新选定）
@@ -765,9 +797,34 @@ class HotelController extends ComController {
                         $j++;
                     }
                 }
+                //找到codevalue为501的资源列表 进行新增
+                if(!empty($addCarouselList)){
+                    $k = count($addlist);
+                    foreach ($addCarouselList as $key => $cvalue) {
+                        $addlist[$k]['hid'] = $hid;
+                        $addCarouseName_arr = explode("/", $cvalue['filepath']);
+                        $addlist[$k]['name'] = $addCarouseName_arr[count($addCarouseName_arr)-1];
+                        $addlist[$k]['type'] = 1;
+                        $addlist[$k]['timeunix'] = time();
+                        $addlist[$k]['time'] = date("Y-m-d H:i:s");
+                        $addlist[$k]['web_upload_file'] = $cvalue['filepath'];
+                        $k++;
+                        if(!empty($cvalue['video_image'])){
+                            $addlist[$k]['hid'] = $hid;
+                            $addCarouseName_arr = explode("/", $cvalue['video_image']);
+                            $addlist[$k]['name'] = $addCarouseName_arr[count($addCarouseName_arr)-1];
+                            $addlist[$k]['type'] = 1;
+                            $addlist[$k]['timeunix'] = time();
+                            $addlist[$k]['time'] = date("Y-m-d H:i:s");
+                            $addlist[$k]['web_upload_file'] = $cvalue['video_image'];
+                            $k++;
+                        }
+                    }
+                }
                 if($addlist){
                     $addAllresourceResult = D("hotel_allresource")->addAll($addlist);
                 }
+
             }
 
             if($delAllresourceResult===false || $addAllresourceResult===false){
@@ -777,8 +834,9 @@ class HotelController extends ComController {
             //添加到酒店容量表
             $hvMap['hid'] = $hid;
             if(M("hotel_volume")->where($hvMap)->count()){
-                $sql = "UPDATE `zxt_hotel_volume` SET `chg_size`=".$size." where hid ='".$hid."'";
-                $updatesize = D("hotel_volume")->execute($sql);
+                $hvDate['chg_size'] = $size;
+                $hvDate['carousel_size'] = $CarouselSize;
+                $updatesize = D("hotel_volume")->where($hvMap)->data($hvDate)->save();
             }else{
                 $hvDate['hid'] = $data['hid'];
                 $hvDate['content_size'] = 0.000;
