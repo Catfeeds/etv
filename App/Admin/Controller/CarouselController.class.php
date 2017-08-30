@@ -220,7 +220,6 @@ class CarouselController extends ComController {
                 }
             }
 
-            $changesize = $data['size'];
             $chghotellist[] = $data['hid'];
             $data['file_type'] = I('post.type','','intval');
             $data['ctype'] = I('post.ctype');
@@ -268,15 +267,14 @@ class CarouselController extends ComController {
         $updatesize = true;
         $chgupdatesize = true;
         $sizelist = D("hotel_carousel_resource")->where($hmap)->field('sum(size)')->select();
-        $setsize = $changesize + $sizelist[0]['sum(size)'];
         if(M("hotel_volume")->where($hmap)->count()){
-            $hotelupdatesize = D("hotel_volume")->where($hmap)->setField("carousel_size",$setsize);
+            $hotelupdatesize = D("hotel_volume")->where($hmap)->setField("carousel_size",$sizelist[0]['sum(size)']);
         }else{
             $arrdata['hid'] = $data['hid'];
-            $arrdata['carousel_size'] = $setsize;
+            $arrdata['carousel_size'] = $sizelist[0]['sum(size)'];
             $hotelupdatesize = M("hotel_volume")->data($arrdata)->add();
         }
-        if(!empty($cvolumeResult)){
+        if(!empty($cvolumeResult)){  //更新子酒店
             foreach ($cvolumeResult as $key => $value) {
                 $chgsetsize = $data['size'] + $value;
                 $sql = "INSERT INTO `zxt_hotel_volume`(`hid`)values('".$key."')  ON DUPLICATE KEY UPDATE `carousel_size`='".$value."'";

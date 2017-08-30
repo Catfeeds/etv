@@ -247,7 +247,7 @@ class ChgController extends ComController {
             	if(!empty($overproof_hid_arr)){
             		$overproof_hid = implode(',',$overproof_hid_arr);
             		@unlink(FILE_UPLOAD_ROOTPATH.$data['filepath']);
-            		$this->error('新增资源后，该栏目的总容量加上关联子酒店的总容量已有值，上传不成功！子酒店酒店编号为：'.$overproof_hid);
+            		$this->error('新增资源后，该栏目的总容量加上关联子酒店的总容量已有值，将超过子酒店设定的容量值，上传不成功！子酒店酒店编号为：'.$overproof_hid);
             	}
 
             }
@@ -322,7 +322,7 @@ class ChgController extends ComController {
             	if(!empty($overproof_hid_arr)){
             		$overproof_hid = implode(',',$overproof_hid_arr);
             		@unlink(FILE_UPLOAD_ROOTPATH.$data['filepath']);
-            		$this->error('新增资源后，该二级栏目所在的栏目的总容量加上关联子酒店的总容量已有值，上传不成功！子酒店酒店编号为：'.$overproof_hid);
+            		$this->error('新增资源后，该二级栏目所在的栏目的总容量加上关联子酒店的总容量已有值，将超过子酒店设定的容量值，上传不成功！子酒店酒店编号为：'.$overproof_hid);
             	}
             }
             
@@ -684,9 +684,8 @@ class ChgController extends ComController {
             	if(!empty($overproof_hid_arr)){
             		$overproof_hid = implode(',',$overproof_hid_arr);
             		@unlink(FILE_UPLOAD_ROOTPATH.$data['filepath']);
-            		$this->error('新增资源后，该栏目的总容量加上关联子酒店的总容量已有值，上传不成功！子酒店酒店编号为：'.$overproof_hid);
+            		$this->error('新增资源后，该栏目的总容量加上关联子酒店的总容量已有值，将超过子酒店设定的容量值，上传不成功！子酒店酒店编号为：'.$overproof_hid);
             	}
-
             }
 
             $result = $model->data($data)->where('id='.$data['id'])->save();
@@ -802,6 +801,7 @@ class ChgController extends ComController {
             $allresourceHidList = array();
             //通过pcid查找表hotel_chglist中的hid列表
             $searchHidList = D("hotel_chglist")->where('chg_cid="'.$pcid.'"')->field('hid')->select();
+
             //通过hid列表与对应的资源名称类型新增数据到hotel_allresource
             if(!empty($searchHidList)){
                 $getName_arr_f = explode("/", $data['filepath']);
@@ -832,8 +832,9 @@ class ChgController extends ComController {
                         $j++;
                     }
                 }
-                $allresourceResult = D("hotel_allresource")->addAll($addlist);
+                $allresourceResult = D("hotel_allresource")->addAll($addlist);                
             }
+
             
         }
         
@@ -980,25 +981,22 @@ class ChgController extends ComController {
     		}
 
 
-    		//减少容量表中的chg_size大小
-    		if(!empty($chglist)){
-    			$volume_arr[] = $vo['hid'];
-    			foreach ($chglist as $key => $value) {
-		    		$volume_arr[] = $value['hid'];
-    			}
-	    		// $delVolumeMap['hid'] = array('in',$volume_arr); //减少容量表chg_size字段的查询条件
-                //$sql = "UPDATE `zxt_hotel_volume` SET `chg_size`=chg_size"."-".$decVolumeSize;
-                //$decVolumeResult = D("hotel_volume")->where($decVolumeMap)->execute($sql);
+            //减少容量表中的chg_size大小
+            $volumeHid_str = "'".$vo['hid']."'";
+            if(!empty($chglist)){
+                $volume_arr[] = $vo['hid'];
+                foreach ($chglist as $key => $value) {
+                    $volume_arr[] = $value['hid'];
+                }
 
                 $volumeHid_len = count($volume_arr);
-                $volumeHid_str = "";
                 for ($i=0; $i < $volumeHid_len; $i++) { 
                     $volumeHid_str = $volumeHid_str."'".$volume_arr[$i]."',";
                 }
                 $volumeHid_str = trim($volumeHid_str,",");
-                $sql = "UPDATE `zxt_hotel_volume` SET `chg_size`=chg_size"."-".$decVolumeSize." where hid in(".$volumeHid_str.")";
-                $decVolumeResult = D("hotel_volume")->execute($sql);
-    		}
+            }
+            $sql = "UPDATE `zxt_hotel_volume` SET `chg_size`=chg_size"."-".$decVolumeSize." where hid in(".$volumeHid_str.")";
+            $decVolumeResult = D("hotel_volume")->execute($sql);
     		
     		$delResult = $model->where($cMap)->delete(); //删除栏目
 

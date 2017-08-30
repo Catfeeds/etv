@@ -779,8 +779,6 @@ class HotelController extends ComController {
             if(M("hotel_volume")->where($hvMap)->count()){
                 $sql = "UPDATE `zxt_hotel_volume` SET `chg_size`=".$size." where hid ='".$hid."'";
                 $updatesize = D("hotel_volume")->execute($sql);
-                // $updatesize = D("hotel_volume")->where($hvMap)->execute($sql);
-                // $updatesize = D("hotel_volume")->where($hvMap)->setField("chg_size",$size);
             }else{
                 $hvDate['hid'] = $data['hid'];
                 $hvDate['content_size'] = 0.000;
@@ -804,7 +802,6 @@ class HotelController extends ComController {
         else{
             $this->error('关联集团栏目所需容量超过剩余容量,请重新选择关联集团栏目!',U('index'));
         }
-        // var_dump($_POST,$hotelspace,$usedVolume,$chgVolume,$delId_arr,$addId_arr);
     }
 
     //找出chg一级栏目及其资源
