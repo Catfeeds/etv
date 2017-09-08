@@ -49,6 +49,7 @@
                 <a class="label label-xlg label-warning" href="javascript:;" id="lock" val="{:U('lock')}" ><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;禁用</a>
                 <a class="label label-xlg label-danger" href="javascript:;" id="delete" val="{:U('delete')}" ><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除</a>
                 <a class="label label-xlg label-pink" href="javascript:;" id="reboot" val="{:U('reboot')}" ><i class="ace-icon fa fa-repeat bigger-100"></i>&nbsp;重启</a>
+                <a class="label label-xlg label-success" href="javascript:;" id="clearvolume" val="{:U('clearvolume')}" ><i class="ace-icon fa fa-repeat bigger-100"></i>&nbsp;清除内存</a>
                 <a class="label label-xlg label-purple" href="javascript:;" id="modify_para" val="{:U('modify_para')}" ><i class="ace-icon fa fa-fire bigger-100"></i>&nbsp;下推参数</a>
                 <a class="label label-xlg label-inverse" id="sleep_set" ><i class="ace-icon fa fa-wrench bigger-100"></i>&nbsp;休眠设置</a>
                 <a class="label label-xlg label-yellow" href="javascript:;" id="detail" val="{:U('detail')}" ><i class="ace-icon fa fa-leaf bigger-100"></i>&nbsp;设备详情</a>
@@ -440,8 +441,33 @@
                     }
                 });
             }
-			
-		});
+            
+        });
+        $("#clearvolume").click(function(){
+            var len = $("input[name='ids[]']:checked").length;
+            if(len == 0){
+                self.location = "{:U('clearvolumeIndex')}";
+            }else{
+                bootbox.confirm({
+                    title: "系统提示",
+                    message: "是否要清除内存所选设备？", 
+                    callback:function(result){
+                        if(result){
+                            $("#form").attr("action",$("#clearvolume").attr("val"));
+                            $("#form").submit();
+                        }
+                    },
+                    buttons: {
+                        "cancel" : {"label" : "取消"},
+                        "confirm" : {
+                                "label" : "确定",
+                                "className" : "btn-danger"
+                            }
+                    }
+                });
+            }
+            
+        });
 		$("#modify_para").click(function(){
             var len = $("input[name='ids[]']:checked").length;
             if(len == 0){

@@ -132,7 +132,6 @@ class DeviceController extends ComController {
         $data['id'] = I('post.id','','intval');
         $data['hid'] =I('post.hid','','strip_tags');
         $data['room'] = I('post.room','','strip_tags');
-        $data['room_remark'] = I('post.room_remark','','strip_tags');
         $data['mac'] = I('post.mac','','strip_tags');
         $data['server_url'] = I('post.server_url','','strip_tags');
         $data['itv_mode'] = I('post.itv_mode','','strip_tags');
@@ -181,8 +180,6 @@ class DeviceController extends ComController {
         $list['online'] = get_is_online($list['online']);
         $list['status'] = get_status($list['status']);
         $list['sleep_status'] = get_status($list['sleep_status']);
-        $list['wifi_status'] = get_status($list['wifi_status']);
-        $list['wifi_order'] = get_status($list['wifi_order']);
         echo json_encode($list);
     }
     public function reboot(){
@@ -207,6 +204,29 @@ class DeviceController extends ComController {
             $this->error('参数错误！');
         }
     }
+    public function clearvolume(){
+        $model = M(CONTROLLER_NAME);
+        $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
+        if($ids){
+            if(is_array($ids)){
+                $ids = implode(',',$ids);
+                $map['id']  = array('in',$ids);
+            }else{
+                $map = 'id='.$ids;
+            }
+            $data = array('command'=>'clearvolume','command_result'=>-1);
+            $result = $model->where($map)->setField($data);
+            if($result !== false){
+                addlog('清除内存，'.CONTROLLER_NAME.'表数据，数据ID：'.$ids);
+                $this->success('恭喜，操作成功！');
+            }else{
+                $this->error('操作失败，参数错误！');
+            }
+        }else{
+            $this->error('参数错误！');
+        }
+    }
+
     //自选重启
     public function reboot_d(){
         $model = M(CONTROLLER_NAME);
@@ -216,6 +236,23 @@ class DeviceController extends ComController {
         }
         $map['id']  = array('in',$ids);
         $data = array('command'=>'reboot','command_result'=>-1);
+        $result = $model->where($map)->setField($data);
+        if($result !== false){
+            addlog('重启'.CONTROLLER_NAME.'表数据，数据ID：'.$ids);
+            $this->success('恭喜，操作成功！');
+        }else{
+            $this->error('操作失败，参数错误！');
+        }
+    }
+    //自选重启
+    public function clearvolume_d(){
+        $model = M(CONTROLLER_NAME);
+        $ids = I('post.macid','','strip_tags');
+        if(empty($ids)){
+            $this->error('请选择需要修改的设备');
+        }
+        $map['id']  = array('in',$ids);
+        $data = array('command'=>'clearvolume','command_result'=>-1);
         $result = $model->where($map)->setField($data);
         if($result !== false){
             addlog('重启'.CONTROLLER_NAME.'表数据，数据ID：'.$ids);
@@ -273,7 +310,6 @@ class DeviceController extends ComController {
         $sleep_time=$_REQUEST['starthour'].":".$_REQUEST['startminute'].'-'.$_REQUEST['endhour'].":".$_REQUEST['endminute'];
         $data['sleep_time'] = $sleep_time;
         $data['sleep_status'] = $_REQUEST['sleep_status'];
-        $data['wifi_order'] = $_REQUEST['wifi_order'];
         $data['sleep_marked_word'] = I('post.sleep_marked_word','','strip_tags');
         $data['sleep_countdown_time'] = I('post.sleep_countdown_time','','strip_tags');
         $data['sleep_imageid'] = I('post.macimageid','','strip_tags');
@@ -312,7 +348,6 @@ class DeviceController extends ComController {
         $sleep_time=$_REQUEST['starthour'].":".$_REQUEST['startminute'].'-'.$_REQUEST['endhour'].":".$_REQUEST['endminute'];
         $data['sleep_time'] = $sleep_time;
         $data['sleep_status'] = $_REQUEST['sleep_status'];
-        $data['wifi_order'] = $_REQUEST['wifi_order'];
         $data['sleep_marked_word'] = I('post.sleep_marked_word','','strip_tags');
         $data['sleep_countdown_time'] = I('post.sleep_countdown_time','','strip_tags');
         $data['sleep_imageid'] = I('post.macimageid','','strip_tags');
@@ -418,7 +453,7 @@ class DeviceController extends ComController {
     public function toSetSleep(){
         $model = D(CONTROLLER_NAME);
         $map['zxt_device.id'] = I('post.deviceid','','intval');
-        $result = $model->join('zxt_device_mac_image ON zxt_device.sleep_imageid = zxt_device_mac_image.id')->where($map)->field('zxt_device.id,zxt_device.wifi_order,sleep_status,sleep_time,sleep_marked_word,sleep_countdown_time,sleep_imageid,image_name,image_path')->select();
+        $result = $model->join('zxt_device_mac_image ON zxt_device.sleep_imageid = zxt_device_mac_image.id')->where($map)->field('zxt_device.id,sleep_status,sleep_time,sleep_marked_word,sleep_countdown_time,sleep_imageid,image_name,image_path')->select();
         //拆分时间
         if(empty($result)){
             echo '';
@@ -1063,6 +1098,13 @@ class DeviceController extends ComController {
         $this->assign("plist",$plist);
         $this->display();
     }
+     //清除内存主页
+    public function clearvolumeIndex(){
+        $Region = D ( 'Region' );
+        $plist = $Region->where('pid=0')->order("sort asc")->field('id,name')->select();
+        $this->assign("plist",$plist);
+        $this->display();
+    }
     //下推参数主页
     public function modifyParaIndex(){
         $Region = D ( 'Region' );
@@ -1319,6 +1361,10 @@ class DeviceController extends ComController {
 
         $menuid_str = I('post.menuid','','strip_tags');
         $remarks_str = I('post.remarks','','strip_tags');
+
+        // $menuid_str = "901,890,879,873,638,492,63,56,9,1";
+        // $remarks_str = "8806,214,,,,,,,,";
+
         $menuid = explode(",", $menuid_str);
         $remarks = explode(",", $remarks_str);
 
@@ -1326,19 +1372,20 @@ class DeviceController extends ComController {
         $model->startTrans();
         $j = 1;
         for ($i=0; $i <count($menuid) ; $i++) { 
-            $map['id'] = intval($menuid[$i]);
+            $map['id'] = $menuid[$i];
             $data['room_remark'] = $remarks[$i];
             $result = D("device")->where($map)->data($data)->save();
             if($result === false){
                 --$j;
             }
         }
+
         if($j>0){
             $model->commit();
-            echo true;
+            echo 1;
         }else{
             $model->rollback();
-            echo false;
+            echo 0;
         }
         
     }   

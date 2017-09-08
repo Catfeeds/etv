@@ -46,7 +46,6 @@
         var $hid = $(this).attr("hid");
         var $cid = $(this).attr("cid");
         var $votype = $(this).attr("votype");
-
         $.ajax({
             url: '{:U("templetone_getHotelResource_second")}',
             type: 'POST',
@@ -66,19 +65,16 @@
                         $slides += '<li tabindex="'+i+'" class="li30"><span><a class="example-image-link" href="'+$data[i]['filepath']+'" data-lightbox="example-set" data-title="'+$data[i]["title"]+'">\
                         <img class="example-image" style="height:220px;width:100%;" alt="" src="'+$data[i]['filepath']+'">\
                         </a></span></li>';
-                        // $slides += '<li tabindex="'+i+'" class="li30"><span><a href="#" data-title="'+$data[i]["title"]+'">\
-                        // <img style="height:220px;width:100%;" alt="" src="'+$data[i]['filepath']+'" data-action="zoom">\
-                        // </a></span></li>';
                     }else if($data[i]['file_type'] == 1){
-                       /* $slides += '<li><span><a href="#">\
+                        $slides += '<li><span><a href="#">\
                                 <video width="700px" height="400px" controls><source src="'+$data[i]["filepath"]+'" type="video/mp4">\
-                                </source></video</a></span></li>';*/
+                                </source></video</a></span></li>';
                         // $slides += '<EMBED style=" margin: 5px auto; width:600px; height: 400px";\
                         // src="'+$data[i]["filepath"]+'"\
                         // quality= "high"\
                         // type="application/x-shockwave-flash">';
-                        $slides += '<div class="videoClass">\
-                        <iframe width="600px;" height="350px;" src="'+$data[i]["filepath"]+'"></iframe></div>';
+                        // $slides += '<div class="videoClass">\
+                        // <iframe width="600px;" height="350px;" src="'+$data[i]["filepath"]+'"></iframe></div>';
                     }
 
                 }

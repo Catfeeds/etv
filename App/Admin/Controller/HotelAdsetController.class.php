@@ -542,4 +542,26 @@ class HotelAdsetController extends ComController {
         }
         return $result;
     }
+
+    public function addAllResource($ids,$hid){
+
+        $id_arr = explode(",", $ids);
+        $allresourceMap['id'] = array('in',$id_arr);
+        $adresourceList = D("hotel_adresource")->where($allresourceMap)->field('filepath,filepath_type')->select();
+        if(!empty($adresourceList)){
+            foreach ($adresourceList as $key => $value) {
+                $allresourceName_arr = explode("/", $value['filepath']);
+                $allresourceName = $allresourceName_arr[count($allresourceName_arr)-1];
+                $allresourceDate[$key]['hid'] = $hid;
+                $allresourceDate[$key]['type'] = $value['type'];
+                $allresourceDate[$key]['mold'] = 'adset';
+                $allresourceDate[$key]['name'] = $allresourceName;
+                $allresourceDate[$key]['timeunix'] = time();
+                $allresourceDate[$key]['time'] = date("Y-m-d H:i:s");
+                $allresourceDate[$key]['web_upload_file'] = $value['filepath']; 
+            }
+
+            $allresourceResult = D("hotel_sd_allresource")->addAll($allresourceDate);
+        }
+    }
 }

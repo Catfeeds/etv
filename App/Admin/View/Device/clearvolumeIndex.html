@@ -1,0 +1,297 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+
+	<div class="row">
+		<div>
+			<div class="space-8"></div>
+			<div class="col-xs-12">
+				<span><a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a></span>
+				&nbsp;&nbsp;&nbsp;
+                <span><label style="width:auto;font-size: 1.2em">省市：</label></span>
+                <span>
+                  <select id="province" name="provinceid" style="width:120px;" onchange="changeCity()">
+                      <option value=''>省份</option>
+                      <volist name="plist" id="provinceList">
+                      <option value="{$provinceList.id}" <eq name="provinceid" value="$provinceList.id">selected</eq>>{$provinceList.name}</option>
+                      </volist>
+                  </select>
+                </span>
+                <span>
+                <select id="city" name="cityid" style="width:120px;" onchange="changeHotelByCity()">
+                    <option value=''>市区</option>
+                    <volist name="clist" id="cityList">
+                    <option value="{$cityList.id}" <eq name="cityid" value="$cityList.id">selected</eq>>{$cityList.name}</option>
+                    </volist>
+                </select>
+                </span>
+
+            	<span>
+            	<select id="selecthotel" name="hotelid" style="width: 120px;">
+            		<option value="">酒店列表</option>
+            		<volist name="chotel" id="hotelList">
+            		<option value="{$hotellist.id}">{$hotellist.hotelname}</option>
+            		</volist>
+            	</select>
+            	</span>
+
+                <span><label style="width:auto;font-size: 1.2em">酒店名称：</label></span>
+                <span>
+                	<input type="text" name="hotelname" placeholder="酒店名称" value="">
+                </span>
+              
+                <button type="button" class="btn btn-purple btn-sm search">
+                    <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>查询
+                </button>
+            </div>
+		</div>
+		<div class="space-8"></div>
+		<div class="col-xs-12">
+			<div class="space-8"></div>
+			<div class="col-xs-6">
+				<div style="text-align: center;padding-top: 2%;font-size: 1.5em" class="navbar">待选设备</div>
+			</div>
+			<div class="col-xs-6">
+				<div style="text-align: center;padding-top: 2%;font-size: 1.5em" class="navbar">清除内存设备</div>
+			</div>
+		</div>
+
+		<div class="col-xs-12">
+			<!-- 待选设备 -->
+			<div class="col-xs-6">
+				<div class="row">
+                    <div class="col-xs-12">
+                        <div class="panel-group" id="accordion">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h4 class="panel-title"><span><input type="checkbox" name="allHotel" id="allHotel" class="checkHotelAll" value="allHotel" >&nbsp;&nbsp;全部</span><span style="float: right;"><button class="beconfirm_device">确定</button></span></h4>
+                                </div>
+                                <div class="" id="sub">
+                                
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+			</div>
+			<!-- 已选设备 -->
+			<div class="col-xs-6">
+				<form id="form" method="post" action="{:U('clearvolume_d')}">
+					<input type="hidden" name="macid" class="macid" value="">
+				</form>
+				<div class="row">
+                    <div class="col-xs-12">
+                        <div class="panel-group" id="accordion">
+                            <div class="panel panel-default">
+	                            <div class="panel-heading">	
+	                            <h4 class="panel-title">
+                            		<span style="font-size: 1em">(取消勾选即取消该已选设备)</span>
+                            		<span style="float: right;"><button class="cancel_all">全部取消</button></span>
+	                            </h4>
+	                            </div>
+                                <div class="panel-body" id="csub">
+                                	<label></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+			</div>
+		</div>
+		<div class="col-xs-12">
+			<div class="space-8"></div>
+			<div class="col-xs-6"><button type="button" class="btn btn-primary clearvolume">确定清除</button></div>
+		</div>
+
+	</div>
+</block>
+<block name="currentPageJS">
+<script type="text/javascript">
+	function changeCity() {
+	    var pid = parseInt($("#province").val());
+	    $.ajax({
+	        type : "get",
+	        url : "{:U('get_city_hotel')}?pid=" + pid,
+	        dataType : "json",
+	        success : function(jsondata) {
+	            var cityoptions = '<option value="">城市</option>';
+	            if (jsondata['citylist']) {
+	                $.each(jsondata['citylist'], function(i, item) {
+	                    cityoptions += '<option value="'+item.id+'">' + item.name
+	                            + '</option>';
+	                });
+	            }
+	            $("#city").html(cityoptions);
+
+	            var hoteloptions = '<option value="">酒店列表</option>';
+	            if(jsondata['hotellist']){
+	            	$.each(jsondata['hotellist'],function(index, el) {
+	            		hoteloptions += '<option value="'+el.id+'">' + el.hotelname
+	                            + '</option>';
+	            	});
+	            }
+	            $("#selecthotel").html(hoteloptions);
+	        },
+	        error : function() {
+	            alert("ajaxError");
+	        }
+	    });
+	}
+	function changeHotelByCity(){
+		var pid = $("#city").val();
+        if(pid ==''){
+            return;
+        }
+		var type = 2;
+		$.ajax({
+			url: "{:U('ajax_findHotel_byArea')}",
+			type: 'POST',
+			dataType: 'json',
+			data: {'areaid': pid,'type':type},
+		})
+		.done(function(data) {
+			if(data == -1){
+				bootbox.dialog({
+	                title: '友情提示：',
+	                message: "参数错误", 
+	                buttons: {
+	                    "success" : {
+	                        "label" : "确定",
+	                        "className" : "btn-danger"
+	                    }
+	                }
+	            });
+	            return;
+			}
+			if(data == 0){
+				bootbox.dialog({
+	                title: '友情提示：',
+	                message: "该城市没有对应酒店", 
+	                buttons: {
+	                    "success" : {
+	                        "label" : "确定",
+	                        "className" : "btn-danger"
+	                    }
+	                }
+	            });
+	            return;
+			}
+			var hoteloptions = '<option value="">酒店列表</option>';
+			$.each(data,function(index, el) {
+        		hoteloptions += '<option value="'+el.id+'">' + el.hotelname
+                        + '</option>';
+        	});
+        	$("#selecthotel").html(hoteloptions);
+		}).fail(function() {
+			console.log("error");
+		});
+	}
+		
+	$(".search").click(function(event) {
+		var $provinceid = $("#province").val();
+		var $cityid = $("#city").val();
+		var $hotelid = $("#selecthotel").val();
+		var $hotelname = $("input[name='hotelname']").val();
+		$.ajax({
+			url: "{:U('search_device')}",
+			type: 'POST',
+			dataType: 'json',
+			data: {'provinceid': $provinceid,'cityid':$cityid,'hotelid':$hotelid,'hotelname':$hotelname},
+		})
+		.done(function(data) {
+			if($.trim(data)==0){
+				$("#sub").html('');
+	            bootbox.dialog({
+	                title: '友情提示：',
+	                message: "没有搜索到可用设备", 
+	                buttons: {
+	                    "success" : {
+	                        "label" : "确定",
+	                        "className" : "btn-danger"
+	                    }
+	                }
+	            });
+	            return;
+	        }
+	        label = '';
+	        for(var key in data){
+	        	label +='<div calss="panel panel-default"><div class="panel-heading" style="background-color:#f5f5f5;border:1px solid #ddd;"><h4 class="panel-title"><input type="checkbox" class="checkAccessAll" id="list_'+key+'">&nbsp;&nbsp;'+key+'</h4></div><div class="panel-body">';
+	        	var $count = data[key].length;
+	        	for(var i=0; i<$count; i++){
+		        	label += '<label class="checkbox inline" style="padding-left: 30px;"><input type="checkbox" name="eHotel" cid="list_'+key+'" class="checkAccessSingle" value="'+data[key][i]['id']+'"><span class="beconfirm_name">'+data[key][i]['hotelname']+'_'+data[key][i]['room']+'房</span></label>';
+		        }
+		        label += '</div></div>'
+	        }
+	        $("#sub").html(label);
+		})
+		.fail(function() {
+			console.log("error");
+		});
+	});
+	//全选
+	$("input[type=checkbox].checkHotelAll").on("click",function(){
+        var ischeck = this.checked;
+        $.each($("input.checkAccessSingle"),function(i,item){
+            item.checked=ischeck;
+        });
+    });
+    //酒店选择
+    $("#sub").delegate('input[type=checkbox].checkAccessAll', 'click', function() {
+    	var ischeck = this.checked;
+        $.each($("input[cid="+this.id+"].checkAccessSingle"),function(i,item){
+            item.checked=ischeck;
+        });
+    });
+   
+    $(".beconfirm_device").click(function() {
+    	clabel = '';
+    	var $macid = $(".macid").val();
+    	$.each($("input.checkAccessSingle:checked"),function(i,item){
+    		var $id = item['value'];
+    		if($macid.indexOf($id) == -1){
+    			var $name = $(this).next(".beconfirm_name").text();
+        		clabel += '<label class="checkbox inline" style="padding-left: 30px;"><input type="checkbox" name="" class="delete_checkbox" value="'+item['value']+'" checked>'+$name+'</label>';
+
+        		$macid += ','+$id;
+    		}
+    		   
+   		});
+   		$(".macid").attr('value', $macid);
+   		$("#csub").children('label').append(clabel);
+    });
+    //取消勾选
+    $("#csub").delegate('.delete_checkbox', 'click', function() {
+    	$id = $(this).val();
+    	var $macid = $(".macid").val();
+    	$macid = $macid.replace(','+$id,"");
+    	$(".macid").attr('value', $macid);
+    	$(this).parent("label").remove();
+    });
+    //取消全部勾选
+    $(".cancel_all").click(function(event) {
+    	$("#csub").html('<label></label>');
+    	$(".macid").attr("value",'');
+    });
+    //提交重启
+    $(".clearvolume").click(function(event) {
+    	var $macid = $(".macid").val();
+    	if ($macid.substr(0,1)==',') {
+    		$macid = $macid.substr(1);
+    	}
+    	if($.trim($macid) == ''){
+    		bootbox.dialog({
+                title: '友情提示：',
+                message: "请选择需要清除内存的设备", 
+                buttons: {
+                    "success" : {
+                        "label" : "确定",
+                        "className" : "btn-danger"
+                    }
+                }
+            });
+            return;
+    	}
+    	$("#form").submit();
+    	// console.log($macid);
+    });
+</script>
+</block>

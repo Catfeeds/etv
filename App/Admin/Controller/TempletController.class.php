@@ -6,8 +6,8 @@ use Think\Controller;
 class TempletController extends Controller {
 
     // static protected $serverUrl = "http://www.189itv.com/etv/Public";
-    // static protected $serverUrl = "http://localhost/etv2.0/Public";
-	static protected $serverUrl = "http://61.143.52.102:9090/etv/Public";
+    static protected $serverUrl = "http://localhost/etv/Public";
+	// static protected $serverUrl = "http://61.143.52.102:9090/etv/Public";
     //获取酒店对应的栏目
     public function gettemplet(){
         $id = I('get.id','','strip_tags');
@@ -172,9 +172,17 @@ class TempletController extends Controller {
                     $list[$key]['icon'] = $icon_name;
                 }
                 if($votype == "chg"){
-                    $list[$key]['votype'] = "chg";
+                    if($value['codevalue'] == "501"){
+                        $list[$key]['votype'] = "videochg";
+                    }else{
+                        $list[$key]['votype'] = "chg";
+                    }
                 }elseif($votype == "hotel"){
-                    $list[$key]['votype'] = "hotel";
+                    if($value['codevalue'] == "501"){
+                        $list[$key]['votype'] = "videohotel";
+                    }else{
+                        $list[$key]['votype'] = "hotel";
+                    }
                 }elseif($votype == "topic"){
                     $list[$key]['votype'] = "topic";
                     $list[$key]['intro'] = "";
@@ -213,6 +221,10 @@ class TempletController extends Controller {
             $map['cid'] = $cid;
             $model = D("topic_resource");
             $field = "id,cid,title,intro,sort,type as file_type,video,image";
+        }elseif($votype == "videohotel" || $votype == "videochg"){
+            $map['cid'] = $cid;
+            $model = D("hotel_carousel_resource");
+            $field = "id,hid,cid,title,intro,sort,file_type,filepath";
         }else{
             $this->Callback(10000,"the votype is wrong!");
         }
@@ -220,7 +232,6 @@ class TempletController extends Controller {
         $map['audit_status'] = 4;
 
         $list = $model->where($map)->field($field)->order('sort asc')->select();
-
         if(!empty($list)){
             foreach ($list as $key => $value) {
                 if(!empty($value['filepath'])){
@@ -232,7 +243,7 @@ class TempletController extends Controller {
                     $list[$key]['filepath'] = self::$serverUrl.$value['video'];
                 }elseif($votype=="topic" && $value['file_type']==2 && !empty($value['image'])){
                     $list[$key]['filepath'] = self::$serverUrl.$value['image'];
-                }elseif(empty($value['video']) && empty($value['image']) && $votype=="topic"){
+                }elseif($votype=="topic" && empty($value['video']) && empty($value['image'])){
                     $list[$key]['filepath'] = "";
                 }
             }
