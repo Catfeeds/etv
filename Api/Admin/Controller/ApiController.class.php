@@ -165,7 +165,8 @@ class ApiController extends Controller{
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
     }
-   /**
+
+    /**
      * http request:/api.php/Api/getWeather
      * @uses 获取天气信息
      * @param hid 酒店编号
@@ -173,81 +174,19 @@ class ApiController extends Controller{
      * @param mac Mac地址
      * @var json
      * @return
-     *     status 状态  （200成功    404失败）
-     *     info 发送状态说明
-     *     weatherInfo 天气信息
-     *     --city 城市
-     *     --high 高温
-     *     --low 低温
-     *     --description 描述
-     *     --image 图片
-     */
-    // public function getWeather(){
-    //     $hid = empty($_REQUEST['hid'])?"":strtoupper($_REQUEST["hid"]);
-    //     if (empty($hid)) {
-    //         $this->errorCallback(404, "Error: hid param is needed!");
-    //     }
-    //     $cityCode=$this->getCityCode($hid);
-    //     $xmlpath = "./Public/weather/".$cityCode.".xml";
-    //     if (file_exists($xmlpath)) {
-    //         $xml2 = simplexml_load_file($xmlpath);
-    //         $mtime = filemtime($xmlpath);
-    //         if (time()-$mtime>3600) {
-    //             $this->reCollectCityWeather($hid);
-    //         }else{
-    //             if($xml2->content->city->code != $cityCode){
-    //                 $this->reCollectCityWeather($hid);
-    //             }
-    //         }
-    //     }else{
-    //         $this->reCollectCityWeather($hid);
-    //     }
-    //     $xmlContent = simplexml_load_file($xmlpath);
-    //     $data = array();
-    //     $today = date('Y-m-d',time());
-    //     $weekarray=array("日","一","二","三","四","五","六");
-    //     $weekday = "星期".$weekarray[date("w")];
-    //     $citys = (array)$xmlContent->content->city->name;
-    //     $city = $citys[0];
-    //     foreach($xmlContent->content->city->weathers->weather as $weather){
-    //         $weather = $this->object_array($weather);
-    //         if($weather['date'] == $today){
-    //             $data['city'] = $city;
-    //             $data['date'] = $weather['date'];
-    //             $data['weekday'] = $weekday;
-    //             $data['sign'] = $weather['sign'];
-    //             $data['image'] = "./Public/weather/weather_image/".$weather['image'];
-    //             if (empty($weather['high_c'])) {
-    //                 $data['high'] = '';
-    //             }else{
-    //                 $data['high'] = $weather['high_c']."℃";
-    //             }
-    //             if (empty($weather['low_c'])) {
-    //                 $data['low'] = '';
-    //             }else{
-    //                 $data['low'] = $weather['low_c']."℃";
-    //             }
-    //             $data['wind'] = $weather['wind'];
-    //             $data['description'] = $weather['discription'];
-    //             break;
-    //         }
-    //     }
-    //     $json['status'] = 200;
-    //     $json['info'] = "Successed!";
-    //     $json['weatherInfo'] = $data;
-    //     header('Content-Type: application/json; charset=utf-8');
-    //     echo json_encode($json);
-    // }
-    
+    */
     public function getWeather(){
+        header("Content-type:text/html;charset=utf-8");
         $hid = strtoupper(I('request.hid'));
         if (empty($hid)) {
             $this->errorCallback(404, "Error: hid param is needed!");
         }
         $cityCode = $this->getCityCode($hid);
         $cityName=$this->getCityName($cityCode);
-        $url = "http://61.143.52.102:9016/zxtweather/weatherapi?city=".$cityName;
+        $gb_cityName =  urlencode(mb_convert_encoding($cityName,'gb2312','utf-8'));
+        $url = "http://php.weather.sina.com.cn/xml.php?city=".$gb_cityName.'&password=DJOYnieT8234jlsK&day=0';
         $curl = curl_init();
+
         //设置抓取的url
         curl_setopt($curl, CURLOPT_URL, $url);
         //设置头文件的信息作为数据流输出
@@ -258,26 +197,34 @@ class ApiController extends Controller{
         $curl_return = curl_exec($curl);
         //关闭URL请求
         curl_close($curl);
-        
+
         list($header, $body) = explode("\r\n\r\n", $curl_return, 2);
-        $info = json_decode($body,true);
-        
-        if($info['head']['returnCode'] == '0'){
-            $data['city'] = $info['body']['city'];
-            $data['date'] = date("Y-m-d",time());
+        $info = simplexml_load_string($body);
+        $weatherInfo = json_encode($info->Weather);
+        $weatherInfo = json_decode($weatherInfo,true);
+        $nowH = strtotime(date("H:i"));
+        $beginH = strtotime(date("06:00"));
+        $endH = strtotime(date("18:00"));
+
+        if(!empty($weatherInfo)){
+            $data['city'] = $weatherInfo['city'];
+            $data['date'] = $weatherInfo['savedate_weather'];
             $data['weekday'] = '';
             $data['sign'] = '';
-            $data['image'] = '';
-            if(empty($info['body']['temperature1'])){
-                $data['low'] = $info['body']['temperature2'];
-                $data['high'] = $info['body']['temperature2']+3;
-            }else{
-                $data['low'] = $info['body']['temperature2'];
-                $data['high'] = $info['body']['temperature1'];
+            if($beginH <= $nowH || $nowH <= $endH){  //白天
+                $data['image'] = ' http://php.weather.sina.com.cn/images/yb3/78_78/'.$weatherInfo['figure1'].'_0.png';
+                $data['low'] = $weatherInfo['temperature1']-2;
+                $data['high'] = $weatherInfo['temperature1']+2;
+                $data['wind'] = $weatherInfo['direction1'];
+                $data['description'] = $weatherInfo['status1'];
+            }else{ //黑夜
+                $data['image'] = ' http://php.weather.sina.com.cn/images/yb3/78_78/'.$weatherInfo['figure1'].'_1.png';
+                $data['low'] = $weatherInfo['temperature2']-2;
+                $data['high'] = $weatherInfo['temperature2']+2;
+                $data['wind'] = $weatherInfo['direction2'];
+                $data['description'] = $weatherInfo['status2'];
             }
             
-            $data['wind'] = '';
-            $data['description'] = $info['body']['status2'];
             $json['status'] = 200;
             $json['info'] = "Successed!";
             $json['weatherInfo'] = $data;
@@ -287,6 +234,8 @@ class ApiController extends Controller{
             $this->errorCallback(404, "Error: getWeather is error!");
         }
     }
+     
+    
     /**
      * http request:/api.php/Api/getMessage
      * @author Blues
@@ -947,9 +896,9 @@ class ApiController extends Controller{
         if (empty($Mac)|| $Mac=="NULL") {
             $this->errorCallback(404, "Error: mac param is needed!");
         }
-        $currentVersion = I('requesst.cversion');
-        $currentVersion_route = I('requesst.cversionroute');
-        $currentVersion_app = I('requesst.cversionapp');
+        $currentVersion = I('request.cversion');
+        $currentVersion_route = I('request.cversionroute');
+        $currentVersion_app = I('request.cversionapp');
         if (empty($currentVersion)) {
             $this->errorCallback(404, "Error: cversion param is needed!");
         }
@@ -2049,9 +1998,11 @@ class ApiController extends Controller{
     //查找appstore列表
     public function getApklist(){
 
-        $hid = empty($_REQUEST['hid'])?"":strtoupper($_REQUEST["hid"]);
-        $room = empty($_REQUEST['room'])?"":$_REQUEST["room"];
-        $mac = empty($_REQUEST['mac'])?"":strtoupper($_REQUEST["mac"]);
+        $hid = strtoupper(I('request.hid','','strip_tags'));
+        $room = I('request.room','','strip_tags');
+        $mac = strtoupper(I('request.mac','','strip_tags'));
+        $app_type = I('request.app_type','','strip_tags');
+
         if (empty($hid)) {
             $this->Callback(10000, "Error: hid param is needed");
         }
@@ -2061,31 +2012,19 @@ class ApiController extends Controller{
         if (empty($mac)) {
             $this->Callback(10000, "Error: mac param is needed");
         }
-
-        $deviceapkModel = D("device_apk");
-        $deviceallMap['mac'] = 'all';
-        $deviceapkMap['mac'] = $mac;
-        $allapklist = $deviceapkModel->where($deviceallMap)->field('apk_id')->find();
-        $someapklist = $deviceapkModel->where($deviceapkMap)->field('apk_id')->find();
-        $arr = array();//查询条件数组
-        $apk_id_all = array();
-        $apk_id_some = array();
-        if(!empty($allapklist)){
-            $apk_id_all = explode(',', $allapklist['apk_id']);
-        }
-        if(!empty($someapklist)){
-            $apk_id_some = explode(',', $someapklist['apk_id']);
-        }
-
-        $arr = array_merge($apk_id_all,$apk_id_some);
-        $arr = array_unique($arr);
-
-        //
-        $appstoreModel = D('appstore');
-        $appstoreMap['app_identifier'] = array('in',$arr);
+        $map['zxt_appstore.maclist'] = array(array('like',"%$mac%"), array('eq','all'),'or');
+        $map['zxt_appstore.audit_status'] = 4;
+        $field = "zxt_appstore.*";
         
-        $field = "id,app_name,app_identifier,md5_file,app_package,app_introduce,app_file,app_pic,app_size";
-        $list = $appstoreModel->where($appstoreMap)->field($field)->select();
+        if(!empty($app_type)){
+            if($app_type == "app"){
+                $map['zxt_appstore.app_type'] = 2;
+            }elseif($app_type == "system"){
+                $map['zxt_appstore.app_type'] = 1;
+            }
+        }
+        $list = D("appstore")->where($map)->field($field)->select();
+        
         if(empty($list)){
             $this->Callback(404,"the list is empty");
         }else{
@@ -2097,12 +2036,12 @@ class ApiController extends Controller{
         }
     }
 
-    public function saveinstalledlist(){
+    public function installedapk(){
 
-        $hid = empty($_REQUEST['hid'])?"":strtoupper($_REQUEST["hid"]);
-        $room = empty($_REQUEST['room'])?"":$_REQUEST["room"];
-        $mac = empty($_REQUEST['mac'])?"":strtoupper($_REQUEST["mac"]);
-        $apkid = empty($_REQUEST['apkid'])?"":$_REQUEST["apkid"];
+        $hid = strtoupper(I('request.hid'));
+        $room = I('request.room');
+        $mac = strtoupper(I('request.mac'));
+
         if (empty($hid)) {
             $this->Callback(10000, "Error: hid param is needed");
         }
@@ -2112,26 +2051,76 @@ class ApiController extends Controller{
         if (empty($mac)) {
             $this->Callback(10000, "Error: mac param is needed");
         }
-        if (empty($apkid)) {
-            $this->Callback(10000, "Error: apkid param is needed");
-        }
-        $data['install_apkid'] = implode(',',json_decode($apkid));
-        $map['mac'] = $mac;
-        $model = D("device_apk");
+        
+        // $arr['0']['app_version'] = 201709061714;
+        // $arr['0']['app_package'] = 'com.tencent.mobileqq';
+        // $arr['0']['status'] = 1;
+        // $arr['1']['app_version'] = 201709061414;
+        // $arr['1']['app_package'] = 'com.tencent.mobileqq';
+        // $arr['1']['status'] = 1;
+        // $arr['2']['app_version'] = 201709071111;
+        // $arr['2']['app_package'] = 'com.duowan.mobile';
+        // $arr['2']['status'] = 1;
+        // $arr['3']['app_version'] = 201709072110;
+        // $arr['3']['app_package'] = 'com.ucbrowser.tv';
+        // $arr['3']['status'] = 0;
+        // $apklist = json_encode($arr);
+        // 
+        $apklist = I('post.apklist','','strip_tags');
 
-        if($model->where($map)->count()>0){
-            $result = $model->where($map)->data($data)->save();
-        }else{
-            $data['apk_id'] = $data['install_apkid'];
-            $result = $model->data($data)->add();
+        if(empty($apklist)){
+            $this->Callback(10000,"Error:apklist param is needed");
         }
 
-        if($result === false){
-            $this->callback(0,"Error,Can not add install apkid");
-        }else{
-            $this->callback(200,"Success");
+
+        $apklist = json_decode($apklist,true);
+        foreach ($apklist as $key => $value) {
+            $searchMap['app_version'] = $value['app_version'];
+            $searchMap['app_package'] = $value['app_package'];
+            $appstore = D("appstore")->where($searchMap)->field('id')->find();
+            if(!empty($appstore['id'])){
+                $sql = 'replace into `zxt_device_update_result`(unique_flag,mac,uplist_id,result)VALUES("'.md5($value['app_version'].$mac.$value['app_package']).'","'.$mac.'","'.$appstore['id'].'","'.$value['status'].'")';
+                D("device_update_result")->execute($sql);
+            }
         }
+        $this->Callback(200,'Success');
     }
+
+    // public function saveinstalledlist(){
+
+    //     $hid = empty($_REQUEST['hid'])?"":strtoupper($_REQUEST["hid"]);
+    //     $room = empty($_REQUEST['room'])?"":$_REQUEST["room"];
+    //     $mac = empty($_REQUEST['mac'])?"":strtoupper($_REQUEST["mac"]);
+    //     $apkid = empty($_REQUEST['apkid'])?"":$_REQUEST["apkid"];
+    //     if (empty($hid)) {
+    //         $this->Callback(10000, "Error: hid param is needed");
+    //     }
+    //     if (empty($room)) {
+    //         $this->Callback(10000, "Error: room param is needed");
+    //     }
+    //     if (empty($mac)) {
+    //         $this->Callback(10000, "Error: mac param is needed");
+    //     }
+    //     if (empty($apkid)) {
+    //         $this->Callback(10000, "Error: apkid param is needed");
+    //     }
+    //     $data['install_apkid'] = implode(',',json_decode($apkid));
+    //     $map['mac'] = $mac;
+    //     $model = D("device_apk");
+
+    //     if($model->where($map)->count()>0){
+    //         $result = $model->where($map)->data($data)->save();
+    //     }else{
+    //         $data['apk_id'] = $data['install_apkid'];
+    //         $result = $model->data($data)->add();
+    //     }
+
+    //     if($result === false){
+    //         $this->callback(0,"Error,Can not add install apkid");
+    //     }else{
+    //         $this->callback(200,"Success");
+    //     }
+    // }
 
     private function Callback($status,$info){
         $data['status'] = $status;
@@ -2176,7 +2165,6 @@ class ApiController extends Controller{
         }
         //酒店自身
         $map['hid'] = $hid;
-        $map['modeldefineid'] = array('in',array(1,2));//集团菜单 上级菜单
         $map['pid'] = 0;
         $map['status'] = 1;
         $listHotel = D("hotel_category")->where($map)->order('sort asc')->select();
@@ -2307,9 +2295,17 @@ class ApiController extends Controller{
                     $list[$key]['icon'] = $icon_name;
                 }
                 if($votype == "chg"){
-                    $list[$key]['votype'] = "chg";
+                    if($value['codevalue'] != 501){
+                        $list[$key]['votype'] = "chg";
+                    }else{
+                        $list[$key]['votype'] = "videochg";
+                    }
                 }elseif($votype == "hotel"){
-                    $list[$key]['votype'] = "hotel";
+                    if($value['codevalue'] != 501){
+                        $list[$key]['votype'] = "hotel";
+                    }else{
+                        $list[$key]['votype'] = "videohotel";
+                    }
                 }elseif($votype == "topic"){
                     $list[$key]['votype'] = "topic";
                     $list[$key]['hid'] = $hid;
