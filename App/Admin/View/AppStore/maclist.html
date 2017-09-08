@@ -28,6 +28,7 @@
                                                 <volist name="list['sub']" id="sub">
                                                 <label class="checkbox inline" style="padding-left: 30px;">
                                                    {$sub.room}({$sub.mac})
+                                                   <eq name="sub.flag" value="1"><span style="color: green;">(已安装)</span></eq>
                                                 </label>
                                                 </volist>
                                             </div>

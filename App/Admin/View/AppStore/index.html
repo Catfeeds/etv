@@ -28,12 +28,14 @@
                         <tr>
                           <th class="center"><input class="check-all" type="checkbox" value=""></th>
                           <th>名称</th>
+                          <th>类型</th>
                           <th>包名</th>
-                          <th>md5文件</th>
+                          <th>版本</th>
                           <th>简介</th>
                           <th>图标</th>
                           <th>状态</th>
                           <th>审核状态</th>
+                          <!-- <th>操作</th> -->
                         </tr>
                       </thead>
                       <tbody>
@@ -41,14 +43,19 @@
                         <tr>
                           <td class="center"><input class="aids" type="checkbox" name="ids[]" value="{$val['id']}"></td>
                           <td>{$val['app_name']}</td>
+                          <td><?php if($val['app_type']==1){echo "系统应用";}elseif($val['app_type']=="2"){echo "APPStore应用";} ?></td>
                           <td>{$val['app_package']}</td>
-                          <td>{$val['md5_file']}</td>
+                          <td>{$val['app_version']}</td>
                           <td title="{$val['app_introduce']}">{$val['app_introduce']|shorter_title}</td>
                           <td><if condition="$val['app_pic'] neq ''">
                           <img src="{:C('UPLOADPATH')}{$val['app_pic']}" style="width:45px;height:63px;"/>
                           </if></td>
                           <td>{$val['status']|get_status}</td>
                           <td>{$val['audit_status']|get_audit_status}</td>
+                          <!-- <td><?php if($val['app_type']==1){ ?>
+                                <a class="label label-xlg label-success" href="javascript:;" id="checksysnum"><i class="ace-icon fa fa-list bigger-100"></i>&nbsp;查看自升级数量</a>
+                              <?php }?>
+                          </td> -->
                         </tr>
                       </volist>
                       </tbody>
@@ -164,8 +171,7 @@
       $("#form").attr("action",$("#maclist").attr("val"));
       $("#form").submit();
     });
-
-   
+    
 	});
 
     </script>

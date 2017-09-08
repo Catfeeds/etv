@@ -18,11 +18,34 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">类型</label>
+                    <div class="col-sm-9">
+                        <select name="app_type" id="app_type" class="col-xs-10 col-sm-5">
+                            <option value="1" <?php if($vo['app_type']==1){echo "selected";} ?>>系统应用</option>
+                            <option value="2" <?php if($vo['app_type']==2){echo "selected";} ?>>APPstore应用</option>
+                        </select>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red">*</span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-1">包名</label>
                     <div class="col-sm-9">
                         <input type="text" name="app_package" id="app_package" placeholder="文件名称" class="col-xs-10 col-sm-5" value="{$vo['app_package']}">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"><span class="red">*</span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">版本号</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="app_version" id="app_version" placeholder="" class="col-xs-10 col-sm-5" value="{$vo['app_version']}">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red">*</span>系统应用为必填项</span>
                         </span>
                     </div>
                 </div>
@@ -154,6 +177,7 @@
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                         <h4 class="modal-title" id="myModalLabel">选择要升级的房间号</h4>
+                        <h5>酒店编号：<span><input type="text" name="hotelHid"></span><span style="padding-left: 20px;"><button type="button" class="hotelsearch" style="height: 28px;">搜索</button></span></h5>
                     </div>
                     <div class="modal-body">
                         <div class="row">
@@ -165,7 +189,7 @@
                                         </div>
                                     </div>
                                     <volist name="menuTree" id="list">
-                                    <div class="panel panel-default">
+                                    <div class="panel panel-default hotelHidval" val="{$list['hid']}">
                                         <div class="panel-heading">
                                             <h4 class="panel-title">
                                                 <input type="checkbox" name="r[]" id="list_{$list.id}" class="checkAccessAll" value="{$list.id}" >&nbsp;&nbsp;{$list.hotelname}
@@ -369,5 +393,20 @@
         }
         $('div#DeviceModal').modal('hide');
     }
+
+    $(".hotelsearch").click(function(event) {
+        var hotelHid = $("input[name='hotelHid']").val().toUpperCase();
+        if($.trim(hotelHid) == ""){
+            $(".hotelHidval").show();
+        }else{
+            $(".hotelHidval").each(function(index, el) {
+                if($(this).attr("val") == hotelHid){
+                    $(this).show()
+                }else{
+                    $(this).hide();
+                }
+            });
+        }
+    });
 	</script>
 </block>

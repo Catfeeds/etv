@@ -9,7 +9,20 @@
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-1">名称</label>
                     <div class="col-sm-9">
-                        <input type="text" name="app_name" id="app_name" placeholder="文件名称" class="col-xs-10 col-sm-5" value="">
+                        <input type="text" name="app_name" id="app_name" placeholder="显示名称" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red">*</span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">类型</label>
+                    <div class="col-sm-9">
+                        <select name="app_type" id="app_type" class="col-xs-10 col-sm-5">
+                            <option value="1">系统应用</option>
+                            <option value="2">APPstore应用</option>
+                        </select>
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"><span class="red">*</span>必填</span>
                         </span>
@@ -19,7 +32,7 @@
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-1">包名</label>
                     <div class="col-sm-9">
-                        <input type="text" name="app_package" id="app_package" placeholder="文件名称" class="col-xs-10 col-sm-5" value="">
+                        <input type="text" name="app_package" id="app_package" placeholder="" class="col-xs-10 col-sm-5" value="">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"><span class="red">*</span>必填</span>
                         </span>
@@ -27,7 +40,17 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">APK编号</label>
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">版本号</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="app_version" id="app_version" placeholder="" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red">*</span>系统应用为必填项</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">编号</label>
                     <div class="col-sm-9">
                         <input type="text" name="app_identifier" class="col-xs-10 col-sm-5" value="{$app_identifier}" readonly="true">
                         <span class="help-inline col-xs-12 col-sm-7">
@@ -150,53 +173,53 @@
     </div>
     <!-- 显示选择酒店模态框（DeviceModal） -->
     <div class="modal fade" id="DeviceModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <form class="form-horizontal ajaxForm2" name="setbackgroud" method="post" action="{:U('setSleepImage')}">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                        <h4 class="modal-title" id="myModalLabel">选择要升级的房间号</h4>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-xs-12">
-                                <div class="panel-group" id="accordion">
-                                    <div class="panel panel-default">
-                                        <div class="panel-heading">
-                                            <h4 class="panel-title"><input type="checkbox" name="allHotel" id="allDevice" class="checkDeviceAll" value="allDevice" >&nbsp;&nbsp;全部</h4>
-                                        </div>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title" id="myModalLabel">选择要升级的房间号</h4>
+                    <h5>酒店编号：<span><input type="text" name="hotelHid"></span><span style="padding-left: 20px;"><button type="button" class="hotelsearch" style="height: 28px;">搜索</button></span></h5>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="panel-group" id="accordion">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h4 class="panel-title"><input type="checkbox" name="allHotel" id="allDevice" class="checkDeviceAll" value="allDevice" >&nbsp;&nbsp;全部</h4>
+
                                     </div>
-                                    <volist name="menuTree" id="list">
-                                    <div class="panel panel-default">
-                                        <div class="panel-heading">
-                                            <h4 class="panel-title">
-                                                <input type="checkbox" name="r[]" id="list_{$list.id}" class="checkAccessAll" value="{$list.id}" >&nbsp;&nbsp;{$list.hotelname}
-                                                <a data-toggle="collapse" data-parent="#accordion" href="#collapse{$list.id}" style="float:right;">展开/折叠 </a>
-                                            </h4>
-                                        </div>
-                                        <div id="collapse{$list.id}" class="panel-collapse collapse in">
-                                            <div class="panel-body">
-                                                <volist name="list['sub']" id="sub">
-                                                <label class="checkbox inline" style="padding-left: 30px;">
-                                                    <input type="checkbox" name="eDevice" cid="list_{$list.id}" class="checkAccessSingle" value="{$sub.mac}" roomname="{$sub.room}">{$sub.room}(版本：{$sub.firmware_version})(详细地址备注：{$sub.room_remark})
-                                                </label>
-                                                </volist>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    </volist>
                                 </div>
+                                <volist name="menuTree" id="list">
+                                <div class="panel panel-default hotelHidval" val="{$list['hid']}">
+                                    <div class="panel-heading">
+                                        <h4 class="panel-title">
+                                            <input type="checkbox" name="r[]" id="list_{$list.id}" class="checkAccessAll" value="{$list.id}" >&nbsp;&nbsp;{$list.hotelname}
+                                            <a data-toggle="collapse" data-parent="#accordion" href="#collapse{$list.id}" style="float:right;">展开/折叠 </a>
+                                        </h4>
+                                    </div>
+                                    <div id="collapse{$list.id}" class="panel-collapse collapse in">
+                                        <div class="panel-body">
+                                            <volist name="list['sub']" id="sub">
+                                            <label class="checkbox inline" style="padding-left: 30px;">
+                                                <input type="checkbox" name="eDevice" cid="list_{$list.id}" class="checkAccessSingle" value="{$sub.mac}" roomname="{$sub.room}">{$sub.room}(版本：{$sub.firmware_version})(详细地址备注：{$sub.room_remark})
+                                            </label>
+                                            </volist>
+                                        </div>
+                                    </div>
+                                </div>
+                                </volist>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" onclick="selectedDevice()">提交</button>
-                        <button class="btn btn-info" type="reset" id="restimage">重置</button>
-                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                    </div>
-                </div><!-- /.modal-content -->
-            </div><!-- /.modal-dialog -->     
-        </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="selectedDevice()">提交</button>
+                    <button class="btn btn-info" type="reset" id="restimage">重置</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->     
     </div>
     <!--  / .DeviceModal-->
 </block>
@@ -209,11 +232,12 @@
     });
 	$(function () {
 		$("#fileupload").fileupload({
-            url: "{:U('upload?name=fileupload')}", 
+            url: "{:U('upload')}?name=fileupload", 
             dataType: 'json',
             sequentialUploads: true  
-        }).bind('fileuploaddone', function (e, data) {  
+        }).bind('fileuploaddone', function (e, data) { 
         	var json = data.result;
+            console.log(data);
         	if(json.status==1){
                 console.log(json.storename);
     			$("input[name=app_file]").val(json.storename);
@@ -257,6 +281,8 @@
 			var filename = $("#filename").val();
             var app_file = $("input[name='app_file']").val();
             var app_pic = $("input[name='app_pic']").val();
+            var app_type = $("#app_type option:selected").val();
+            var app_version = $("input[name='app_version']").val();
 			if(name==''){
 				bootbox.dialog({
 					title: '友情提示：',
@@ -300,6 +326,19 @@
                 bootbox.dialog({
                     title: '友情提示：',
                     message: "请上传APK图标！", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if(app_type == 1 && $.trim(app_version)==""){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "系统应用为必填项", 
                     buttons: {
                         "success" : {
                             "label" : "确定",
@@ -371,5 +410,20 @@
         }
         $('div#DeviceModal').modal('hide');
     }
+
+    $(".hotelsearch").click(function(event) {
+        var hotelHid = $("input[name='hotelHid']").val().toUpperCase();
+        if($.trim(hotelHid) == ""){
+            $(".hotelHidval").show();
+        }else{
+            $(".hotelHidval").each(function(index, el) {
+                if($(this).attr("val") == hotelHid){
+                    $(this).show()
+                }else{
+                    $(this).hide();
+                }
+            });
+        }
+    });
 	</script>
 </block>

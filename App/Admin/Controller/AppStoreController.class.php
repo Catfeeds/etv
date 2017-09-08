@@ -14,7 +14,7 @@ use Vendor\Apkparser;
 class AppStoreController extends ComController {
 
 	public function _map(){
-		$map = array();
+		$map['status'] = array('in',array(1,0));
         if(!empty($_POST['app_name'])){
             $app_name = I('post.app_name','','strip_tags');
             $map['app_name'] = $app_name;
@@ -52,8 +52,8 @@ class AppStoreController extends ComController {
         $callback = array();
         if (!empty($_FILES[$_REQUEST["name"]]["name"])) {
             $upload = new \Think\Upload();
-            $upload->maxSize=1048576000;
-            $upload->exts=array('zip','rar','apk');
+            $upload->maxSize=104857600;
+            $upload->exts=array('apk');
             $upload->rootPath='./Public/';
             $upload->savePath='./upload/apk/';
             $info=$upload->uploadOne($_FILES[$_REQUEST["name"]]);
@@ -71,7 +71,6 @@ class AppStoreController extends ComController {
             $callback['info']='缺少文件';
         }
         echo json_encode($callback);
-
     }
 
     public function upload_icon(){
@@ -105,6 +104,11 @@ class AppStoreController extends ComController {
     	if(empty($data['app_name'])){
     		$this->error("名称不能为空");
     	}
+        $data['app_type'] = I('post.app_type','','intval');
+        $data['app_version'] = I('post.app_version','','strip_tags');
+        if($data['app_version']==1 && empty($data['app_version'])){
+            $this->error("系统应用版本号不能为空");
+        }
     	$data['app_package'] = I('post.app_package','','strip_tags');
     	if(empty($data['app_package'])){
     		$this->error("apk包名不能为空");
@@ -121,36 +125,37 @@ class AppStoreController extends ComController {
     	if(empty($data['maclist'])){
     		$this->error("系统出错，请选择MAC列表");
     	}
-    	$map['app_package'] = $data['app_package'];
-    	$model = D("appstore");
-    	
-    	$filepath=FILE_UPLOAD_ROOTPATH.$data['app_file'];
+        
+        $model = D("appstore");
+
+        $filepath=FILE_UPLOAD_ROOTPATH.$data['app_file'];
         $data['md5_file'] = md5_file($filepath);
-    	$data['app_identifier'] = I('post.app_identifier','','strip_tags');
-    	$data['app_introduce'] = I('post.app_introduce','','strip_tags');
-    	$data['app_uploadtime'] = date("Y-m-d H:i:s");
-    	$data['status'] = 0;
-    	$data['audit_status'] = 0;
-    	$app_size = I('post.app_size','','strip_tags');
-    	$id = I('post.id','','intval');
-    	$vo = $model->getById($id);
+        $data['app_identifier'] = I('post.app_identifier','','strip_tags');
+        $data['app_introduce'] = I('post.app_introduce','','strip_tags');
+        $data['app_uploadtime'] = date("Y-m-d H:i:s");
+        $data['status'] = 0;
+        $data['audit_status'] = 0;
+        $app_size = I('post.app_size','','strip_tags');
+    	$data['app_size'] = round($app_size/1024,3);
+        $id = I('post.id','','intval');
 
-    	if(empty($id)){
-    		if($model->where($map)->count()){
-	    		$this->error("包名已存在，不可重复");
-	    	}
-	    	$data['app_size'] = round($app_size/1024,3);
-	    	$appstoreResult = $model->data($data)->add();
+        if(empty($id)){
+            $map['app_package'] = $data['app_package'];
+            $map['app_version'] = $data['app_version'];
+            if($model->where($map)->count()){
+                $this->error("包名+版本的组合有重复");
+            }
+            $appstoreResult = $model->data($data)->add();
 
-    	}else{
-    		if($app_size){
-    			$data['app_size'] = round($app_size/1024,3);
-    		}
-    		$lockresult = $this->dolock($id);
-    		if($lockresult == false){
-    			$this->error('系统错误，请联系管理员');
-    			die();
-    		}
+        }else{
+            $vo = $model->getById($id);
+            if($vo['app_package'] != $data['app_package'] || $vo['app_version'] !== $data['app_version']){
+                $map['app_package'] = $data['app_package'];
+                $map['app_version'] = $data['app_version'];
+                if($model->where($map)->count()){
+                    $this->error("包名+版本的组合有重复");
+                }
+            }
     		$appstoreResult = $model->where('id='.$id)->data($data)->save();
     	}
 
@@ -209,144 +214,27 @@ class AppStoreController extends ComController {
     }
 
     public function unlock(){
-
-    	$ids = $_REQUEST['ids'];
-        if(count($ids)!=1){
-            $this->error('只能启用一条记录');
-            die();
-        }
-
-        $appstoreModel = D("appstore");
-        $deviceapkModel = D("device_apk");
-        $vo = $appstoreModel->getById($ids['0']);
-
-        if($vo['audit_status'] != 4){
-        	$this->error("未通过审核发布，不能启用");
-        	die();
-        }
-        if($vo['status'] !=0){
-        	$this->error("该状态已启用");
-        	die();
-        }
-
-        //添加apk_id
-        if($vo['maclist'] == 'all'){
-        	$allmap['mac'] = 'all';
-        	$device_apk_all_vo = $deviceapkModel->where($allmap)->find();//已存在公用
-        	M()->startTrans();
-    		$appresult = $appstoreModel->where('id='.$vo['id'])->setField('status',1);
-        	if($device_apk_all_vo){
-        		$apk_id_value = $device_apk_all_vo['apk_id'].",".$vo['app_identifier'];
-        		$result = $deviceapkModel->where($allmap)->setField('apk_id',$apk_id_value);
-        	}else{  //不存在公用
-        		$alldata['mac'] = 'all';
-        		$alldata['apk_id'] = $vo['app_identifier'];
-        		$result = $deviceapkModel->data($alldata)->add();
-        	}
-        	if($result && $appresult){
-        		addlog("启用apk，启用APK的编号为：".$vo['app_identifier']);
-        		M()->commit();
-        		$this->success('启用成功');
-        	}else{
-        		M()->rollback();
-        		$this->error('启用失败');
-        	}
+        $ids = I('post.ids');
+        $map['id'] = array('in',$ids);
+        $result = D("appstore")->where($map)->setField("status",1);
+        if($result){
+            addlog('启用'.CONTROLLER_NAME.'表数据，数据ID：'.$ids);
+            $this->success('恭喜，启用成功！');
         }else{
-        	$macarr = explode(',', $vo['maclist']);
-        	M()->startTrans();
-        	$errornum = 0;
-        	$appresult = $appstoreModel->where('id='.$vo['id'])->setField('status',1);
-        	foreach ($macarr as $key => $value) {
-        		$add_apk_id = ",".$vo['app_identifier'];
-        		$sql = "INSERT INTO `zxt_device_apk` (mac,apk_id) VALUES('".$value."', '".$vo['app_identifier']."') ON DUPLICATE KEY UPDATE apk_id = concat(apk_id,'".$add_apk_id."')";
-	        	$result = $deviceapkModel->execute($sql);
-	        	if($result == 0 || $result === false){
-	        		$errornum++;
-	        	}
-        	}
-        	if($errornum>0 && $appresult === false){
-        		M()->rollback();
-        		$this->error('启用失败');
-        	}else{
-        		M()->commit();
-        		addlog("启用apk，启用APK编号为：".$vo['app_identifier']);
-        		$this->success('启用成功');
-        	}
+            $this->error('启用失败，参数错误！');
         }
-    }
-
-    //内部调用方法
-    private function dolock($id){
-
-    	$ids = array($id);
-    	if(count($ids)!=1){
-            return false;
-        }
-
-        $appstoreModel = D("appstore");
-        $deviceapkModel = D("device_apk");
-        $vo = $appstoreModel->getById($ids['0']);
-        if($vo['status'] ==0){
-        	return true;
-        }
-        $appstoreModel->startTrans();
-    	$appresult = $appstoreModel->where('id='.$ids['0'])->setField('status',0);
-    	$sql = "UPDATE `zxt_device_apk` SET apk_id = REPLACE(apk_id,'".$vo['app_identifier']."','')";
-
-        if($vo['maclist'] == 'all'){
-        	$result = $deviceapkModel->where('mac=all')->execute($sql);
-        }else{
-        	$macarr = explode(',', $vo['maclist']);
-        	$apkmap['mac'] = array('in',$macarr);
-        	$result = $deviceapkModel->where($apkmap)->execute($sql);
-        }
-
-        if($result !==false && $appresult !==false){
-    		$appstoreModel ->commit();
-    		addlog("禁用apk，apk编号为：".$vo['app_identifier']);
-    		return true;
-    	}else{
-    		$appstoreModel->rollback();
-    		return false;
-    	}
     }
 
     public function lock(){
-
-    	$ids = $_REQUEST['ids'];
-
-        if(count($ids)!=1){
-            $this->error('只能禁用一条记录');
-            die();
-        }
-
-        $appstoreModel = D("appstore");
-        $deviceapkModel = D("device_apk");
-        $vo = $appstoreModel->getById($ids['0']);
-        if($vo['status'] !=1){
-        	$this->error("该状态已禁用");
-        	die();
-        }
-        $appstoreModel->startTrans();
-    	$appresult = $appstoreModel->where('id='.$ids['0'])->setField('status',0);
-    	$sql = "UPDATE `zxt_device_apk` SET apk_id = REPLACE(apk_id,'".$vo['app_identifier']."','')";
-
-        if($vo['maclist'] == 'all'){
-        	$result = $deviceapkModel->where('mac=all')->execute($sql);
+        $ids = I('post.ids');
+        $map['id'] = array('in',$ids);
+        $result = D("appstore")->where($map)->setField("status",0);
+        if($result){
+            addlog('禁用'.CONTROLLER_NAME.'表数据，数据ID：'.$ids);
+            $this->success('恭喜，禁用成功！');
         }else{
-        	$macarr = explode(',', $vo['maclist']);
-        	$apkmap['mac'] = array('in',$macarr);
-        	$result = $deviceapkModel->where($apkmap)->execute($sql);
+            $this->error('禁用失败，参数错误！');
         }
-
-    	if($result !==false && $appresult !==false){
-    		$appstoreModel ->commit();
-    		addlog("禁用apk，apk编号为：".$vo['app_identifier']);
-    		$this->success('禁用成功');
-    	}else{
-    		$appstoreModel->rollback();
-    		$this->error("禁用失败");
-    	}
     }
 
     public function delete(){
@@ -358,40 +246,20 @@ class AppStoreController extends ComController {
             die();
         }
 
-        $appstoreModel = D("appstore");
-        $deviceapkModel = D("device_apk");
-        $vo = $appstoreModel->getById($ids['0']);
-        $appstoreModel->startTrans();
-
-        //删除device_apk记录
-        $sql = "UPDATE `zxt_device_apk` SET apk_id = REPLACE(apk_id,'".$vo['app_identifier']."','')";
-        if($vo['maclist'] == 'all'){
-            $map = array();
-        }else{
-            $arr = explode(',', $vo['maclist']);
-            $map['mac'] = array('in',$arr);
-        }
-        $deviceapkResult = $deviceapkModel->where($map)->execute($sql);
-        //删除appstore表记录
-
-        $appstoreResult = $appstoreModel->where('id='.$vo['id'])->delete();
-
-        if($appstoreResult!==false && $deviceapkResult!==false){
-            $appstoreModel->commit();
-            addlog("删除apk，名称为：".$vo['app_name']);
-            @unlink(FILE_UPLOAD_ROOTPATH.$vo['app_pic']);
-            @unlink(FILE_UPLOAD_ROOTPATH.$vo['app_file']);
+        $map['id'] = $ids[0];
+        $result = D("appstore")->where($map)->setField('status',2);
+        if($result !== false){
+            addlog("删除APPstore数据");
             $this->success('删除成功');
         }else{
-            $appstoreModel->rollback();
-            $this->error("删除失败");
+            $this->error('删除失败');
         }
 
     }
 
     public function maclist(){
 
-        $ids = $_REQUEST['ids'];
+        $ids = I('request.ids','','strip_tags');
 
         if(count($ids)!=1){
             $this->error('只能禁用一条记录');
@@ -402,13 +270,20 @@ class AppStoreController extends ComController {
         $deviceModel = D("device");
         $vo = $appstoreModel->getById($ids['0']);
         if($vo['maclist'] == 'all'){
-            $this->hotel_device_list();
+            $updateResult = D("device_update_result")->where('uplist_id='.$ids[0].' and result=1')->field('mac')->select();
+            $macarr = array();
+            if(!empty($updateResult)){
+                foreach ($updateResult as $key => $value) {
+                    $macarr[] = $value['mac'];
+                }
+            }
+            $this->hotel_device_list($macarr);
             $all = "全部房间";
         }else{
             $macarr = explode(',',$vo['maclist']);
             $devicemap['zxt_device.mac'] = array('in',$macarr);
-            $devicefield = "zxt_hotel.hotelname,zxt_device.id,zxt_device.hid,zxt_device.room,zxt_device.mac";
-            $devicelist = $deviceModel->where($devicemap)->join('zxt_hotel ON zxt_device.hid = zxt_hotel.hid')->field($devicefield)->select();
+            $devicefield = "zxt_hotel.hotelname,zxt_device.id,zxt_device.hid,zxt_device.room,zxt_device.mac,zxt_device_update_result.result as flag,zxt_device_update_result.uplist_id";
+            $devicelist = $deviceModel->join('zxt_hotel ON zxt_device.hid = zxt_hotel.hid')->join('zxt_device_update_result ON zxt_device.mac=zxt_device_update_result.mac and zxt_device_update_result.uplist_id = '.$ids[0],'left')->field($devicefield)->where($devicemap)->select();
             $list = array();
             if(!empty($devicelist)){
                 foreach ($devicelist as $key => $value) {
