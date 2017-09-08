@@ -106,7 +106,7 @@ class AppStoreController extends ComController {
     	}
         $data['app_type'] = I('post.app_type','','intval');
         $data['app_version'] = I('post.app_version','','strip_tags');
-        if($data['app_version']==1 && empty($data['app_version'])){
+        if(empty($data['app_version'])){
             $this->error("系统应用版本号不能为空");
         }
     	$data['app_package'] = I('post.app_package','','strip_tags');

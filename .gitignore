@@ -3,3 +3,6 @@
 *.jpg
 *.png
 *.zip
+App/Runtime
+Runtime/Logs
+Public/upload

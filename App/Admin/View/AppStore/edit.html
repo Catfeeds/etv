@@ -279,6 +279,7 @@
 			var filename = $("#filename").val();
             var app_file = $("input[name='app_file']").val();
             var app_pic = $("input[name='app_pic']").val();
+            var app_version = $("input[name='app_version']").val();
 			if(name==''){
 				bootbox.dialog({
 					title: '友情提示：',
@@ -322,6 +323,19 @@
                 bootbox.dialog({
                     title: '友情提示：',
                     message: "请上传APK图标！", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if($.trim(app_version)==""){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "系统应用为必填项", 
                     buttons: {
                         "success" : {
                             "label" : "确定",

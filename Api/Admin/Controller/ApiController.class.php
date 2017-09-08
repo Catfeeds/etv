@@ -2014,7 +2014,7 @@ class ApiController extends Controller{
         }
         $map['zxt_appstore.maclist'] = array(array('like',"%$mac%"), array('eq','all'),'or');
         $map['zxt_appstore.audit_status'] = 4;
-        $field = "zxt_appstore.*";
+        $field = "zxt_appstore.id,zxt_appstore.app_name,zxt_appstore.app_version,zxt_appstore.app_identifier,zxt_appstore.md5_file,zxt_appstore.app_package,zxt_appstore.app_introduce,zxt_appstore.app_file,zxt_appstore.app_pic,zxt_appstore.status";
         
         if(!empty($app_type)){
             if($app_type == "app"){
