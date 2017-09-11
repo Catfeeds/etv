@@ -112,9 +112,11 @@
 <block name="currentPageJS">
 <script type="text/javascript">
 	$('#hid').select2({ placeholder : '--请选择--' });
-	$(function () {
-		$("#fileupload").fileupload({
-            url: "{:U('upload?name=fileupload')}",
+    $("#fileupload").click(function(event) {
+        var $hid = $("#hid").val();
+        $url =  "{:U('upload')}?name=fileupload&hid="+$hid;
+		$(this).fileupload({
+            url: $url,
             dataType: 'json',
             sequentialUploads: true  
         }).bind('fileuploaddone', function (e, data) {  //fileuploaddone 上传结束后执行的操作
@@ -133,52 +135,78 @@
             $("#weixin_progress").css('width',progress + '%');  
             $("#weixin_progress").html(progress + '%');  
         });
+    });
 		
-		$(".btn-info.submit").click(function(){
-            var hid = $("#hid").val();
-			var title = $("#title").val();
-			var filepath = $("#filepath").val();
-            if(hid==''){
-                bootbox.dialog({
-                    title: '友情提示：',
-                    message: "所属酒店必须选择", 
-                    buttons: {
-                        "success" : {
-                            "label" : "确定",
-                            "className" : "btn-danger"
-                        }
+    $("#hid").change(function() {
+        var $filepath = $("#filepath").val();
+        $("#filepath").attr('value', '');
+        $("#weixin_progress").css('width',0 + '%');  
+        $("#weixin_progress").html(0 + '%');  
+        $("#image").attr('src', '');
+        $(".alert-success").remove();
+        if($.trim($filepath) != ""){
+            $.ajax({
+                url: "{:U('delfilepath')}",
+                type: 'POST',
+                dataType: 'json',
+                data: {"filepath": $filepath},
+            })
+            .done(function() {
+                console.log("success");
+            })
+            .fail(function() {
+                console.log("error");
+            })
+            .always(function() {
+                console.log("complete");
+            });
+        }
+    });
+
+	$(".btn-info.submit").click(function(){
+        var hid = $("#hid").val();
+		var title = $("#title").val();
+		var filepath = $("#filepath").val();
+        if(hid==''){
+            bootbox.dialog({
+                title: '友情提示：',
+                message: "所属酒店必须选择", 
+                buttons: {
+                    "success" : {
+                        "label" : "确定",
+                        "className" : "btn-danger"
                     }
-                });
-                return;
-            }
-			if(title==''){
-				bootbox.dialog({
-					title: '友情提示：',
-					message: "资源标题必须填写！", 
-					buttons: {
-						"success" : {
-							"label" : "确定",
-							"className" : "btn-danger"
-						}
+                }
+            });
+            return;
+        }
+		if(title==''){
+			bootbox.dialog({
+				title: '友情提示：',
+				message: "资源标题必须填写！", 
+				buttons: {
+					"success" : {
+						"label" : "确定",
+						"className" : "btn-danger"
 					}
-				});
-				return;
-			}
-			if(filepath==''){
-				bootbox.dialog({
-					title: '友情提示：',
-					message: "请上传图片文件！", 
-					buttons: {
-						"success" : {
-							"label" : "确定",
-							"className" : "btn-danger"
-						}
+				}
+			});
+			return;
+		}
+		if(filepath==''){
+			bootbox.dialog({
+				title: '友情提示：',
+				message: "请上传图片文件！", 
+				buttons: {
+					"success" : {
+						"label" : "确定",
+						"className" : "btn-danger"
 					}
-				});
-				return;
-			}
-			$("#form").submit();
-		});
+				}
+			});
+			return;
+		}
+		$("#form").submit();
 	});
 	</script>
 </block>

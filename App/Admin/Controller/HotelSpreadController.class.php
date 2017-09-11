@@ -84,29 +84,18 @@ class HotelSpreadController extends ComController {
     //修改
     public function edit(){
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
-        if(count($ids)>1){
+        if(count($ids)!=1){
             $this->error('参数错误，每次只能修改一条内容！');
         }
-        if (!$ids) {
-            $this->error('参数错误！请选择要修改的内容！');
-        }
 
-        $list = M('hotel_spread')->table('zxt_hotel_spread spread,zxt_hotel_resource resource')
+        $vo = M('hotel_spread')->table('zxt_hotel_spread spread,zxt_hotel_resource resource')
         ->field('spread.id,spread.hid,resource.title,resource.intro,resource.filepath,resource.sort,resource.type')
         ->where('spread.resourceid=resource.id AND spread.hid=resource.hid AND spread.id='.$ids[0])
-        ->limit(1)
-        ->select();
-        if(empty($list)){
-            $this->error('参数错误！');
-        }
-        $voHotel=M('hotel')->getByHid($list[0]['hid']);
-        $category = M('hotel')->field('id,pid,hotelname,hid')->order('hid asc')->select();
-        $tree = new Tree($category);
-        $str = "<option value=\$hid \$selected>\$spacer\$hotelname</option>";
-        $category = $tree->get_tree(0,$str,$voHotel['id']);
-        $this->assign('pHotel',$category);
-
-        $this->assign('vo',$list[0]);
+        ->find();
+        
+        $hotelname = D("hotel")->where("hid='".$vo['hid']."'")->field('hotelname')->find();
+        $this->assign('hotelname',$hotelname['hotelname']);
+        $this->assign('vo',$vo);
         $this -> display();
     }
     //保存
@@ -248,34 +237,41 @@ class HotelSpreadController extends ComController {
             $this->error('删除失败');
         }
     }
+
     public function upload(){
         $callback = array();
         if (!empty($_FILES[$_REQUEST["name"]]["name"])) {
-            $upload = new \Think\Upload(); //实例化上传类
-            if ($_REQUEST['filetype']==1) {
-                $upload->exts=array('mp4');
-                $upload->maxSize=209715200;// 设置附件上传大小200M
-            }else if ($_REQUEST['filetype']==0){
-                $upload->exts=array('jpg','png','jpeg');
-                $upload->maxSize=2097152; //图片2M
-            }else{
+            if(empty($_REQUEST['hid'])){
                 $callback['status'] = 0;
-                $callback['info']='请选择资源文件类型！';
-                echo json_encode($callback);
-                exit;
-            }
-            $upload->rootPath='./Public/'; //保存根路径
-            $upload->savePath='./upload/content/'; // 设置附件上传目录
-            //单文件上传
-            $info=$upload->uploadOne($_FILES[$_REQUEST["name"]]);
-            if(!$info) {
-                $callback['status'] = 0;
-                $callback['info'] = $upload->getError();
+                $callback['info'] = "请选择酒店";
             }else{
-                $callback['status'] = 1;
-                $callback['info']="上传成功！";
-                $callback['size'] = round($info['size']/1024);
-                $callback['storename']=trim($info['savepath'].$info['savename'],'.');
+                $upload = new \Think\Upload(); //实例化上传类
+                if ($_REQUEST['filetype']==1) {
+                    $upload->exts=array('mp4');
+                    $upload->maxSize=209715200;// 设置附件上传大小200M
+                }else if ($_REQUEST['filetype']==0){
+                    $upload->exts=array('jpg','png','jpeg');
+                    $upload->maxSize=2097152; //图片2M
+                }else{
+                    $callback['status'] = 0;
+                    $callback['info']='请选择资源文件类型！';
+                    echo json_encode($callback);
+                    exit;
+                }
+                $upload->rootPath='./Public/'; //保存根路径
+                $upload->savePath='./upload/content/'.$_REQUEST['hid'].'/';
+                $upload->autoSub = false;
+                $upload->saveName = time().'_'.mt_rand();
+                $info=$upload->uploadOne($_FILES[$_REQUEST["name"]]);
+                if(!$info) {
+                    $callback['status'] = 0;
+                    $callback['info'] = $upload->getError();
+                }else{
+                    $callback['status'] = 1;
+                    $callback['info']="上传成功！";
+                    $callback['size'] = round($info['size']/1024);
+                    $callback['storename']=trim($info['savepath'].$info['savename'],'.');
+                }
             }
         }else{
             $callback['status'] = 0;
@@ -283,6 +279,14 @@ class HotelSpreadController extends ComController {
         }
         echo json_encode($callback);
     }
+
+    public function delfilepath(){
+        if($_POST['filepath']){
+            @unlink(FILE_UPLOAD_ROOTPATH.$_POST['filepath']);
+        }
+        echo true;
+    }
+
     public function unlock(){
         $model = M(CONTROLLER_NAME);
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;

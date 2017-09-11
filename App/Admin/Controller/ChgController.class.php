@@ -138,26 +138,40 @@ class ChgController extends ComController {
     public function upload_icon(){
         $callback = array();
         if (!empty($_FILES[$_REQUEST["name"]]["name"])) {
-            $upload = new \Think\Upload();
-            $upload->maxSize=104857600;
-            $upload->exts=array('jpg','png','jpeg');
-            $upload->rootPath='./Public/';
-            $upload->savePath='./upload/content/';
-            $info=$upload->uploadOne($_FILES[$_REQUEST["name"]]);
-            if(!$info) {
+            if(empty($_REQUEST['hid'])){
                 $callback['status'] = 0;
-                $callback['info'] = $upload->getError();
+                $callback['info'] = "请选择酒店";
             }else{
-                $callback['status'] = 1;
-                $callback['info']="上传成功！";
-                $callback['size'] = round($info['size']/1024,3);
-                $callback['storename']=trim($info['savepath'].$info['savename'],'.');
+                $upload = new \Think\Upload();
+                $upload->maxSize=104857600;
+                $upload->exts=array('jpg','png','jpeg');
+                $upload->rootPath='./Public/';
+                $upload->savePath='./upload/content/'.$_REQUEST['hid'].'/';
+                $upload->autoSub = false;
+                $upload->saveName = time().'_'.mt_rand();
+                $info=$upload->uploadOne($_FILES[$_REQUEST["name"]]);
+                if(!$info) {
+                    $callback['status'] = 0;
+                    $callback['info'] = $upload->getError();
+                }else{
+                    $callback['status'] = 1;
+                    $callback['info']="上传成功！";
+                    $callback['size'] = round($info['size']/1024,3);
+                    $callback['storename']=trim($info['savepath'].$info['savename'],'.');
+                }
             }
         }else{
             $callback['status'] = 0;
             $callback['info']='缺少文件';
         }
         echo json_encode($callback);
+    }
+
+    public function delfilepath(){
+        if($_POST['filepath']){
+            @unlink(FILE_UPLOAD_ROOTPATH.$_POST['filepath']);
+        }
+        echo true;
     }
 
     //获取上级栏目

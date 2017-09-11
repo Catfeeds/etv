@@ -54,14 +54,6 @@
                     </div>
                 </div>
                 <div class="space-4"></div>
-                <!-- <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">&nbsp;&nbsp;</label>
-                    <div class="col-sm-9">
-                        <span><label style="width:50px;"><input type="radio" id="video_set_2" name="video_set" value="1" >（2）</label></span>
-                        <span><label style="width:480px;">欢迎页前插播视频。</label></span>
-                    </div>
-                </div>
-                <div class="space-4"></div> -->
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-1">&nbsp;&nbsp;</label>
                     <div class="col-sm-9">
@@ -137,24 +129,27 @@
 <block name="currentPageJS">
 <script type="text/javascript">
 	$('#hid').select2({ placeholder : '--请选择--' });
-	$(function () {
-		$("#video_set_1").click(function() {
-	        $("input[name=filepath]").val("");
-	        $("#upload_video_file").hide();
-	    });
-	    $("#video_set_2").click(function() {
-	        $("#upload_video_file").show();
-	    });
-	    $("#video_set_3").click(function() {
-	        $("#upload_video_file").show();
-	    });
-		$("#fileupload").fileupload({
-            url: "{:U('upload?name=fileupload')}",
+
+	$("#video_set_1").click(function() {
+        $("input[name=filepath]").val("");
+        $("#upload_video_file").hide();
+    });
+    $("#video_set_2").click(function() {
+        $("#upload_video_file").show();
+    });
+    $("#video_set_3").click(function() {
+        $("#upload_video_file").show();
+    });
+
+    $("#fileupload").click(function(event) {
+        var $hid = $("#hid").val();
+        $url =  "{:U('upload')}?name=fileupload&hid="+$hid;
+		$(this).fileupload({
+            url: $url,
             dataType: 'json',
             sequentialUploads: true  
         }).bind('fileuploaddone', function (e, data) {  
         	var json = data.result;
-            console.log(json);
         	if(json.status==1){
     			$("input[name=filepath]").val(json.storename);
                 $("#size").val(json.size);
@@ -170,54 +165,83 @@
             $("#weixin_progress").css('width',progress + '%');  
             $("#weixin_progress").html(progress + '%');  
         });
-		$(".btn-info.submit").click(function(){
-            var hid = $("#hid").val();
-            var video_set = $("input[name='video_set']:checked").val();
-            var filepath = $("input[name=filepath]").val();
-            var isjump = $("input[name='isjump']:checked").val();
-            var staytime = $("input[name='staytime']").val();
-            var re = /^[1-9]\d*|0$/;
-            if(hid==''){
-                bootbox.dialog({
-                    title: '友情提示：',
-                    message: "所属酒店必须选择", 
-                    buttons: {
-                        "success" : {
-                            "label" : "确定",
-                            "className" : "btn-danger"
-                        }
+    });
+
+    $("#hid").change(function() {
+        var $filepath = $("input[name=filepath]").val();
+        $("input[name=filepath]").attr('value', '');
+        $("#weixin_progress").css('width',0 + '%');  
+        $("#weixin_progress").html(0 + '%');  
+        $("a#showfilename").attr('value', '');
+        $("a#showfilename").text('');
+        $(".alert-success").remove();
+        if($.trim($filepath) != ""){
+            $.ajax({
+                url: "{:U('delfilepath')}",
+                type: 'POST',
+                dataType: 'json',
+                data: {"filepath": $filepath},
+            })
+            .done(function(data) {
+                console.log('success');
+            })
+            .fail(function() {
+                console.log("error");
+            })
+            .always(function() {
+                console.log("complete");
+            });
+        }
+    });
+
+	$(".btn-info.submit").click(function(){
+        var hid = $("#hid").val();
+        var video_set = $("input[name='video_set']:checked").val();
+        var filepath = $("input[name=filepath]").val();
+        var isjump = $("input[name='isjump']:checked").val();
+        var staytime = $("input[name='staytime']").val();
+        var re = /^[1-9]\d*|0$/;
+        if(hid==''){
+            bootbox.dialog({
+                title: '友情提示：',
+                message: "所属酒店必须选择", 
+                buttons: {
+                    "success" : {
+                        "label" : "确定",
+                        "className" : "btn-danger"
                     }
-                });
-                return;
-            }
-            if(isjump>0 && !re.test(staytime)){
-                bootbox.dialog({
-                    title: '友情提示：',
-                    message: "停留时间需为正整数或0", 
-                    buttons: {
-                        "success" : {
-                            "label" : "确定",
-                            "className" : "btn-danger"
-                        }
+                }
+            });
+            return;
+        }
+        if(isjump>0 && !re.test(staytime)){
+            bootbox.dialog({
+                title: '友情提示：',
+                message: "停留时间需为正整数或0", 
+                buttons: {
+                    "success" : {
+                        "label" : "确定",
+                        "className" : "btn-danger"
                     }
-                });
-                return;
-            }
-            if(video_set>0 && filepath == ''){
-                bootbox.dialog({
-                    title: '友情提示：',
-                    message: "请上传跳转资源", 
-                    buttons: {
-                        "success" : {
-                            "label" : "确定",
-                            "className" : "btn-danger"
-                        }
+                }
+            });
+            return;
+        }
+        if(video_set>0 && filepath == ''){
+            bootbox.dialog({
+                title: '友情提示：',
+                message: "请上传跳转资源", 
+                buttons: {
+                    "success" : {
+                        "label" : "确定",
+                        "className" : "btn-danger"
                     }
-                });
-                return;
-            }
-			$("#form").submit();
-		});
+                }
+            });
+            return;
+        }
+		$("#form").submit();
 	});
+
 	</script>
 </block>

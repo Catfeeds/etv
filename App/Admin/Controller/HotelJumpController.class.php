@@ -99,23 +99,19 @@ class HotelJumpController extends ComController {
     public function edit(){
         $model = M(CONTROLLER_NAME);
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
-        if(count($ids)>1){
+        if(count($ids)!=1){
             $this->error('参数错误，每次只能修改一条内容！');
         }
         $var = $model->getById($ids[0]);
-        if(!$var){
-            $this->error('参数错误！请选择要修改的内容！');
-        }
-        $voHotel=M('hotel')->getByHid($var['hid']);
-        $category = M('hotel')->field('id,pid,hotelname,hid')->order('hid asc')->select();
-        $tree = new Tree($category);
-        $str = "<option value=\$hid \$selected>\$spacer\$hotelname</option>";
-        $category = $tree->get_tree(0,$str,$voHotel['id']);
-        $this->assign('pHotel',$category);
 
+        $voHotel=M('hotel')->getByHid($var['hid']);
         $voResource=M('hotel_resource')->getById($var['resourceid']);
+        
+        $hotelname = D("hotel")->where("hid='".$var['hid']."'")->field('hotelname')->find();
+
         $var['filepath']=$voResource['filepath'];
         $this->assign('vo',$var);
+        $this->assign('hotelname',$hotelname['hotelname']);
         $this -> display();
     }
     //保存
@@ -265,23 +261,31 @@ class HotelJumpController extends ComController {
             }
         }
     }
+
     public function upload(){
         $callback = array();
         if (!empty($_FILES[$_REQUEST["name"]]["name"])) {
-            $upload = new \Think\Upload();
-            $upload->maxSize=209715200;// 设置附件上传大小200M
-            $upload->exts=array('mp4');
-            $upload->rootPath='./Public/';
-            $upload->savePath='./upload/content/';
-            $info=$upload->uploadOne($_FILES[$_REQUEST["name"]]);
-            if(!$info) {
+            if(empty($_REQUEST['hid'])){
                 $callback['status'] = 0;
-                $callback['info'] = $upload->getError();
+                $callback['info'] = "请选择酒店";
             }else{
-                $callback['status'] = 1;
-                $callback['info']="上传成功！";
-                $callback['size'] = round($info['size']/1024);
-                $callback['storename']=trim($info['savepath'].$info['savename'],'.');
+                $upload = new \Think\Upload();
+                $upload->maxSize=209715200;// 设置附件上传大小200M
+                $upload->exts=array('mp4');
+                $upload->rootPath='./Public/';
+                $upload->savePath='./upload/content/'.$_REQUEST['hid'].'/';
+                $upload->autoSub = false;
+                $upload->saveName = time().'_'.mt_rand();
+                $info=$upload->uploadOne($_FILES[$_REQUEST["name"]]);
+                if(!$info) {
+                    $callback['status'] = 0;
+                    $callback['info'] = $upload->getError();
+                }else{
+                    $callback['status'] = 1;
+                    $callback['info']="上传成功！";
+                    $callback['size'] = round($info['size']/1024);
+                    $callback['storename']=trim($info['savepath'].$info['savename'],'.');
+                }          
             }
         }else{
             $callback['status'] = 0;
@@ -289,6 +293,14 @@ class HotelJumpController extends ComController {
         }
         echo json_encode($callback);
     }
+
+    public function delfilepath(){
+        if($_POST['filepath']){
+            @unlink(FILE_UPLOAD_ROOTPATH.$_POST['filepath']);
+        }
+        echo true;
+    }
+
     public function delete(){
         $ids = $_POST['ids'];
         if(count($ids)<1){

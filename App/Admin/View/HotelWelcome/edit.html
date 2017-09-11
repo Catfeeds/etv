@@ -11,13 +11,7 @@
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-0">酒店 </label>
                     <div class="col-sm-9">
-                        <select id="hid" name="hotel_hid"  class="col-xs-10 col-sm-5 select2" >
-                            <option></option>
-                            {$pHotel}
-                        </select>
-                        <span class="help-inline col-xs-12 col-sm-7">
-                            <span class="middle"></span>
-                        </span>
+                        <input type="text" readonly="true" value="{$hotelname}" />
                      </div>
                 </div>
                 <div class="space-4"></div>
@@ -104,11 +98,9 @@
 </block>
 <block name="currentPageJS">
 <script type="text/javascript">
-	$('#hid').select2({ placeholder : '--请选择--' });
-	$("#hid").prop("disabled", true);
 	$(function () {
 		$("#fileupload").fileupload({
-            url: "{:U('upload?name=fileupload')}",
+            url: "{:U('upload')}?name=fileupload&hid={$vo['hid']}",
             dataType: 'json',
             sequentialUploads: true  
         }).bind('fileuploaddone', function (e, data) {  

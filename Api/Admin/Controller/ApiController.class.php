@@ -2065,15 +2065,15 @@ class ApiController extends Controller{
         // $arr['3']['app_package'] = 'com.ucbrowser.tv';
         // $arr['3']['status'] = 0;
         // $apklist = json_encode($arr);
-        // 
-        $apklist = I('post.apklist','','strip_tags');
+        
 
+        $apklist = I('post.apklist','','strip_tags');
         if(empty($apklist)){
             $this->Callback(10000,"Error:apklist param is needed");
         }
+        
+        $apklist = json_decode(urldecode($apklist),true);
 
-
-        $apklist = json_decode($apklist,true);
         foreach ($apklist as $key => $value) {
             $searchMap['app_version'] = $value['app_version'];
             $searchMap['app_package'] = $value['app_package'];

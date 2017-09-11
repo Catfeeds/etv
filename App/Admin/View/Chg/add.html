@@ -145,30 +145,59 @@
     </div>
 </block>
 <block name="currentPageJS">
-	<script type="text/javascript">
-	$(function() {
-		$("#fileupload").fileupload({
-            url: "{:U('upload_icon?name=fileupload')}",
+    <script type="text/javascript">
+	$('#hid').select2({ placeholder : '--请选择--' });
+    $("#fileupload").click(function(event) {
+        var $hid = $("#hid").val();
+        $url =  "{:U('upload_icon')}?name=fileupload&hid="+$hid;
+        $("#fileupload").fileupload({
+            url: $url,
             dataType: 'json',
             sequentialUploads: true  
         }).bind('fileuploaddone', function (e, data) {  
-        	var json = data.result;
-        	if(json.status==1){
-    			$("input[name=icon]").val(json.storename);
+            var json = data.result;
+            if(json.status==1){
+                $("input[name=icon]").val(json.storename);
                 $("#size").val(json.size);
-    			$("img#image").attr("src","{:C('UPLOADPATH')}"+json.storename);
-    		}else if(json.status == 0){
+                $("img#image").attr("src","{:C('UPLOADPATH')}"+json.storename);
+            }else if(json.status == 0){
                 $("#weixin_progress").css('width','0');  
                 $("#weixin_progress").html('0');
             }
-        	mainAjaxMsg(json.status,json.info);
+            mainAjaxMsg(json.status,json.info);
         }).bind('fileuploadprogress', function (e, data) {  
             var progress = parseInt(data.loaded / data.total * 100, 10);  
             $("#weixin_progress").css('width',progress + '%');  
             $("#weixin_progress").html(progress + '%');  
         });
-	});
-	$('#hid').select2({ placeholder : '--请选择--' });
+    });
+
+    $("#hid").change(function() {
+        var $filepath = $("input[name=icon]").val();
+        $("input[name=icon]").attr('value', '');
+        $("#weixin_progress").css('width',0 + '%');  
+        $("#weixin_progress").html(0 + '%');  
+        $("img#image").attr('src', '');
+        $(".alert-success").remove();
+        if($.trim($filepath) != ""){
+            $.ajax({
+                url: "{:U('delfilepath')}",
+                type: 'POST',
+                dataType: 'json',
+                data: {"filepath": $filepath},
+            })
+            .done(function(data) {
+                console.log('success');
+            })
+            .fail(function() {
+                console.log("error");
+            })
+            .always(function() {
+                console.log("complete");
+            });
+        }
+    });
+
 	function changeCat(){
         var hid = $("#hid").val();
         $.ajax({
@@ -190,78 +219,67 @@
             }
         });
     }
+
     $(".btn-info.submit").click(function(){
-            var hid = $("#hid").val();
-            var name = $("#name").val();
-            var langcodeid = $("#langcodeid").val();
-            var modeldefineid = $("#modeldefineid").val();
-            var icon = $(".icon").val();
-            if(hid==''){
-                bootbox.dialog({
-                    title: '友情提示：',
-                    message: "所属酒店必须选择", 
-                    buttons: {
-                        "success" : {
-                            "label" : "确定",
-                            "className" : "btn-danger"
-                        }
+        var hid = $("#hid").val();
+        var name = $("#name").val();
+        var langcodeid = $("#langcodeid").val();
+        var modeldefineid = $("#modeldefineid").val();
+        var icon = $(".icon").val();
+        if(hid==''){
+            bootbox.dialog({
+                title: '友情提示：',
+                message: "所属酒店必须选择", 
+                buttons: {
+                    "success" : {
+                        "label" : "确定",
+                        "className" : "btn-danger"
                     }
-                });
-                return;
-            }
-            if(name==''){
-                bootbox.dialog({
-                    title: '友情提示：',
-                    message: "栏目名称必填", 
-                    buttons: {
-                        "success" : {
-                            "label" : "确定",
-                            "className" : "btn-danger"
-                        }
+                }
+            });
+            return;
+        }
+        if(name==''){
+            bootbox.dialog({
+                title: '友情提示：',
+                message: "栏目名称必填", 
+                buttons: {
+                    "success" : {
+                        "label" : "确定",
+                        "className" : "btn-danger"
                     }
-                });
-                return;
-            }
-            if(langcodeid==''){
-                bootbox.dialog({
-                    title: '友情提示：',
-                    message: "语言分类必选", 
-                    buttons: {
-                        "success" : {
-                            "label" : "确定",
-                            "className" : "btn-danger"
-                        }
+                }
+            });
+            return;
+        }
+        if(langcodeid==''){
+            bootbox.dialog({
+                title: '友情提示：',
+                message: "语言分类必选", 
+                buttons: {
+                    "success" : {
+                        "label" : "确定",
+                        "className" : "btn-danger"
                     }
-                });
-                return;
-            }
-            if(modeldefineid==''){
-                bootbox.dialog({
-                    title: '友情提示：',
-                    message: "栏目模型必选", 
-                    buttons: {
-                        "success" : {
-                            "label" : "确定",
-                            "className" : "btn-danger"
-                        }
+                }
+            });
+            return;
+        }
+        if(modeldefineid==''){
+            bootbox.dialog({
+                title: '友情提示：',
+                message: "栏目模型必选", 
+                buttons: {
+                    "success" : {
+                        "label" : "确定",
+                        "className" : "btn-danger"
                     }
-                });
-                return;
-            }
-            // if(icon==''){
-            //     bootbox.dialog({
-            //         title:'友情提示：',
-            //         message:'栏目图标必须上传',
-            //         buttons:{
-            //             "success":{
-            //                 "label" : "确定",
-            //                 "className" : "btn-danger"
-            //             }
-            //         }
-            //     })
-            //     return;
-            // }
-            $("#form").submit();
-        });
+                }
+            });
+            return;
+        }
+        $("#form").submit();
+    });
+
 	</script>
 </block>
