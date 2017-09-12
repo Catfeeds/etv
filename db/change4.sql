@@ -1,7 +1,3 @@
--- 内容管理 通用栏目等添加视频的海报图字段
-ALTER TABLE `zxt_hotel_resource` ADD COLUMN `video_image`  varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '视频背景图' AFTER `upload_time`;
-ALTER TABLE `zxt_topic_resource` ADD COLUMN `video_image`  varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '视频背景图' AFTER `image`;
-
  -- 添加职能人员管理表
 CREATE TABLE `zxt_hotel_member` (
 `id`  int(11) NOT NULL AUTO_INCREMENT ,

@@ -300,12 +300,6 @@ class CarouselController extends ComController {
         if($result !== false && $updatesize !== false){
            D("hotel_carousel_resource")->commit();
 
-            //allresource资源写入xml文件
-            // foreach ($chghotellist as $key => $value) {
-            //     $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/sdresourceXml/'.$value.'.txt';
-            //     $xmlResult = $this->fileputXml(D("hotel_allresource"),$value,$xmlFilepath);
-            // }
-
             if(!empty($vo)){
                 if($data['filepath'] != $vo['filepath']){
                     @unlink(FILE_UPLOAD_ROOTPATH.$vo['filepath']);
@@ -324,28 +318,35 @@ class CarouselController extends ComController {
 	public function upload(){
         $callback = array();
         if (!empty($_FILES[$_REQUEST["name"]]["name"])) {
-            $upload = new \Think\Upload(); //实例化上传类
-            if ($_REQUEST['filetype']==1) {
-                $upload->exts=array('mp4');
-                $upload->maxSize=209715200;// 设置附件上传大小200M
-            }else{
+            if(empty($_REQUEST['hid'])){
                 $callback['status'] = 0;
-                $callback['info']='未知错误！';
-                echo json_encode($callback);
-                exit;
-            }
-            $upload->rootPath='./Public/'; //保存根路径
-            $upload->savePath='./upload/carousel/'; // 设置附件上传目录
-            //单文件上传
-            $info=$upload->uploadOne($_FILES[$_REQUEST["name"]]);
-            if(!$info) {
-                $callback['status'] = 0;
-                $callback['info'] = $upload->getError();
+                $callback['info'] = "请选择酒店";
             }else{
-                $callback['status'] = 1;
-                $callback['info']="上传成功！";
-                $callback['size'] = round($info['size']/1024);
-                $callback['storename']=trim($info['savepath'].$info['savename'],'.');
+                $upload = new \Think\Upload(); //实例化上传类
+                if ($_REQUEST['filetype']==1) {
+                    $upload->exts=array('mp4');
+                    $upload->maxSize=209715200;// 设置附件上传大小200M
+                }else{
+                    $callback['status'] = 0;
+                    $callback['info']='未知错误！';
+                    echo json_encode($callback);
+                    exit;
+                }
+                $upload->rootPath='./Public/'; //保存根路径
+                $upload->savePath='./upload/content/'.$_REQUEST['hid'].'/';
+                $upload->autoSub = false;
+                $upload->saveName = time().'_'.mt_rand();
+                //单文件上传
+                $info=$upload->uploadOne($_FILES[$_REQUEST["name"]]);
+                if(!$info) {
+                    $callback['status'] = 0;
+                    $callback['info'] = $upload->getError();
+                }else{
+                    $callback['status'] = 1;
+                    $callback['info']="上传成功！";
+                    $callback['size'] = round($info['size']/1024);
+                    $callback['storename']=trim($info['savepath'].$info['savename'],'.');
+                }
             }
         }else{
             $callback['status'] = 0;
@@ -357,20 +358,27 @@ class CarouselController extends ComController {
     public function upload_icon(){
         $callback = array();
         if (!empty($_FILES[$_REQUEST["name"]]["name"])) {
-            $upload = new \Think\Upload();
-            $upload->maxSize=2097152;  //设置大小为2M
-            $upload->exts=array('jpg','png','jpeg');
-            $upload->rootPath='./Public/';
-            $upload->savePath='./upload/carousel/';
-            $info=$upload->uploadOne($_FILES[$_REQUEST["name"]]);
-            if(!$info) {
+             if(empty($_REQUEST['hid'])){
                 $callback['status'] = 0;
-                $callback['info'] = $upload->getError();
+                $callback['info'] = "请选择酒店";
             }else{
-                $callback['status'] = 1;
-                $callback['info']="上传成功！";
-                $callback['size'] = round($info['size']/1024);
-                $callback['storename']=trim($info['savepath'].$info['savename'],'.');
+                $upload = new \Think\Upload();
+                $upload->maxSize=2097152;  //设置大小为2M
+                $upload->exts=array('jpg','png','jpeg');
+                $upload->rootPath='./Public/';
+                $upload->savePath='./upload/content/'.$_REQUEST['hid'].'/';
+                $upload->autoSub = false;
+                $upload->saveName = time().'_'.mt_rand();
+                $info=$upload->uploadOne($_FILES[$_REQUEST["name"]]);
+                if(!$info) {
+                    $callback['status'] = 0;
+                    $callback['info'] = $upload->getError();
+                }else{
+                    $callback['status'] = 1;
+                    $callback['info']="上传成功！";
+                    $callback['size'] = round($info['size']/1024);
+                    $callback['storename']=trim($info['savepath'].$info['savename'],'.');
+                }
             }
         }else{
             $callback['status'] = 0;

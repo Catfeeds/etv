@@ -214,13 +214,14 @@ class HotelJumpController extends ComController {
         }else{
             $isExist=$model->field('id')->where('hid="'.$data['hid'].'"')->select();
             if (!empty($isExist)) {
+                @unlink(FILE_UPLOAD_ROOTPATH.$resData['filepath']);
                 $this->error('请不要为酒店重复添加跳转设置！',U('index'));
             }
             if ($data['video_set']>0) {
                 //查询容量
                 $volumeResult = $this->checkVolume($data['hid'],$resData['size']);//检查容量是否超标
                 if($volumeResult === false){
-                    @unlink(FILE_UPLOAD_ROOTPATH.$data['filepath']);
+                    @unlink(FILE_UPLOAD_ROOTPATH.$resData['filepath']);
                     $this->error("超过申请容量值，无法添加资源");
                 }
 
@@ -257,6 +258,7 @@ class HotelJumpController extends ComController {
                 $this->success('恭喜，操作成功！',U('index'));
             }else{
                 $model->rollback();
+                @unlink(FILE_UPLOAD_ROOTPATH.$resData['filepath']);
                 $this->error('新增失败！',U('index'));
             }
         }

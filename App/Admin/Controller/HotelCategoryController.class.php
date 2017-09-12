@@ -288,7 +288,7 @@ class HotelCategoryController extends ComController {
     public function upload_icon(){
         $callback = array();
         if (!empty($_FILES[$_REQUEST["name"]]["name"])) {
-             if(empty($_REQUEST['hid'])){
+            if(empty($_REQUEST['hid'])){
                 $callback['status'] = 0;
                 $callback['info'] = "请选择酒店";
             }else{

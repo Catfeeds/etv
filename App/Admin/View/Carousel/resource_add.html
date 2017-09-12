@@ -139,7 +139,7 @@
 <script type="text/javascript">
 	$(function () {
 		$("#fileupload").fileupload({
-            url: "{:U('upload')}?name=fileupload&filetype=1",
+            url: "{:U('upload')}?name=fileupload&filetype=1&hid={$current_category['hid']}",
             dataType: 'json',
             sequentialUploads: true  
         }).bind('fileuploaddone', function (e, data) {  
@@ -161,7 +161,7 @@
         });
 		
 		$("#fileupload_vimage").fileupload({
-            url: "{:U('upload_icon')}?name=fileupload_vimage",
+            url: "{:U('upload_icon')}?name=fileupload_vimage&hid={$current_category['hid']}",
             dataType: 'json',
             sequentialUploads: true  
         }).bind('fileuploaddone', function (e, data) {  

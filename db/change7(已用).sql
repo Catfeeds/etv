@@ -3,7 +3,7 @@ ALTER TABLE `zxt_hotel` ADD COLUMN `ad_space`  float(11,3) NULL DEFAULT 10240.00
 ALTER TABLE `zxt_hotel` ADD COLUMN `carousel_space`  float(11,3) NULL DEFAULT 19456.000 AFTER `ad_space`;
 
 ALTER TABLE `zxt_hotel_adresource` MODIFY COLUMN `size`  float(9,3) NOT NULL DEFAULT 0.000 COMMENT '大小' AFTER `update_time`;
-
+-- 轮播视频表
 CREATE TABLE `zxt_hotel_carousel_resource` (
 `id`  int(11) NOT NULL AUTO_INCREMENT ,
 `hid`  varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '酒店编号' ,
@@ -38,18 +38,3 @@ ALTER TABLE `zxt_audit_log` MODIFY COLUMN `resource_type`  tinyint(4) NOT NULL C
 CREATE INDEX `hid_cid` ON `zxt_hotel_resource`(`hid`, `category_id`) USING BTREE ;
 
 ALTER TABLE `zxt_hotel_resource` DROP INDEX `hid`;
-
-CREATE TABLE `zxt_hotel_sd_allresource` (
-`id`  int(11) NOT NULL AUTO_INCREMENT ,
-`hid`  varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
-`name`  varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
-`type`  tinyint(2) NOT NULL ,
-`mold`  varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
-`timeunix`  int(10) NOT NULL ,
-`time`  datetime NOT NULL ,
-`web_upload_file`  varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
-PRIMARY KEY (`id`)
-)
-ENGINE=InnoDB
-DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
-;

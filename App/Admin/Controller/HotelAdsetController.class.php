@@ -260,7 +260,7 @@ class HotelAdsetController extends ComController {
     		$this->success($remark."成功",U('index'));
     	}else{	
     		$model->rollback();
-    		$this->success($remark."失败",U('index'));
+    		$this->error($remark."失败",U('index'));
     	}
     }
 
@@ -522,7 +522,7 @@ class HotelAdsetController extends ComController {
         if ($popupSize['sum(zxt_hotel_adresource.size)']>$space_size) {
             return false;
         }else{
-            return $popupSize['sum(zxt_hotel_adresource.size)'];
+            return $popupSize['sum(zxt_hotel_adresource.size)']?$popupSize['sum(zxt_hotel_adresource.size)']:0;
         }
     }
 
@@ -541,27 +541,5 @@ class HotelAdsetController extends ComController {
             $result = D("hotel_volume")->data($popupData)->add();
         }
         return $result;
-    }
-
-    public function addAllResource($ids,$hid){
-
-        $id_arr = explode(",", $ids);
-        $allresourceMap['id'] = array('in',$id_arr);
-        $adresourceList = D("hotel_adresource")->where($allresourceMap)->field('filepath,filepath_type')->select();
-        if(!empty($adresourceList)){
-            foreach ($adresourceList as $key => $value) {
-                $allresourceName_arr = explode("/", $value['filepath']);
-                $allresourceName = $allresourceName_arr[count($allresourceName_arr)-1];
-                $allresourceDate[$key]['hid'] = $hid;
-                $allresourceDate[$key]['type'] = $value['type'];
-                $allresourceDate[$key]['mold'] = 'adset';
-                $allresourceDate[$key]['name'] = $allresourceName;
-                $allresourceDate[$key]['timeunix'] = time();
-                $allresourceDate[$key]['time'] = date("Y-m-d H:i:s");
-                $allresourceDate[$key]['web_upload_file'] = $value['filepath']; 
-            }
-
-            $allresourceResult = D("hotel_sd_allresource")->addAll($allresourceDate);
-        }
     }
 }

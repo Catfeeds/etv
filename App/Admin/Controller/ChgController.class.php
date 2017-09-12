@@ -101,31 +101,38 @@ class ChgController extends ComController {
     public function upload(){
         $callback = array();
         if (!empty($_FILES[$_REQUEST["name"]]["name"])) {
-            $upload = new \Think\Upload(); //实例化上传类
-            if ($_REQUEST['filetype']==1) {
-                $upload->exts=array('mp4');
-                $upload->maxSize=209715200;// 设置附件上传大小200M
-            }else if ($_REQUEST['filetype']==2){
-                $upload->exts=array('jpg','png','jpeg');
-                $upload->maxSize=2097152;// 设置附件上传大小2M
-            }else{
+            if(empty($_REQUEST['hid'])){
                 $callback['status'] = 0;
-                $callback['info']='未知错误！';
-                echo json_encode($callback);
-                exit;
-            }
-            $upload->rootPath='./Public/'; //保存根路径
-            $upload->savePath='./upload/content/'; // 设置附件上传目录
-            //单文件上传
-            $info=$upload->uploadOne($_FILES[$_REQUEST["name"]]);
-            if(!$info) {
-                $callback['status'] = 0;
-                $callback['info'] = $upload->getError();
+                $callback['info'] = "请选择酒店";
             }else{
-                $callback['status'] = 1;
-                $callback['info']="上传成功！";
-                $callback['size'] = round($info['size']/1024,3);
-                $callback['storename']=trim($info['savepath'].$info['savename'],'.');
+                $upload = new \Think\Upload(); //实例化上传类
+                if ($_REQUEST['filetype']==1) {
+                    $upload->exts=array('mp4');
+                    $upload->maxSize=209715200;// 设置附件上传大小200M
+                }else if ($_REQUEST['filetype']==2){
+                    $upload->exts=array('jpg','png','jpeg');
+                    $upload->maxSize=2097152;// 设置附件上传大小2M
+                }else{
+                    $callback['status'] = 0;
+                    $callback['info']='未知错误！';
+                    echo json_encode($callback);
+                    exit;
+                }
+                $upload->rootPath='./Public/'; //保存根路径
+                $upload->savePath='./upload/content/'.$_REQUEST['hid'].'/';
+                $upload->autoSub = false;
+                $upload->saveName = time().'_'.mt_rand();
+                //单文件上传
+                $info=$upload->uploadOne($_FILES[$_REQUEST["name"]]);
+                if(!$info) {
+                    $callback['status'] = 0;
+                    $callback['info'] = $upload->getError();
+                }else{
+                    $callback['status'] = 1;
+                    $callback['info']="上传成功！";
+                    $callback['size'] = round($info['size']/1024,3);
+                    $callback['storename']=trim($info['savepath'].$info['savename'],'.');
+                }
             }
         }else{
             $callback['status'] = 0;

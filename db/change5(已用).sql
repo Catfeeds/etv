@@ -1,3 +1,7 @@
+-- 内容管理 通用栏目等添加视频的海报图字段
+ALTER TABLE `zxt_hotel_resource` ADD COLUMN `video_image`  varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '视频背景图' AFTER `upload_time`;
+ALTER TABLE `zxt_topic_resource` ADD COLUMN `video_image`  varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '视频背景图' AFTER `image`;
+-- 广告弹窗资源表
 CREATE TABLE `zxt_hotel_adresource` (
 `id`  int(11) NOT NULL AUTO_INCREMENT ,
 `title`  varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
@@ -13,7 +17,7 @@ PRIMARY KEY (`id`)
 ENGINE=InnoDB
 DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
 ;
-
+-- 广告弹窗设置表
 CREATE TABLE `zxt_hotel_adset` (
 `id`  int(11) NOT NULL AUTO_INCREMENT ,
 `hid`  varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
@@ -31,7 +35,7 @@ INDEX `hid` (`hid`) USING BTREE
 ENGINE=InnoDB
 DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
 ;
-
+-- 广告弹窗关联表
 CREATE TABLE `zxt_hotel_adset_adresource` (
 `id`  int(11) NOT NULL AUTO_INCREMENT ,
 `hid`  varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
