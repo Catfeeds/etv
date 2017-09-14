@@ -2012,26 +2012,43 @@ class ApiController extends Controller{
         if (empty($mac)) {
             $this->Callback(10000, "Error: mac param is needed");
         }
-        $map['zxt_appstore.maclist'] = array(array('like',"%$mac%"), array('eq','all'),'or');
-        $map['zxt_appstore.audit_status'] = 4;
+        $mapDone['zxt_appstore.maclist'] = $mapDo['zxt_appstore.maclist'] = array(array('like',"%$mac%"), array('eq','all'),'or');
+        $mapDone['zxt_appstore.audit_status'] = $mapDo['zxt_appstore.audit_status'] = 4;
         $field = "zxt_appstore.id,zxt_appstore.app_name,zxt_appstore.app_version,zxt_appstore.app_identifier,zxt_appstore.md5_file,zxt_appstore.app_package,zxt_appstore.app_introduce,zxt_appstore.app_file,zxt_appstore.app_pic,zxt_appstore.status";
         
         if(!empty($app_type)){
             if($app_type == "app"){
-                $map['zxt_appstore.app_type'] = 2;
+                $mapDone['zxt_appstore.app_type'] = $mapDo['zxt_appstore.app_type'] = 2;
             }elseif($app_type == "system"){
-                $map['zxt_appstore.app_type'] = 1;
+                $mapDone['zxt_appstore.app_type'] = $mapDo['zxt_appstore.app_type']  = 1;
             }
         }
-        $list = D("appstore")->where($map)->field($field)->select();
-        
-        if(empty($list)){
-            $this->Callback(404,"the list is empty");
-        }else{
-            foreach ($list as $key => $value) {
+        $mapDo['zxt_appstore.status'] = 1;
+        $mapDone['zxt_appstore.status'] = array('neq',1);
+        $listDo = D("appstore")->where($mapDo)->field($field)->order('app_version')->group('app_package')->select();
+        $listDone = D("appstore")->where($mapDone)->field($field)->select();
+        $list = array();
+
+        if(!empty($listDo)){
+            foreach ($listDo as $key => $value) {
+                $list[$key] = $value;
                 $list[$key]['app_file'] = self::$serverUrl.$value['app_file'];
                 $list[$key]['app_pic'] = self::$serverUrl.$value['app_pic'];
             }
+        }
+        $count = count($list);
+        if(!empty($listDone)){
+            foreach ($listDone as $key => $value) {
+                $list[$count] = $value;
+                $list[$count]['app_file'] = self::$serverUrl.$value['app_file'];
+                $list[$count]['app_pic'] = self::$serverUrl.$value['app_pic'];
+                $count++;
+            }
+        }
+
+        if(empty($list)){
+            $this->Callback(404,"the list is empty");
+        }else{
             $this->Callback(200,$list);
         }
     }

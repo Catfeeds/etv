@@ -244,40 +244,16 @@ class HotelController extends ComController {
         return $ids;
     }
     public function copy(){
-        $ids = $_REQUEST['copyid'];
-        $hid = I('post.hid','','strip_tags');
-        if(empty($hid)){
-            $this->error('请输入酒店编号');
-            die();
-        }
-        $model = D(CONTROLLER_NAME);
-        $rules = array(
-            array('hid','','酒店编号已经存在！',0,'unique',1),
-        );
-        $validate = $model->validate($rules)->create();
-        if(!$validate){
-            $this->error($model->getError());
-            die();
-        }
-        $map['id'] = $ids;
-        $list = $model->where($map)->select();
-        if(!empty($list['0'])){
-            $a = $list['0'];
-            unset($a['id']);
-            $a['hid'] = $hid;
-            $a['create_time'] = $a['update_time'] = time();
-            $result = $model->data($a)->add();
-            if($result === false){
-                $this->error('复制失败');
-                die();
-            }else{
-                $this->success('复制成功');
-                die();
-            }
-        }else{
-            $this->error('复制失败');
-            die();
-        }
+       $ids = I('post.ids','','strip_tags');
+       $pHotel = D("hotel")->field('id,hid,hotelname,pid')->where('id="'.$ids[0].'"')->find();
+       $hotelList = array();
+       if($pHotel['pid'] == 0){
+            $hotelList = D("hotel")->field('id,hid,hotelname')->where('pid="'.$pHotel["id"].'"')->select();
+       }
+
+       $this->assign('pHotel',$pHotel);
+       $this->assign('hotelList',$hotelList);
+       $this->display();
     }
     public function _usermap(){
         $map = array();
@@ -1033,5 +1009,81 @@ class HotelController extends ComController {
         $Name_arr = explode("/", $str);
         $getName = $Name_arr[count($Name_arr)-1];
         return $getName;
+    }
+
+    //复制酒店操作
+    public function savecopy(){
+        //校验数据
+        $verifiData = $this->verifiData();
+        if($verifiData == false){
+            $this->error('系统提示：参数有误');
+        }
+
+        //新增酒店列表 hotel
+
+        //新增用户列表 member
+        
+        //新增关联表 hotel_user
+        
+        //新增欢迎图片 hotel_welcome + hotel_resource
+        
+        //新增语言管理 hotel_language
+        
+        //新增跳转设置 hotel_jump + hotel_resource
+        
+        //新增酒店宣传 hotel_spread + hotel_resource
+        
+        //新增酒店栏目 hotel_category
+        
+        //新增酒店资源管理 hotel_resource
+        
+        //新增集团通用栏目 hotel_chg
+        
+        //新增通用栏目资源管理 hotel_chg_resource
+        
+        //新增酒店容量表 hotel_volume
+        
+        //新增酒店资源表 更新XML文件  hotel_allresource
+        
+        //暂不处理 弹窗广告，通用栏目，日志记录，appstore关联，升级系统关联等
+        var_dump($verifiData);
+    }
+
+    /**
+     * [校验数据是否有误、可行]
+     * @return [array] [复制酒店数据集合]
+     */
+    private function verifiData(){
+        $listid = I('post.listid','','strip_tags');
+        $hotelHid = I('post.hotelHid','','strip_tags');
+        $memberName = I('post.memberName','','strip_tags');
+        $password = I('post.password','','strip_tags');
+        $num[] = count($listid); 
+        $num[] = count($hotelHid); 
+        $num[] = count($memberName); 
+        $num[] = count($password);
+        if(count(array_unique($num))!=1){
+            return false;
+        }
+        $returnData = array();
+        for ($i=0; $i < $num['0']; $i++) { 
+            if(trim($listid[$i]) == ""){
+                return false;
+            }
+            if(trim($hotelHid[$i]) == ""){
+                return false;
+            }
+            if(trim($memberName[$i]) == ""){
+                return false;
+            }
+            if(trim($password[$i]) == ""){
+                return false;
+            }
+            $returnData[$i]['listid'] = $listid[$i];
+            $returnData[$i]['hid'] = $hotelHid[$i];
+            $returnData[$i]['member'] = $memberName[$i];
+            $returnData[$i]['password'] = $password[$i];
+        }
+        return $returnData;
     }
 }

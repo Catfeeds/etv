@@ -241,12 +241,7 @@ class AppStoreController extends ComController {
 
         $ids = $_REQUEST['ids'];
 
-        if(count($ids)!=1){
-            $this->error('只能禁用一条记录');
-            die();
-        }
-
-        $map['id'] = $ids[0];
+        $map['id'] = array('in',$ids);
         $result = D("appstore")->where($map)->setField('status',2);
         if($result !== false){
             addlog("删除APPstore数据");
@@ -262,7 +257,7 @@ class AppStoreController extends ComController {
         $ids = I('request.ids','','strip_tags');
 
         if(count($ids)!=1){
-            $this->error('只能禁用一条记录');
+            $this->error('只能选择一条记录进行操作');
             die();
         }
 
