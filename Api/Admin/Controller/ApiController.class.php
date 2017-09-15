@@ -2001,7 +2001,7 @@ class ApiController extends Controller{
         $hid = strtoupper(I('request.hid','','strip_tags'));
         $room = I('request.room','','strip_tags');
         $mac = strtoupper(I('request.mac','','strip_tags'));
-        $app_type = I('request.app_type','','strip_tags');
+        $app_type = I('request.type','','strip_tags');
 
         if (empty($hid)) {
             $this->Callback(10000, "Error: hid param is needed");
@@ -2025,7 +2025,16 @@ class ApiController extends Controller{
         }
         $mapDo['zxt_appstore.status'] = 1;
         $mapDone['zxt_appstore.status'] = array('neq',1);
-        $listDo = D("appstore")->where($mapDo)->field($field)->order('app_version')->group('app_package')->select();
+        $listone = D("appstore")->where($mapDo)->field($field)->order('app_version desc')->select();
+        if(!empty($listone)){
+            foreach ($listone as $key => $value) {
+                $listone_arr[$value['app_package']][] = $value;
+            }
+            foreach ($listone_arr as $key => $value) {
+                $listDo[] = $value[0];
+            }
+        }
+
         $listDone = D("appstore")->where($mapDone)->field($field)->select();
         $list = array();
 

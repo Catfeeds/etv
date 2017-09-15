@@ -1019,15 +1019,29 @@ class HotelController extends ComController {
             $this->error('系统提示：参数有误');
         }
 
+        //获取pass酒店数据
+        $hoteldata = $this->getlasthotel($verifiData);
+        foreach ($hoteldata as $key => $value) {
+            $hidarr[$key]['passhid'] = $value['hid'];
+            $hidarr[$key]['newhid'] = $verifiData[$key]['hid'];
+        } 
+
+        D()->startTrans();
+
         //新增酒店列表 hotel
+        // $hotellistid = $this->copyhotel($hoteldata,$verifiData);
 
         //新增用户列表 member
-        
+        // $memberid = $this->copymember($verifiData);
+
         //新增关联表 hotel_user
+        // $this->copyhoteluser($memberid,$hotellistid,$verifiData);
         
         //新增欢迎图片 hotel_welcome + hotel_resource
-        
+        // $this->copywelcome($hidarr);
+
         //新增语言管理 hotel_language
+        $this->copylanguage($hidarr);
         
         //新增跳转设置 hotel_jump + hotel_resource
         
@@ -1086,4 +1100,145 @@ class HotelController extends ComController {
         }
         return $returnData;
     }
+
+    /**
+     * [获取酒店表hotel的数据]
+     * @param  [array] $data [校验数据]
+     * @return [array]       [酒店表hotel数据]
+     */
+    private function getlasthotel($data){
+        $field = "hid,name,hotelname,manager,mobile,tel,address,intro,status,provinceid,cityid,create_time,update_time,space,ad_space,carousel_space,skinid,launcher_skinid,pid,longitude,latitude";
+        $list = array();
+        foreach ($data as $key => $value) {
+            if(!empty($value['listid'])){
+                $id_arr[] = $value['listid'];
+            }
+        }
+        $map['id'] = array('in',$id_arr);
+        $list = D("hotel")->where($map)->field($field)->select();
+        return $list;
+    }
+
+    /**
+     * [复制酒店表hotel]
+     * @param  [array] $data     [校验数据]
+     * @return [array] $returnid [新增ID列表]
+     */
+    private function copyhotel($data,$verifiData){
+        $returnid = array();
+        $adddata = array();
+        foreach ($data as $key => $value) {
+            $adddata[$key] = $value;
+            $adddata[$key]['hid'] = $verifiData[$key]['hid'];
+            $adddata[$key]['create_time'] = time();
+            $adddata[$key]['update_time'] = time();
+            $adddata[$key]['launcher_skinid'] = 0;
+            $adddata[$key]['longitude'] = 0;
+            $adddata[$key]['latitude'] = 0;
+        }
+
+        $result = D("hotel")->addAll($adddata);
+        if($result == false){
+            D("hotel")->rollback();
+            $this-error("新增失败");
+        }
+
+        $count = count($verifiData);
+        for ($i=0; $i < $count; $i++) { 
+            $returnid[] = (int)$result;
+            $result++;
+        }
+        return $returnid;
+    }
+
+    /**
+     * [复制用户表member]
+     * @param  [array] $data      [校验数据]
+     * @return [array] $memberid  [新增用户ID]
+     */
+    private function copymember($data){
+        $memberid = array();
+        foreach ($data as $key => $value) {
+            $adddata[$key]['user'] = $value['member'];
+            $adddata[$key]['password'] = md5('ZXT'.$value['password'].'ETV');
+            $adddata[$key]['hid'] = $value['hid'];
+            $adddata[$key]['phone'] = '000000';
+            $adddata[$key]['birthday'] = time();
+            $adddata[$key]['qq'] = '000000';
+            $adddata[$key]['qq'] = 'example@189.com';
+            $adddata[$key]['t'] = time();
+        }
+        $result = D("member")->addAll($adddata);
+        if($result === false){
+            D('member')->rollback();
+            $this-error("新增失败");
+        }
+
+        $count = count($data);
+        for ($i=0; $i < $count; $i++) { 
+            $memberid[] = (int)$result;
+            $result++;
+        }
+        return $memberid;
+    }
+
+    /**
+     * [新增酒店用户关联方法 hotel_user]
+     * @param  [array] $memberid    [用户列表ID]
+     * @param  [array] $hotellistid [酒店列表ID]
+     * @param  [array] $verifiData  [校验数据]
+     */
+    private function copyhoteluser($memberid,$hotellistid,$verifiData){
+        $count = count($memberid);
+        for ($i=0; $i < $count; $i++) { 
+            $vo[$i]['user_id'] = $memberid[$i];
+            $vo[$i]['hotel_id'] = $hotellistid[$i];
+            $vo[$i]['hid'] = $verifiData[$i]['hid'];
+        }
+        $hoteluser = D('hotel_user')->addAll($vo);
+        if($hoteluser === false){
+            D('hotel_user')->rollback();
+            $this-error("新增失败");
+        }
+    }
+
+    /**
+     * [复制欢迎页数据 hotel_welcome]
+     * @param  [array] $hidarr [新旧hid列表]
+     */
+    private function copywelcome($hidarr){
+        $field = "hid,title,type,cat,category_id,filepath,intro,audit_status,audit_time,upload_time,video_image,qrcode,price,sort,status,size";
+        foreach ($hidarr as $key => $value) {
+            $map['hid'] = $value['passhid'];
+            $map['category_id'] = 0;
+            $map['cat'] = 'welcome';
+            $list = D("hotel_resource")->where($map)->field($field)->select();
+            foreach ($list as $kk => $vv) {
+                $vv['hid'] = $value['newhid'];
+                $vv['audit_time'] = time();
+                $vv['video_image'] = '';
+                $vv['qrcode'] = '';
+                $vv['price'] = '';
+                $adddata[] = $vv;
+            }
+        }
+        $result = D("hotel_resource")->addAll($adddata);
+        if($result === false){
+            D("hotel_resource")->rollback();
+        }
+        foreach ($adddata as $key => $value) {
+            $welcomedata[$key]['hid'] = $value['hid'];
+            $welcomedata[$key]['resourceid'] = (int)$result;
+            $result++;
+        }
+        $resourceResult = D("hotel_welcome")->addAll($welcomedata);
+        if($resourceResult === false){
+            D("hotel_welcome")->rollback();
+        }
+    }
+
+    private function copylanguage($hidarr){
+        
+    }
+
 }
