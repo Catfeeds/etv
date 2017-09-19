@@ -1,25 +1,33 @@
 <?php
 namespace Admin\Controller;
+use Admin\Controller\ComController;
 
-Vendor('apkparser.examples.autoload');
+use Vendor\File;
 
-use Think\Controller;
+class TestController extends comController {
 
-class TestController extends Controller {
+	public function filetest(){
 
-	public function index(){
-		
-		$apk = new \ApkParser\Parser('EBHS.apk');
+		$File = new File;
+		$rootfile = dirname(dirname(dirname(dirname(__FILE__)))).'/Public/upload/content/';
+		var_dump($rootfile);
+		$a = $File::copy_dir($rootfile.'/4008/',$rootfile.'/lockin/');
+		var_dump($a);
+	}
 
-		$manifest = $apk->getManifest();
-		$permissions = $manifest->getPermissions();
+	public function idauth(){
+		$ch = curl_init();
+	    $url = 'http://apis.baidu.com/apix/idauth/idauth?name=%E5%BC%A0%E6%BE%9C&cardno=542626199110239641';
+	    $header = array(
+	        'apikey: 您自己的apikey',
+	    );
+	    // 添加apikey到header
+	    curl_setopt($ch, CURLOPT_HTTPHEADER  , $header);
+	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	    // 执行HTTP请求
+	    curl_setopt($ch , CURLOPT_URL , $url);
+	    $res = curl_exec($ch);
 
-		echo '<pre>';
-		echo "Package Name      : " . $manifest->getPackageName() . "" . PHP_EOL;
-		echo "Version           : " . $manifest->getVersionName() . " (" . $manifest->getVersionCode() . ")" . PHP_EOL;
-		echo "Min Sdk Level     : " . $manifest->getMinSdkLevel() . "" . PHP_EOL;
-		echo "Min Sdk Platform  : " . $manifest->getMinSdk()->platform . "" . PHP_EOL;
-		echo PHP_EOL;
-		echo "------------- Permssions List -------------" . PHP_EOL;
+	    var_dump(json_decode($res));
 	}
 }
