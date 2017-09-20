@@ -199,7 +199,47 @@
 		       		});
 		        return;
 			}
-			$("#form").submit();
+
+       		$.ajax({
+       			url: "{:U('checkHadHid')}",
+       			type: 'POST',
+       			dataType: 'json',
+       			data: {'hidarr': hidarr},
+       		})
+       		.done(function(data) {
+       			if(data.status==0){
+       				var count = data.data.length;
+       				for (var i = 0; i <count; i++) {
+       					var hidName = data['data'][i] + ',';
+       				}
+       				console.log(hidName);
+       				bootbox.confirm({
+		          		title: "系统提示",
+		         		message: hidName+" 酒店编号已存在", 
+		          		callback:function(result){},
+		            	buttons: {
+		                	
+		            	}
+		       		});
+       				return;
+       			}else{
+       				bootbox.confirm({
+		          		title: "系统提示",
+		         		message: "正在进行酒店复制，请不要进行其他操作...", 
+		          		callback:function(result){},
+		            	buttons: {
+		                	
+		            	}
+		       		});
+		       		$("#form").submit();
+       			}
+       		})
+       		.fail(function() {
+       			console.log("error");
+       		})
+       		.always(function() {
+       		});
+			
 		});
 	</script>
 </block>
