@@ -86,7 +86,7 @@
 			});
 		});
 
-		function checkHid(arr)
+		function checkRepeat(arr)
 		{
 			var hash = {};  
 			for(var i in arr) {  
@@ -104,6 +104,7 @@
 			var checkmember = 1;
 			var checkpassword = 1;
 			var hidarr = [];
+			var memberarr = [];
 			$(".checkbotton").each(function(index, el) {
 				if(this.checked == true){
 					var hid = $("#hotellist_"+$(this).val()).find('input').eq(0).val();
@@ -119,11 +120,12 @@
 						checkpassword--;
 					}
 					hidarr[checknum] = $.trim(hid.toUpperCase());
+					memberarr[checknum] = $.trim(membername.toUpperCase());
 					checknum++;
 				}
 			});
 
-			if(checkHid(hidarr)){
+			if(checkRepeat(hidarr)){
 				bootbox.confirm({
 		          	title: "系统提示",
 		         	message: "新输入的酒店编号不能有重复(不区分大小写)", 
@@ -138,7 +140,21 @@
 		       		});
 		        return;
 			}
-
+			if(checkRepeat(memberarr)){
+				bootbox.confirm({
+		          	title: "系统提示",
+		         	message: "新输入的账号不能有重复(不区分大小写)", 
+		          	callback:function(result){},
+		            	buttons: {
+		                	"cancel" : {"label" : "取消"},
+		                	"confirm" : {
+		                    	"label" : "确定",
+		                    	"className" : "btn-danger"
+		                	}
+		            	}
+		       		});
+		        return;
+			}
 			if(checknum == 0){
 				bootbox.confirm({
 		          	title: "系统提示",
@@ -201,21 +217,16 @@
 			}
 
        		$.ajax({
-       			url: "{:U('checkHadHid')}",
+       			url: "{:U('checkVerity')}",
        			type: 'POST',
        			dataType: 'json',
-       			data: {'hidarr': hidarr},
+       			data: {'hidarr': hidarr,'memberarr':memberarr},
        		})
        		.done(function(data) {
        			if(data.status==0){
-       				var count = data.data.length;
-       				for (var i = 0; i <count; i++) {
-       					var hidName = data['data'][i] + ',';
-       				}
-       				console.log(hidName);
        				bootbox.confirm({
 		          		title: "系统提示",
-		         		message: hidName+" 酒店编号已存在", 
+		         		message: data.message, 
 		          		callback:function(result){},
 		            	buttons: {
 		                	

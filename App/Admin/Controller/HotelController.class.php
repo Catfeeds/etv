@@ -1051,15 +1051,15 @@ class HotelController extends ComController {
         //复制酒店宣传 hotel_spread + hotel_resource
         $this->copyspread($hidarr);
 
-        //复制酒店栏目及其资源 hotel_categoryhotel_resource
+        //复制酒店栏目及其资源 hotel_category + hotel_resource + hotel_carousel_resource
         $this->copycategory($hidarr);
         
-        //复制集团通用栏目 hotel_chg hotel_chg_resource
+        //复制集团通用栏目 hotel_chg hotel_chg_resource + hotel_carousel_resource
         $chghid = I('post.ischg','','strip_tags');//集团酒店的标志
         if(!empty($chghid)){
             $this->copychg($chghid,$hidarr);
         }
-        
+
         //复制酒店容量表 hotel_volume
         $this->copyvolume($hidarr);
         
@@ -1124,6 +1124,11 @@ class HotelController extends ComController {
         if($hotellist>0){
             $this->error('所填酒店编号已存在');
         }
+        $checkHadMember['user'] = array('in',$memberName);
+        $memberlist = D("member")->where($checkHadMember)->count();
+        if($memberlist>0){
+            $this->error('所填登录账号已存在');
+        }
         return $returnData;
     }
 
@@ -1166,7 +1171,7 @@ class HotelController extends ComController {
         $result = D("hotel")->addAll($adddata);
         if($result == false){
             D("hotel")->rollback();
-            $this-error("复制酒店基本信息失败");
+            $this->error("复制酒店基本信息失败");
         }
 
         $count = count($verifiData);
@@ -1193,15 +1198,21 @@ class HotelController extends ComController {
             $adddata[$key]['qq'] = '';
             $adddata[$key]['email'] = 'example@189.com';
             $adddata[$key]['t'] = time();
+            $adddata[$key]['status'] = 1;
         }
         $result = D("member")->addAll($adddata);
         if($result === false){
             D('member')->rollback();
-            $this-error("复制用户失败");
+            $this->error("复制用户失败");
         }
 
         $count = count($data);
         for ($i=0; $i < $count; $i++) { 
+            $accessResult = D("auth_group_access")->data(array('uid'=>$result,'group_id'=>3))->add();
+            if($accessResult === false){
+                D("auth_group_access")->rollback();
+                $this->error('创建组别出错');
+            }
             $memberid[] = (int)$result;
             $result++;
         }
@@ -1224,7 +1235,7 @@ class HotelController extends ComController {
         $hoteluser = D('hotel_user')->addAll($vo);
         if($hoteluser === false){
             D('hotel_user')->rollback();
-            $this-error("酒店用户关联失败");
+            $this->error("酒店用户关联失败");
         }
     }
 
@@ -1641,6 +1652,13 @@ class HotelController extends ComController {
         if(!empty($volumeList)){
             foreach ($volumeList as $key => $value) {
                 $volumeList[$key]['hid'] = $newhid[$value['hid']];
+                $volumeList[$key]['content_size'] = empty($value['content_size'])?0:$value['content_size'];
+                $volumeList[$key]['topic_size'] = empty($value['topic_size'])?0:$value['topic_size'];
+                $volumeList[$key]['ad_size'] = empty($value['ad_size'])?0:$value['ad_size'];
+                $volumeList[$key]['devicebg_size'] = empty($value['devicebg_size'])?0:$value['devicebg_size'];
+                $volumeList[$key]['chg_size'] = empty($value['chg_size'])?0:$value['chg_size'];
+                $volumeList[$key]['popupad_size'] = empty($value['popupad_size'])?0:$value['popupad_size'];
+                $volumeList[$key]['carousel_size'] = empty($value['carousel_size'])?0:$value['carousel_size'];
             }
             $volumeResult = D("hotel_volume")->addAll($volumeList);
             if($volumeResult === false){
@@ -1679,19 +1697,44 @@ class HotelController extends ComController {
         }
     }
 
-    public function checkHadHid(){
+    public function checkVerity(){
         $hid_arr = I('post.hidarr');
-        $map['hid'] = array('in',$hid_arr);
-        $list = D("hotel")->where($map)->field('hid')->select();
-        if(empty($list)){
+        $member_arr = I('post.memberarr');
+        $hMap['hid'] = array('in',$hid_arr);
+        $mMap['user'] = array('in',$member_arr);
+        $hList = D("hotel")->where($hMap)->field('hid')->select();
+        $mList = D("member")->where($mMap)->field('user')->select();
+        $str = '';
+
+        if(empty($hList) && empty($mList)){
             $callback['status'] = 200;
-            $callback['data'] = "success";
-        }else{
-            $callback['status'] = 0;
-            foreach ($list as $key => $value) {
-                $callbacklist[] = $value['hid'];
+            $callback['message'] = 'Success';
+        }elseif(!empty($hList) && !empty($mList)){ 
+            foreach ($hList as $key => $value) {
+                $str .= $value['hid'].'&nbsp';
             }
-            $callback['data'] = $callbacklist;
+            $str .= "酒店编号已经存在！";
+            $str .="&nbsp&nbsp&nbsp&nbsp&nbsp";
+            foreach ($mList as $key => $value) {
+                $str .= $value['user'].'&nbsp';
+            }
+            $str .= "用户编号已经存在！";
+            $callback['status'] = 0;
+            $callback['message'] = $str;
+        }elseif(!empty($hList)){
+            foreach ($hList as $key => $value) {
+                $str .= $value['hid'].'&nbsp';
+            }
+            $str .= "酒店编号已经存在！";
+            $callback['status'] = 0;
+            $callback['message'] = $str;
+        }elseif(!empty($mList)){
+            foreach ($mList as $key => $value) {
+                $str .= $value['user'].'&nbsp';
+            }
+            $str .= "用户编号已经存在！";
+            $callback['status'] = 0;
+            $callback['message'] = $str;
         }
         echo json_encode($callback);
     }
