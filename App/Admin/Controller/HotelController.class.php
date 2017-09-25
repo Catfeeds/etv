@@ -1074,6 +1074,7 @@ class HotelController extends ComController {
             $copyfileResult = $File::copy_dir($rootfile.$value['passhid'].'/', $rootfile.$value['newhid'].'/');
             if($copyfileResult !== true){
                 D()->rollback();
+                $this->error('复制资源时失败,请联系管理员确定资源是否存在');
                 foreach ($havecopyHid as $kk => $vv) {
                     $File::del_dir($rootfile.$vv.'/');
                 }
@@ -1115,7 +1116,7 @@ class HotelController extends ComController {
                 return false;
             }
             $returnData[$i]['listid'] = $listid[$i];
-            $returnData[$i]['hid'] = $hotelHid[$i];
+            $returnData[$i]['hid'] = strtoupper($hotelHid[$i]);
             $returnData[$i]['member'] = $memberName[$i];
             $returnData[$i]['password'] = $password[$i];
         }
@@ -1162,6 +1163,8 @@ class HotelController extends ComController {
             $adddata[$key] = $value;
             $adddata[$key]['hid'] = $verifiData[$key]['hid'];
             $adddata[$key]['create_time'] = time();
+            $adddata[$key]['name'] = $value['name'].'(copy)';
+            $adddata[$key]['hotelname'] = $value['hotelname'].'(copy)';
             $adddata[$key]['update_time'] = time();
             $adddata[$key]['launcher_skinid'] = 0;
             $adddata[$key]['longitude'] = 0;
@@ -1178,6 +1181,13 @@ class HotelController extends ComController {
         for ($i=0; $i < $count; $i++) { 
             $returnid[] = (int)$result;
             $result++;
+        }
+        $chghid = I('post.ischg','','strip_tags');//集团酒店的标志
+        if(!empty($chghid)){
+            if(count($returnid)>1){
+                $updatepidMap['id'] = array('in',array_slice($returnid, 1));
+                D("hotel")->where($updatepidMap)->setField('pid',$returnid[0]);
+            }
         }
         return $returnid;
     }
@@ -1326,27 +1336,29 @@ class HotelController extends ComController {
         $resourceField = "hid,title,type,cat,category_id,filepath,intro,audit_status,audit_time,upload_time,video_image,qrcode,price,sort,status,size";
         foreach ($hidarr as $key => $value) {
             $jumpVo = D("hotel_jump")->where('hid="'.$value['passhid'].'"')->field($jumpField)->find();
-            $jumpVo['hid'] = $value['newhid'];
-            if($jumpVo['video_set']==1){
-                $resourceVo = D("hotel_resource")->where('id="'.$jumpVo['resourceid'].'"')->field($resourceField)->find();
-                $resourceVo['filepath'] = $this->changefilename($resourceVo['filepath'],$jumpVo['hid']);
-                $resourceVo['hid'] = $value['newhid'];
-                $resourceVo['intro'] = empty($resourceVo['intro'])?'':$resourceVo['intro'];
-                $resourceVo['audit_time'] = time();
-                $resourceVo['video_image'] = '';
-                $resourceVo['qrcode'] = '';
-                $resourceVo['price'] = '';
-                $resourceResult = D("hotel_resource")->data($resourceVo)->add();
-                if($resourceResult === false){
-                    D("hotel_resource")->rollback();
-                    $this->error('跳转资源复制失败');
+            if(!empty($jumpVo)){
+                $jumpVo['hid'] = $value['newhid'];
+                if($jumpVo['video_set']==1){
+                    $resourceVo = D("hotel_resource")->where('id="'.$jumpVo['resourceid'].'"')->field($resourceField)->find();
+                    $resourceVo['filepath'] = $this->changefilename($resourceVo['filepath'],$jumpVo['hid']);
+                    $resourceVo['hid'] = $value['newhid'];
+                    $resourceVo['intro'] = empty($resourceVo['intro'])?'':$resourceVo['intro'];
+                    $resourceVo['audit_time'] = time();
+                    $resourceVo['video_image'] = '';
+                    $resourceVo['qrcode'] = '';
+                    $resourceVo['price'] = '';
+                    $resourceResult = D("hotel_resource")->data($resourceVo)->add();
+                    if($resourceResult === false){
+                        D("hotel_resource")->rollback();
+                        $this->error('跳转资源复制失败');
+                    }
+                    $jumpVo['resourceid'] = $resourceResult;
                 }
-                $jumpVo['resourceid'] = $resourceResult;
-            }
-            $result = D("hotel_jump")->data($jumpVo)->add();
-            if($result === false){
-                D("hotel_jump")->rollback();
-                $this->error('跳转设置复制失败');
+                $result = D("hotel_jump")->data($jumpVo)->add();
+                if($result === false){
+                    D("hotel_jump")->rollback();
+                    $this->error('跳转设置复制失败');
+                }     
             }
         }
     }
@@ -1530,7 +1542,7 @@ class HotelController extends ComController {
                             $this->error('资源视频轮播复制失败');
                         }
                     }
-                } 
+                }
             }
         }
     }
@@ -1546,92 +1558,94 @@ class HotelController extends ComController {
                 $newhid = $value['newhid'];
             }
         }
-
-        $categoryFMap['hid'] = $chghid;
-        $categoryFField = "hid,name,pid,modeldefineid,langcodeid,sort,filepath,intro,status,size,all_size";
-        $categoryFVo = D("hotel_chg_category")->where($categoryMap)->field($categoryFField)->find();
-        $categoryFVo['hid'] = $newhid;
-        $categoryFVo['filepath'] = $this->changefilename($categoryFVo['filepath'],$chghid);
-        $categoryFResult = D(hotel_chg_category)->data($categoryFVo)->add();
-        if($categoryFResult === false){
-            D("hotel_chg_category")->rollback();
-            $this->error('复制集团通用栏目失败');
-        }
-
-        $categoryMap['hid'] = $chghid;
-        $categoryMap['pid'] = array('neq',0);
-        $field = "id,hid,name,pid,modeldefineid,langcodeid,sort,filepath,intro,status,size,all_size";
-        $categoryList = D("hotel_chg_category")->where($categoryMap)->field($field)->select();
-        if(!empty($categoryList)){
-            foreach ($categoryList as $key => $value) {
-                $chg_cid_arr[] = $value['id'];
-                $categoryList[$key]['hid'] = $newhid;
-                if(!empty($value['filepath'])){
-                    $categoryList[$key]['filepath'] = $this->changefilename($value['filepath'],$newhid);
+        //获取集团通用栏目
+        $categoryAllList = D("hotel_chg_category")->where('hid="'.$chghid.'"')->select();
+        if(!empty($categoryAllList)){
+            foreach ($categoryAllList as $key => $value) {
+                $value['hid'] = $newhid;
+                $value['filepath'] = $this->changefilename($value['filepath'],$newhid);
+                if($value['pid'] == 0){
+                    $Fid_arr[] = $value['id']; //一级栏目id
+                    unset($value['id']);
+                    $categoryFList[] = $value;
                 }else{
-                    $categoryList[$key]['filepath'] = '';
-                    $categoryList[$key]['all_size'] = '';
+                    $SPid_arr[] = $value['id']; //二级栏目id
+                    unset($value['id']);
+                    $categorySList[] = $value;
                 }
-                $categoryList[$key]['pid'] = $categoryFResult;
-                unset($categoryList[$key]['id']);
             }
-            //复制集团栏目
-            $categoryResult = D("hotel_chg_category")->addAll($categoryList);
-            if($categoryResult === false){
-                D("hotel_chg_category")->rollback();
-                $this->error('复制集团通用栏目失败');
+            if(!empty($categoryFList)){
+                $categoryFResult = D("hotel_chg_category")->addAll($categoryFList);
+                if($categoryFResult === false){
+                    D("hotel_chg_category")->rollback();
+                    $this->error('复制集团通用栏目失败');
+                }
             }
-            foreach ($chg_cid_arr as $key => $value) {
-                $new_chg_cid_arr[$value] = (int)$categoryResult;
-                $categoryResult++;
+            $categoryFcount = count($categoryFList);
+            for ($i=0; $i < $categoryFcount; $i++) { 
+                $cNewId_arr[$Fid_arr[$i]] = (int)$categoryFResult; //复制一集栏目后新的id集合
+                $categoryFResult++;
             }
+            if (!empty($categorySList)) {
+                foreach ($categorySList as $key => $value) {
+                    $categorySList[$key]['pid'] = $cNewId_arr[$value['pid']];
+                }
+                $categorySResult = D("hotel_chg_category")->addAll($categorySList);
+                if($categorySResult === false){
+                    D("hotel_chg_category")->rollback();
+                    $this->error('复制集团通用栏目失败');
+                }
+                foreach ($SPid_arr as $key => $value) {
+                    $chg_cid_arr[$value] = (int)$categorySResult;
+                    $categorySResult++;
+                }
 
-            //复制集团通用栏目资源START
-            $chgresourceMap['hid'] = $chghid;
-            $chgresourceMap['cid'] = array('in',$chg_cid_arr);
-            $chgresourceField = "hid,cid,title,intro,sort,filepath,file_type,icon,price,status,audit_status,size";
-            $chgresourceList = D("hotel_chg_resource")->where($chgresourceMap)->field($chgresourceField)->select();
-            if (!empty($chgresourceList)) {
-                foreach ($chgresourceList as $key => $value) {
-                    $chgresourceList[$key]['hid'] = $newhid;
-                    $chgresourceList[$key]['cid'] = $new_chg_cid_arr[$value['cid']];
-                    $chgresourceList[$key]['filepath'] = $this->changefilename($value['filepath'],$newhid);
-                    if(empty($value['icon'])){
-                        $chgresourceList[$key]['intro'] = '';
-                    }else{
-                        $chgresourceList[$key]['icon'] = $this->changefilename($value['icon'],$newhid);
+                //复制集团通用栏目资源START
+                $chgresourceMap['hid'] = $chghid;
+                $chgresourceField = "hid,cid,title,intro,sort,filepath,file_type,icon,price,status,audit_status,size";
+                $chgresourceList = D("hotel_chg_resource")->where($chgresourceMap)->field($chgresourceField)->select();
+                if (!empty($chgresourceList)) {
+                    foreach ($chgresourceList as $key => $value) {
+                        $chgresourceList[$key]['hid'] = $newhid;
+                        $chgresourceList[$key]['cid'] = $chg_cid_arr[$value['cid']];
+                        $chgresourceList[$key]['filepath'] = $this->changefilename($value['filepath'],$newhid);
+                        if(empty($value['icon'])){
+                            $chgresourceList[$key]['intro'] = '';
+                        }else{
+                            $chgresourceList[$key]['icon'] = $this->changefilename($value['icon'],$newhid);
+                        }
+                        $chgresourceList[$key]['upload_time'] = date("Y-m-d H:i:s");
+                        $chgresourceList[$key]['audit_time'] = date("Y-m-d H:i:s");
                     }
-                    $chgresourceList[$key]['upload_time'] = date("Y-m-d H:i:s");
-                    $chgresourceList[$key]['audit_time'] = date("Y-m-d H:i:s");
+                    $chgresourceResult = D("hotel_chg_resource")->addAll($chgresourceList);
+                    if($chgresourceResult === false){
+                        D("hotel_chg_resource")->rollback();
+                        $this->error('集团通用栏目资源复制失败');
+                    }
                 }
-                $chgresourceResult = D("hotel_chg_resource")->addAll($chgresourceList);
-                if($chgresourceResult === false){
-                    D("hotel_chg_resource")->rollback();
-                    $this->error('集团通用栏目资源复制失败');
-                }
-            }
 
-            //复制集团通用栏目视频轮播资源START
-            $chgcarouselMap['hid'] = $chghid;
-            $chgcarouselMap['ctype'] = 'videochg';
-            $chgcarouseField = "hid,cid,ctype,title,intro,sort,filepath,file_type,video_image,upload_time,audit_status,audit_time,status,size";
-            $chgcarouselList = D("hotel_carousel_resource")->where($chgcarouselMap)->field($chgcarouseField)->select();
-            if(!empty($chgcarouselList)){
-                foreach ($chgcarouselList as $key => $value) {
-                    $chgcarouselList[$key]['hid'] = $newhid;
-                    $chgcarouselList[$key]['filepath'] = $this->changefilename($value['filepath'],$newhid);
-                    if(empty($value['video_image'])){
-                        $chgcarouselList[$key]['video_image'] = '';
-                    }else{
-                        $chgcarouselList[$key]['video_image'] = $this->changefilename($value['video_image'],$newhid);
+                //复制集团通用栏目视频轮播资源START
+                $chgcarouselMap['hid'] = $chghid;
+                $chgcarouselMap['ctype'] = 'videochg';
+                $chgcarouseField = "hid,cid,ctype,title,intro,sort,filepath,file_type,video_image,upload_time,audit_status,audit_time,status,size";
+                $chgcarouselList = D("hotel_carousel_resource")->where($chgcarouselMap)->field($chgcarouseField)->select();
+                if(!empty($chgcarouselList)){
+                    foreach ($chgcarouselList as $key => $value) {
+                        $chgcarouselList[$key]['hid'] = $newhid;
+                        $chgcarouselList[$key]['filepath'] = $this->changefilename($value['filepath'],$newhid);
+                        if(empty($value['video_image'])){
+                            $chgcarouselList[$key]['video_image'] = '';
+                        }else{
+                            $chgcarouselList[$key]['video_image'] = $this->changefilename($value['video_image'],$newhid);
+                        }
+                        $chgcarouselList[$key]['audit_time'] = date("Y-m-d H:i:s");
+                        $chgcarouselList[$key]['cid'] = $chg_cid_arr[$value['cid']];
                     }
-                    $chgcarouselList[$key]['audit_time'] = date("Y-m-d H:i:s");
-                    $chgcarouselList[$key]['cid'] = $new_chg_cid_arr[$value['cid']];
-                }
-                $chgcarouseResult = D("hotel_carousel_resource")->addAll($chgcarouselList);
-                if($chgcarouseResult === false){
-                    D("hotel_carousel_resource")->rollback();
-                    $this->error('集团通用栏目视频轮复制失败');
+                    $chgcarouseResult = D("hotel_carousel_resource")->addAll($chgcarouselList);
+                    if($chgcarouseResult === false){
+                        D("hotel_carousel_resource")->rollback();
+                        $this->error('集团通用栏目视频轮复制失败');
+                    }
                 }
             }
         }
