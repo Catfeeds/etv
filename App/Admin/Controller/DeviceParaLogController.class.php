@@ -20,9 +20,35 @@ class DeviceParaLogController extends ComController {
         return $map;
     }
     public function index(){
-        $model = M("device_para_log");
-        $map = $this->_map();
-        $list = $this->_list($model,$map);
+
+        $list = array();
+        if(empty($_GET['mac'])){
+            $count = M("device_para_log")->count();
+            if(empty($_GET['p'])){
+                $sql = "select * from zxt_device_para_log order by id desc limit 10";
+            }else{
+                $getpage = $_GET['p'];
+                $idcount = ($getpage-1)*10;
+                $sql = "select * from (select id from zxt_device_para_log order by id desc limit ".$idcount." ,10)a left join zxt_device_para_log b on a.id=b.id";
+            }
+        }else{
+            if (empty($_GET['p'])) {
+                $idcount = 0;
+            }else{
+                $getpage = $_GET['p'];
+                $idcount = ($getpage-1)*10;
+            }
+
+            $sql = 'select * from zxt_device_para_log where mac='.'"'.$_GET['mac'].'" order by id desc limit '.$idcount.' ,10';
+            $map['mac'] = $_GET['mac'];
+            $count = D("device_para_log")->where($map)->count();
+        }
+        $list = M("device_para_log")->query($sql);
+        $Page = new\Think\Page($count,10,$_GET);
+        $pageshow = $Page -> show();
+        $this->assign('theAllcount',$count);
+        $this -> assign("page",$pageshow);//赋值分页输出
+                                          
         $this -> assign("list",$list);
         $this -> assign("vo",$list[0]);
         $this -> display();
