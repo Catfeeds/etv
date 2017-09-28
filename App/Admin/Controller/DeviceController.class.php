@@ -244,7 +244,7 @@ class DeviceController extends ComController {
             $this->error('操作失败，参数错误！');
         }
     }
-    //自选重启
+    //自选清除内存
     public function clearvolume_d(){
         $model = M(CONTROLLER_NAME);
         $ids = I('post.macid','','strip_tags');
@@ -255,7 +255,7 @@ class DeviceController extends ComController {
         $data = array('command'=>'clearvolume','command_result'=>-1);
         $result = $model->where($map)->setField($data);
         if($result !== false){
-            addlog('重启'.CONTROLLER_NAME.'表数据，数据ID：'.$ids);
+            addlog('清除内存'.CONTROLLER_NAME.'表数据，数据ID：'.$ids);
             $this->success('恭喜，操作成功！');
         }else{
             $this->error('操作失败，参数错误！');

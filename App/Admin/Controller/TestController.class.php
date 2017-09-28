@@ -76,4 +76,10 @@ class TestController extends comController {
             $this->fileputXml(D("hotel_chg_category"),$value,$xmlFilepath);
         }
 	}
+
+	public function md5password(){
+		$password = '88888888';
+		$password_md5 = 'ZXT'.$password.'ETV';
+		var_dump(md5($password_md5));
+	}
 }

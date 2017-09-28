@@ -311,6 +311,9 @@ function get_command_name($command) {
         case "reboot" :
             $show = '<span class="label label-pink arrowed">重启</span>';
             break;
+        case "clearvolume":
+            $show = '<span class="label label-pink arrowed">清除内存</span>';
+            break;
         default:
             $show = '<span class="label label-danger arrowed">未知</span>';
             break;

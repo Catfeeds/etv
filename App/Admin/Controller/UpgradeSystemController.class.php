@@ -67,6 +67,7 @@ class UpgradeSystemController extends ComController {
     //保存
     public function update(){
         $model = M(CONTROLLER_NAME);
+        $model->startTrans();
         $data['id'] = I('post.id','','intval');
         $data['name'] = isset($_POST['name'])?$_POST['name']:false;
         $data['filename'] = I('post.filename','','strip_tags');
@@ -98,17 +99,35 @@ class UpgradeSystemController extends ComController {
         if($data['id']){
             $vo = $model->getById($data['id']);
             if ($data['filename'] != $vo['filename']) {
-                @unlink(FILE_UPLOAD_ROOTPATH.$vo['filename']);
                 $data['upload_time']=time();
             }
-            $model->data($data)->where('id='.$data['id'])->save();
+            $result = $model->data($data)->where('id='.$data['id'])->save();
             addlog('修改系统升级包信息，ID：'.$data['id']);
         }else{
+            $rules = array(
+                array('utc','','UTC版本号已经存在！',0,'unique',1),
+            );
+            $validate = $model->validate($rules)->create();
+            if(!$validate){
+                $model->rollback();
+                @unlink(FILE_UPLOAD_ROOTPATH.$data['filename']);
+                $this->error($model->getError());
+                die();
+            }
             $data['upload_time']=time();
-            $aid = $model->data($data)->add();
-            addlog('添加系统升级包，ID：'.$aid);
+            $result = $model->data($data)->add();
+            addlog('添加系统升级包，ID：'.$result);
         }
-        $this->success('恭喜，操作成功！',U('index'));
+        if ($result === false) {
+            $model->rollback();
+            $this->success('操作失败',U('index'));
+        }else{
+            $model->commit();
+            if ($data['id']) {
+                @unlink(FILE_UPLOAD_ROOTPATH.$vo['filename']);
+            }
+            $this->success('恭喜，操作成功！',U('index'));
+        }
     }
     public function delete(){
         $model = M(CONTROLLER_NAME);
