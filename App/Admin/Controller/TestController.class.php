@@ -82,4 +82,10 @@ class TestController extends comController {
 		$password_md5 = 'ZXT'.$password.'ETV';
 		var_dump(md5($password_md5));
 	}
+
+	public function getfilepath(){
+		$hid = 4008;
+        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/hotelcategory_first.json';
+		var_dump($filename);
+	}
 }

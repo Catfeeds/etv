@@ -371,47 +371,35 @@ class ApiController extends Controller{
      */
     public function getMainleft(){
         $json = array();
-        $hid = strtoupper(I('request.hid'));
-        $room = I('request.room');
-        $mac = I('request.mac');
+        $hid = I('request.hid','','strtoupper');
         if (empty($hid)) {
             $this->errorCallback(404, "Error: hid param is needed!");
         }
-        if (empty($room)) {
-            $this->errorCallback(404, "Error: room param is needed!");
-        }
-        if (empty($mac)) {
-            $this->errorCallback(404, "Error: mac param is needed!");
-        }
         $HotelSpread = D("hotel_spread");
         $prefix = C('DB_PREFIX');
-        $map["{$prefix}hotel_spread.hid"] = $hid;
-        $map["{$prefix}hotel_resource.status"] = 1;
-        $list = $HotelSpread->field("{$prefix}hotel_resource.*")->join("{$prefix}hotel_resource ON {$prefix}hotel_spread.resourceid={$prefix}hotel_resource.id")->where($map)->order('zxt_hotel_resource.sort')->find();
+        $map["zxt_hotel_spread.hid"] = $hid;
+        $map["zxt_hotel_resource.status"] = 1;
+        $map["zxt_hotel_resource.audit_status"] = 4;
+        $list = $HotelSpread->field("zxt_hotel_resource.*")->join("zxt_hotel_resource ON zxt_hotel_spread.resourceid=zxt_hotel_resource.id")->where($map)->order('zxt_hotel_resource.sort')->find();
         if(empty($list)){
             $this->errorCallback(404, "Error: the hotel base setting is empty!");
             die();
         }
-        if($list['audit_status']==4){//审核通过
-            $json['status'] = 200;
-            $json['info'] = "Successed!";
-            $json['type'] = $list['type'];
-            $pp[0]['title'] = $list['title'];//兼容过去写法
-            if($list['type']==1){    
-                $pp[0]['video'] = self::$serverUrl.$list['filepath'];
-                $pp[0]['getvideo'] = '/Public'.$list['filepath'];
-            }else{
-                $pp[0]['image'] = self::$serverUrl.$list['filepath'];
-                $pp[0]['getimage'] = '/Public'.$list['filepath'];
-            }
-            $json['volist'] = $pp;
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode($json); 
-            die();
+        $json['status'] = 200;
+        $json['info'] = "Successed!";
+        $json['type'] = $list['type'];
+        $pp[0]['title'] = $list['title'];//兼容过去写法
+        if($list['type']==1){    
+            $pp[0]['video'] = self::$serverUrl.$list['filepath'];
+            $pp[0]['getvideo'] = '/Public'.$list['filepath'];
         }else{
-            $this->errorCallback(404, "Error: the content is empty or not audit!");
-            die();
+            $pp[0]['image'] = self::$serverUrl.$list['filepath'];
+            $pp[0]['getimage'] = '/Public'.$list['filepath'];
         }
+        $json['volist'] = $pp;
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($json); 
+        die();
     }
     /**
      * http request:/api.php/Api/getMainAd
@@ -1043,7 +1031,7 @@ class ApiController extends Controller{
         }
     }
     /**
-     * http request:/api.php/Api/getWifiInfo
+     * http request:/api.php/Api/getwifiinfo
      * @author Blues
      * @uses 获取设备wifi热点信息
      * @param hid 酒店编号
@@ -1054,42 +1042,29 @@ class ApiController extends Controller{
      *     status 状态  （200成功    404失败）
      *     info 发送状态说明
      *     wifi_ssid
-     *     wifi_psk_type
      *     wifi_passwd
      */
-    public function getWifiInfo(){
+    public function getwifiinfo(){
         $json = array();
         $hid = empty($_REQUEST['hid'])?"":strtoupper($_REQUEST["hid"]);
         $room = empty($_REQUEST['room'])?"":$_REQUEST["room"];
         $mac = empty($_REQUEST['mac'])?"":$_REQUEST["mac"];
         if (empty($hid)) {
-            $this->errorCallback(404, "Error: hid param is needed");
+            $this->errorCallback(10000, "Error: hid param is needed");
         }
         if (empty($room)) {
-            $this->errorCallback(404, "Error: room param is needed");
+            $this->errorCallback(10000, "Error: room param is needed");
         }
-        if (empty($mac)) {
-            $this->errorCallback(404, "Error: mac param is needed");
-        }
-        $DeviceWifi = D("DeviceWifi");
+        $DeviceWifi = D("device");
         $map['hid']=$hid;
         $map['room']=$room;
-        $map['mac']=$mac;
-        $map['wifistatus']=1;//1开启wifi，0关闭
-        $list=$DeviceWifi->where($map)->select();
-        if (empty($list)) {
+        $vo=$DeviceWifi->where($map)->field('wifi_ssid,wifi_passwd,wifi_status')->find();
+        if (empty($vo)) {
             $this->errorCallback(404, "Error:no wifi info or wifi is closed!");
         }else{
             $json['status'] = 200;
             $json['info'] = "Successed!";
-            $json['wifi_ssid']=$list[0]['ssid'];
-            if ($list[0]['security']==1) {
-                $json['wifi_psk_type']="psk2";
-                $json['wifi_passwd']=$list[0]['password'];
-            }else{
-                $json['wifi_psk_type']="none";
-                $json['wifi_passwd']="";
-            }
+            $json['wifiinfo']=$vo;
         }
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
@@ -2062,6 +2037,7 @@ class ApiController extends Controller{
         }
     }
 
+    //appstore安装情况
     public function installedapk(){
 
         $hid = strtoupper(I('request.hid'));
@@ -2077,21 +2053,6 @@ class ApiController extends Controller{
         if (empty($mac)) {
             $this->Callback(10000, "Error: mac param is needed");
         }
-        
-        // $arr['0']['app_version'] = 201709061714;
-        // $arr['0']['app_package'] = 'com.tencent.mobileqq';
-        // $arr['0']['status'] = 1;
-        // $arr['1']['app_version'] = 201709061414;
-        // $arr['1']['app_package'] = 'com.tencent.mobileqq';
-        // $arr['1']['status'] = 1;
-        // $arr['2']['app_version'] = 201709071111;
-        // $arr['2']['app_package'] = 'com.duowan.mobile';
-        // $arr['2']['status'] = 1;
-        // $arr['3']['app_version'] = 201709072110;
-        // $arr['3']['app_package'] = 'com.ucbrowser.tv';
-        // $arr['3']['status'] = 0;
-        // $apklist = json_encode($arr);
-        
 
         $apklist = I('post.apklist','','strip_tags');
         if(empty($apklist)){
@@ -2111,42 +2072,6 @@ class ApiController extends Controller{
         }
         $this->Callback(200,'Success');
     }
-
-    // public function saveinstalledlist(){
-
-    //     $hid = empty($_REQUEST['hid'])?"":strtoupper($_REQUEST["hid"]);
-    //     $room = empty($_REQUEST['room'])?"":$_REQUEST["room"];
-    //     $mac = empty($_REQUEST['mac'])?"":strtoupper($_REQUEST["mac"]);
-    //     $apkid = empty($_REQUEST['apkid'])?"":$_REQUEST["apkid"];
-    //     if (empty($hid)) {
-    //         $this->Callback(10000, "Error: hid param is needed");
-    //     }
-    //     if (empty($room)) {
-    //         $this->Callback(10000, "Error: room param is needed");
-    //     }
-    //     if (empty($mac)) {
-    //         $this->Callback(10000, "Error: mac param is needed");
-    //     }
-    //     if (empty($apkid)) {
-    //         $this->Callback(10000, "Error: apkid param is needed");
-    //     }
-    //     $data['install_apkid'] = implode(',',json_decode($apkid));
-    //     $map['mac'] = $mac;
-    //     $model = D("device_apk");
-
-    //     if($model->where($map)->count()>0){
-    //         $result = $model->where($map)->data($data)->save();
-    //     }else{
-    //         $data['apk_id'] = $data['install_apkid'];
-    //         $result = $model->data($data)->add();
-    //     }
-
-    //     if($result === false){
-    //         $this->callback(0,"Error,Can not add install apkid");
-    //     }else{
-    //         $this->callback(200,"Success");
-    //     }
-    // }
 
     private function Callback($status,$info){
         $data['status'] = $status;
@@ -2179,54 +2104,67 @@ class ApiController extends Controller{
 
     /***************lauch 网页端接口  2017.07.07*************/
 
-    //获取酒店一级栏目 自身+集团通用+通用栏目
-    public function getHotelCategory_firstlevel(){
+    /**
+     * [获取一级栏目  酒店+集团+通用]
+     * @return [json] $list [一级栏目集合]
+     */
+    public function hotelcategory_firstlevel(){
 
         $hid = I('post.hid','','strtoupper');
         $room = I('post.room','','strip_tags');
         $mac = I('post.mac','','strtoupper');
-
         if(empty($hid)){
             $this->Callback(10000,'hid is empty');
         }
+
+        //查询是集团酒店还是子酒店
+        $pid = $this->checkPid($hid);
+
         //酒店自身
         $map['hid'] = $hid;
         $map['pid'] = 0;
         $map['status'] = 1;
+        $hotelField = "id,hid,name,modeldefineid,sort,intro,icon as filepath";
         $listHotel = D("hotel_category")->where($map)->order('sort asc')->select();
+
         //集团通用栏目
         $listChg = array();
-        $chglist = D("hotel_chglist")->where('hid="'.$hid.'"')->field('chg_cid')->select();
-        if(!empty($chglist)){
-            foreach ($chglist as $key => $value) {
-                $chglist_arr[] = $value['chg_cid'];
+        $chgField = "id,hid,name,modeldefineid,sort,filepath,intro";
+        if($pid['pid']){  //子酒店
+            $chglist = D("hotel_chglist")->where('hid="'.$hid.'"')->field('chg_cid')->select();
+            if(!empty($chglist)){
+                foreach ($chglist as $key => $value) {
+                    $chglist_arr[] = $value['chg_cid'];
+                }
+                $chgMap['id'] = array('in',$chglist_arr);
+                $chgMap['status'] = 1;
+                $listChg = D("hotel_chg_category")->where($chgMap)->order('sort')->select();
             }
-            $chgMap['id'] = array('in',$chglist_arr);
-            $listChg = D("hotel_chg_category")->where($chgMap)->order('sort')->select();
+        }else{
+            $listChg = D("hotel_chg_category")->where($map)->order('sort')->select();
         }
+
         //通用栏目
         $listTopic = array();
         $topiclist = D("hotel_topic")->where('hid="'.$hid.'"')->field('topic_id')->select();
         if(!empty($topiclist)){
+            $topicField = "id,title as name,icon as filepath,intro";
             foreach ($topiclist as $k => $v) {
                 $topiclist_arr[] = $v['topic_id'];
             }
             $topicMap['id'] = array('in',$topiclist_arr);
             $topicMap['status'] = 1;
-            $listTopic = D("topic_group")->where($topicMap)->select();
+            $listTopic = D("topic_group")->where($topicMap)->field($topicField)->select();
         }
 
         if(!empty($listHotel)){
             $i = 0;
             foreach ($listHotel as $key => $value) {
                 $list[$i]['id'] = $value['id']; 
-                $list[$i]['name'] = $value['name']; 
-                $list[$i]['pid'] = $value['pid']; 
-                $list[$i]['icon'] = $value['icon']; 
-                $list[$i]['hid'] = $value['hid']; 
+                $list[$i]['hid'] = $value['hid'];
+                $list[$i]['name'] = $value['name'];
+                $list[$i]['filepath'] = $value['filepath'];
                 $list[$i]['modeldefineid'] = $value['modeldefineid'];
-                $list[$i]['langcodeid'] = $value['langcodeid'];
-                $list[$i]['sort'] = $value['sort'];
                 $list[$i]['intro'] = $value['intro'];
                 $list[$i]['votype'] = "hotel";
                 $i++;
@@ -2236,13 +2174,10 @@ class ApiController extends Controller{
             $j = count($list);
             foreach ($listChg as $key => $value) {
                 $list[$j]['id'] = $value['id']; 
-                $list[$j]['name'] = $value['name']; 
-                $list[$j]['pid'] = $value['pid']; 
-                $list[$j]['icon'] = $value['filepath']; 
+                $list[$j]['name'] = $value['name'];
+                $list[$j]['filepath'] = $value['filepath']; 
                 $list[$j]['hid'] = $value['hid'];
                 $list[$j]['modeldefineid'] = $value['modeldefineid'];
-                $list[$j]['langcodeid'] = $value['langcodeid'];
-                $list[$j]['sort'] = $value['sort'];
                 $list[$j]['intro'] = $value['intro'];
                 $list[$j]['votype'] = "chg";
                 $j++;
@@ -2253,36 +2188,35 @@ class ApiController extends Controller{
             foreach ($listTopic as $kk => $vv) {
                 $list[$k]['id'] = $vv['id'];
                 $list[$k]['name'] = $vv['name'];
-                $list[$k]['pid'] = 0;
-                $list[$k]['icon'] = $vv['icon'];
+                $list[$k]['filepath'] = $vv['filepath'];
                 $list[$k]['hid'] = $hid;
                 $list[$k]['modeldefineid'] = 3;
-                $list[$k]['langcodeid'] = 0;
-                $list[$k]['sort'] = $vv['id'];
                 $list[$k]['intro'] = $vv['intro'];
                 $list[$k]['votype'] = "topic";
                 $k++;
             }
         }
-
         if(!empty($list)){
-            foreach ($list as $key => $value) {
-                if($value['icon']){
-                    $icon_arr = explode("/", $value['icon']);
-                    $icon_name = $icon_arr[count($icon_arr)-1];
-                    $list[$key]['icon'] = $icon_name;
-                }else{
-                    $list[$key]['icon'] = "";
-                }
-            }
             $this->Callback(200,$list);
         }else{
             $this->Callback(404,'the list is empty');
         }
     }
 
-    //获取酒店自身二级栏目 自身+集团通用+通用栏目
-    public function getHotelCategory_secondlevel(){
+    /**
+     * [checkPid description]
+     * @param  [string] $hid [酒店编号]
+     * @return [int]    $pid [父id]
+     */
+    private function checkPid($hid){
+        return D("hotel")->where('hid="'.$hid.'"')->field('pid')->find();
+    }
+
+    /**
+     * [获取二级栏目  酒店+集团+通用]
+     * @return [json] $list [一级栏目集合]
+     */
+    public function hotelcategory_secondlevel(){
 
         $hid = I('request.hid','','strtoupper');
         $pid = I('request.id','','intval');
@@ -2296,18 +2230,18 @@ class ApiController extends Controller{
             $map['zxt_hotel_category.status'] = 1;
             $map['zxt_hotel_category.hid'] = $hid;
             $map['zxt_hotel_category.pid'] = $pid;
-            $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.name,zxt_hotel_category.modeldefineid,zxt_hotel_category.langcodeid,zxt_hotel_category.pid,zxt_hotel_category.sort,zxt_hotel_category.intro,zxt_hotel_category.icon,zxt_modeldefine.codevalue,zxt_modeldefine.packagename,zxt_modeldefine.classname";
+            $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.name,zxt_hotel_category.modeldefineid,zxt_hotel_category.pid,zxt_hotel_category.sort,zxt_hotel_category.intro,zxt_hotel_category.icon,zxt_modeldefine.codevalue,zxt_modeldefine.packagename,zxt_modeldefine.classname";
             $list = D("hotel_category")->where($map)->field($field)->join("zxt_modeldefine ON zxt_hotel_category.modeldefineid=zxt_modeldefine.id")->order('sort asc')->select();
         }elseif($votype == "chg"){
             $map['zxt_hotel_chg_category.status'] = 1;
             $map['zxt_hotel_chg_category.hid'] = $hid;
             $map['zxt_hotel_chg_category.pid'] = $pid;
-            $field = "zxt_hotel_chg_category.id,zxt_hotel_chg_category.hid,zxt_hotel_chg_category.name,zxt_hotel_chg_category.modeldefineid,zxt_hotel_chg_category.langcodeid,zxt_hotel_chg_category.pid,zxt_hotel_chg_category.sort,zxt_hotel_chg_category.intro,zxt_hotel_chg_category.filepath as icon,zxt_modeldefine.codevalue,zxt_modeldefine.packagename,zxt_modeldefine.classname";
+            $field = "zxt_hotel_chg_category.id,zxt_hotel_chg_category.hid,zxt_hotel_chg_category.name,zxt_hotel_chg_category.modeldefineid,zxt_hotel_chg_category.pid,zxt_hotel_chg_category.sort,zxt_hotel_chg_category.intro,zxt_hotel_chg_category.filepath as icon,zxt_modeldefine.codevalue,zxt_modeldefine.packagename,zxt_modeldefine.classname";
             $list = D("hotel_chg_category")->field($field)->where($map)->join("zxt_modeldefine ON zxt_hotel_chg_category.modeldefineid=zxt_modeldefine.id")->order('sort asc')->select();
         }elseif($votype == "topic"){
             $map['zxt_topic_category.status'] = 1;
             $map['zxt_topic_category.groupid'] = $pid;
-            $field = "zxt_topic_category.id,zxt_topic_category.name,zxt_topic_category.modeldefineid,zxt_topic_category.langcodeid,zxt_topic_category.sort,zxt_topic_category.icon,zxt_modeldefine.codevalue,zxt_modeldefine.packagename,zxt_modeldefine.classname";
+            $field = "zxt_topic_category.id,zxt_topic_category.name,zxt_topic_category.modeldefineid,zxt_topic_category.sort,zxt_topic_category.icon,zxt_modeldefine.codevalue,zxt_modeldefine.packagename,zxt_modeldefine.classname";
             $list = D("topic_category")->field($field)->where($map)->join("zxt_modeldefine ON zxt_topic_category.modeldefineid=zxt_modeldefine.id")->order('sort')->select();
         }else{
             $this->Callback(10000,"the votype is wrong!");
@@ -2315,11 +2249,6 @@ class ApiController extends Controller{
 
         if(!empty($list)){
             foreach ($list as $key => $value) {
-                if($value['icon']){
-                    $icon_arr = explode("/", $value['icon']);
-                    $icon_name = $icon_arr[count($icon_arr)-1];
-                    $list[$key]['icon'] = $icon_name;
-                }
                 if($votype == "chg"){
                     if($value['codevalue'] != 501){
                         $list[$key]['votype'] = "chg";
@@ -2345,8 +2274,11 @@ class ApiController extends Controller{
         }
     }
 
-    //获取二级栏目下的资源
-    public function getHotelResource_second(){
+    /**
+     * [获取二级栏目下的资源  酒店+集团+通用栏目]
+     * @return [json] $list [资源列表集合]
+     */
+    public function hotelresource_second(){
 
         $hid = I('request.hid','','strtoupper');
         $room = I('request.room','','strip_tags');
@@ -2381,30 +2313,24 @@ class ApiController extends Controller{
 
         if(!empty($list)){
             foreach ($list as $key => $value) {
-                if(!empty($value['filepath'])){
-                    $filepath_arr = explode("/", $value['filepath']);
-                    $filepath_name = $filepath_arr[count($filepath_arr)-1];
-                    $list[$key]['filepath'] = $filepath_name;
-                }else{
+                if(empty($value['filepath'])){
                     $list[$key]['filepath'] = "";
                 }
-                if(!empty($value['video_image'])){
-                    $filepath_arr = explode("/", $value['video_image']);
-                    $filepath_name = $filepath_arr[count($filepath_arr)-1];
-                    $list[$key]['video_image'] = $filepath_name;
-                }else{
+                if(empty($value['video_image'])){
                     $list[$key]['video_image'] = "";
                 }
                 if($votype=="topic" && $value['file_type']==1 && !empty($value['video'])){
-                    $$filepath_arr = explode("/", $value['video']);
-                    $filepath_name = $filepath_arr[count($filepath_arr)-1];
-                    $list[$key]['filepath'] = $filepath_name;
+                    $list[$key]['filepath'] = $value['video'];
+                    unset($list[$key]['video']);
+                    unset($list[$key]['image']);
                 }elseif($votype=="topic" && $value['file_type']==2 && !empty($value['image'])){
-                    $filepath_arr = explode("/", $value['image']);
-                    $filepath_name = $filepath_arr[count($filepath_arr)-1];
-                    $list[$key]['filepath'] = $filepath_name;
+                    $list[$key]['filepath'] = $value['image'];
+                    unset($list[$key]['video']);
+                    unset($list[$key]['image']);
                 }elseif(empty($value['video']) && empty($value['image']) && $votype =="topic"){
                     $list[$key]['filepath'] = "";
+                    unset($list[$key]['video']);
+                    unset($list[$key]['image']);
                 }
                 $list[$key]['votype'] = $votype;
             }
@@ -2414,59 +2340,14 @@ class ApiController extends Controller{
         }
     }
 
-    //根据酒店hid获取xml文件
-    public function getXmlResource(){
-        $hid = I('request.hid','','strtoupper');
-        $room = I('request.room','','strip_tags');
-        $mac = I('request.mac','','strtoupper');
-        if(empty($hid)){
-            $this->Callback(10000,'hid is empty');
-        }
-
-        $filepath = self::$serverUrl.'/upload/resourceXml/'.$hid.'.txt';
-        $file = dirname(dirname(dirname(dirname(__FILE__)))).'/Public/upload/resourceXml/'.$hid.'.txt';
-        if(file_exists($file)){
-            $vo['md5_file'] = md5_file($filepath);
-            $vo['filepath'] = $filepath;
-            $this->Callback(200,$vo);
-        }else{
-            $this->Callback(404,'hid is wrong');
-        }
-    }
-
+    /**
+     * [获取地址前缀]
+     * @return [string] $url [url地址前缀]
+     */
     public function getAllresourcepathPrefix(){
         $url = self::$serverUrl;
         $this->Callback(200,$url);
     }
-
-    public function getHotelWebLauncher(){
-        $hid = I('post.hid','','strtoupper');
-        $mac = I('post.mac','','strip_tags');
-        $room = I('post.room','','strip_tags');
-
-        if(empty($hid)){
-            $this->Callback(10000,'the hid is empty');
-        }
-        $field = "zxt_hotel.hid,zxt_hotel.launcher_skinid,zxt_hotel_launcher_web.filename,zxt_hotel_launcher_web.web_name";
-        $map['zxt_hotel.hid'] = $hid;
-        $map['zxt_hotel_launcher_web.status'] = 1;
-
-        $hotel = D("hotel")->where($map)->field($field)->join('zxt_hotel_launcher_web ON zxt_hotel.launcher_skinid=zxt_hotel_launcher_web.id')->find();
-        if(!empty($hotel['filename'])){
-            $filepath = self::$serverUrl.$hotel['filename'];
-            //拼压缩包名称
-            $zipName_arr = explode("/",$filepath);
-            $zipName = $zipName_arr[count($zipName_arr)-1];
-            $name = strrev(substr(strrev($zipName), 4));
-            $suffix = $name."/html/".$hotel['web_name'].".html";
-            $data['suffix'] = $suffix;
-            $data['filepath'] = $filepath;
-            $this->Callback(200,$data);
-        }else{
-            $this->Callback(404,"the skin is empty");
-        }
-    }
-
 
     //2017.08.03  新增弹窗广告接口
     

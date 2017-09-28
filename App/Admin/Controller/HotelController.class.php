@@ -180,6 +180,9 @@ class HotelController extends ComController {
             $rules = array(
                 array('hid','','酒店编号已经存在！',0,'unique',1),
             );
+            $member_rules = array(
+                array('user','','登录账号已经存在！',0,'unique',1),
+            );
             $userData['user'] = I('post.user','','strip_tags');
             $userData['phone'] = I('post.phone','','','intval');
             $password = I('post.password','','strip_tags');
@@ -196,7 +199,14 @@ class HotelController extends ComController {
             $model->startTrans();
             $validate = $hotel_m->validate($rules)->create();
             if(!$validate){
+                $model->rollback();
                 $this->error($hotel_m->getError());
+                die();
+            }
+            $member_validate = D('member')->validate($member_validate)->create();
+            if(!$member_validate){
+                $model->rollback();
+                $this->error(D('member')->getError());
                 die();
             }
             $hotel_id = D('hotel')->data($data)->add();
@@ -1057,14 +1067,21 @@ class HotelController extends ComController {
         //复制集团通用栏目 hotel_chg hotel_chg_resource + hotel_carousel_resource
         $chghid = I('post.ischg','','strip_tags');//集团酒店的标志
         if(!empty($chghid)){
-            $this->copychg($chghid,$hidarr);
+            $cNewId_arr = $this->copychg($chghid,$hidarr);
         }
+
+        //关联通用栏目 hotel_topic
+        $this->copytopic($hidarr);
+        
+        //关联集团栏目
+        $this->copychglist($hidarr,$cNewId_arr);
 
         //复制酒店容量表 hotel_volume
         $this->copyvolume($hidarr);
         
-        //复制酒店资源表 更新XML文件  hotel_allresource
-        $this->copyallresource($hidarr);
+        //复制酒店资源表 更新XML文件  hotel_allresource 
+        //新需求改动 0926确定不需要此功能
+        // $this->copyallresource($hidarr);
 
         //文件复制
         $File = new File;
@@ -1082,7 +1099,7 @@ class HotelController extends ComController {
         }
         D()->commit();
         $this->success('复制成功',U('index'));
-        //暂不处理 弹窗广告，通用栏目，日志记录，appstore关联，升级系统关联等
+        //暂不处理 弹窗广告，日志记录，appstore关联，升级系统关联等
     }
 
     /**
@@ -1560,6 +1577,7 @@ class HotelController extends ComController {
         }
         //获取集团通用栏目
         $categoryAllList = D("hotel_chg_category")->where('hid="'.$chghid.'"')->select();
+        $cNewId_arr = array(); //新一级栏目ID集合  key为就一级栏目id
         if(!empty($categoryAllList)){
             foreach ($categoryAllList as $key => $value) {
                 $value['hid'] = $newhid;
@@ -1649,6 +1667,7 @@ class HotelController extends ComController {
                 }
             }
         }
+        return $cNewId_arr;
     }
 
     /**
@@ -1711,6 +1730,72 @@ class HotelController extends ComController {
         }
     }
 
+    /**
+     * [复制topic关联表]
+     * @param  [array] $hidarr [新旧hid列表]
+     */
+    private function copytopic($hidarr){
+        foreach ($hidarr as $key => $value) {
+            $passhid[] = $value['passhid'];
+            $newhid[$value['passhid']] = $value['newhid'];
+        }
+        $map['hid'] = array('in',$passhid);
+        $list = D("hotel_topic")->where($map)->field('hid,topic_id')->select();
+        if(!empty($list)){
+            $adddatatopic = array();
+            foreach ($list as $key => $value) {
+                $adddatatopic[$key]['hid'] = $newhid[$value['hid']];
+                $adddatatopic[$key]['topic_id'] = $value['topic_id'];
+            }
+            $result = D("hotel_topic")->addAll($adddatatopic);
+            if($result === false){
+                D("hotel_topic")->rollback();
+                $this->error('复制酒店通用栏目关联失败');
+            }
+        }
+    }
+
+    /**
+     * [复制酒店集团栏目关联表]
+     * @param  [array] $hidarr     [新旧hid集合]
+     * @param  [array] $cNewId_arr [集团酒店新一级栏目ID]
+     */
+    private function copychglist($hidarr,$cNewId_arr){
+        foreach ($hidarr as $key => $value) {
+            $passhid[] = $value['passhid'];
+            $newhid[$value['passhid']] = $value['newhid'];
+        }
+        $map['hid'] = array('in',$passhid);
+        $list = D("hotel_chglist")->where($map)->field('hid,phid,chg_cid')->select();
+        if(!empty($list)){
+            $adddatachg = array();
+            $chghid = I('post.ischg','','strip_tags');//集团酒店的标志
+            if(!empty($cNewId_arr)){
+                foreach ($list as $key => $value) {
+                    $adddatachg[$key]['hid'] = $newhid[$value['hid']];
+                    $adddatachg[$key]['phid'] = $newhid[$chghid];
+                    $adddatachg[$key]['chg_cid'] = $cNewId_arr[$value['chg_cid']];
+                }
+            }else{
+                foreach ($list as $key => $value) {
+                    $adddatachg[$key]['hid'] = $newhid[$value['hid']];
+                    $adddatachg[$key]['phid'] = $value['phid'];
+                    $adddatachg[$key]['chg_cid'] = $value['chg_cid'];
+                }
+                
+            }
+            $result = D("hotel_chglist")->addAll($adddatachg);
+            if($result === false){
+                D("hotel_chglist")->rollback();
+                $this->error('复制酒店集团栏目关联失败');
+            }
+        }
+    }
+
+    /**
+     * [动态校验酒店编号和用户账号合法性]
+     * @return [json] $callback [结果返回]
+     */
     public function checkVerity(){
         $hid_arr = I('post.hidarr');
         $member_arr = I('post.memberarr');

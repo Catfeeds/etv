@@ -59,7 +59,7 @@
                         <select id="langcodeid" name="langcodeid" class="rcol-xs-10 col-sm-5">
                             <option value="">请选择</option>
                             <volist name="langlist" id="langlist">
-                                <option value="{$langlist['id']}" <if condition="$langlist['id'] eq $vo['langcodeid']">selected="selected"</if>>{$langlist['name']}</option>
+                                <option value="{$langlist['id']}">{$langlist['name']}</option>
                             </volist>
                         </select>
                         <span class="help-inline col-xs-12 col-sm-7">
@@ -87,6 +87,16 @@
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-5">栏目描述</label>
                     <div class="col-sm-9">
                         <textarea name="intro" id="intro" placeholder="栏目描述" class="col-xs-10 col-sm-5" rows="5"></textarea>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-5">栏目序号</label>
+                    <div class="col-sm-9">
+                        <input type="number" name="sort" placeholder="栏目排序" class="col-xs-10 col-sm-5">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"></span>
                         </span>

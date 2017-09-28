@@ -33,9 +33,14 @@ class LoginController extends BaseController {
         $password = I('post.password','','strip_tags');
         $map['user'] = $username;
         $map['password'] = password($password);
-        $map['status'] = 1;
-        $user = D("member")->field('uid,user')->where($map)->find();
+        $user = D("member")->field('uid,user,status')->where($map)->find();
         if($user['uid']){
+            if($user['status'] == 0){
+                $data['status'] = 10000;
+                $data['data'] = "该账号已被禁用";
+                echo json_encode($data);
+                die();
+            }
             $hotel_user = D("hotel_user")->field('hid')->where(array('user_id'=>$user['uid']))->select();
             if (!empty($hotel_user)) {
                 foreach ($hotel_user as $key => $value) {

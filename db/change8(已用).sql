@@ -18,3 +18,5 @@ INDEX `mac_listid` (`mac`, `uplist_id`) USING BTREE
 ENGINE=InnoDB
 DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
 ;
+
+DROP TABLE `zxt_device_apk`;

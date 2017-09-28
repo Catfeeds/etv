@@ -12,127 +12,143 @@ namespace Admin\Controller;
 use Admin\Controller\ComController;
 use Vendor\Tree;
 class HotelCategoryController extends ComController {
-    //查询
-    public function _map(){
+
+    /**
+     * [map查询条件]
+     * @return [array] $array [查询条件]
+     */
+    public function _array(){
         $map = array();
         $data = session(session_id());
         $hotelid = 0;
         if(!empty($_POST['hid'])){
+            if($_POST['hid'] != 'hid-1gg'){ //自定义查询所有酒店
                 $map['hid'] = $_POST['hid'];
                 $vo=M('hotel')->getByHid($_POST['hid']);
                 $hotelid=$vo['id'];
                 $data['content_hid'] = $_POST['hid'];
                 session(session_id(),$data); 
+            }else{
+                $map = array();
+                $data['content_hid'] = null;
+                session(session_id(),$data);
+            }
         }else{
-            if (!empty($data['content_hid'])) {
+            if (!empty($data['content_hid'])) { //其他模块已查hid
                 $map['hid'] = $data['content_hid'];
                 $vo = M('hotel')->getByHid($data['content_hid']);
                 $hotelid = $vo['id'];
-            }else if($hid_condition = $this->isHotelMenber()){
-                $map['hid'] = $hid_condition['1']['0'];
-                $vo = M('hotel')->getByHid($map['hid']);
-                $hotelid = $vo['id'];
-            }else{
-                $vv = M('hotel_category')->find();
-                $vo = M('hotel')->getByHid($vv['hid']);
-                $map['hid'] = $vo['hid'];
-                $hotelid = $vo['id'];
             }
         }
-        $this->assign('hid',$map['hid']);
+        $array['map'] = $map;
+        $array['hotelid'] = $hotelid;
+        $this->assign('hid',$array['map']['hid']);
+
+        return $array;
+    }
+
+    /**
+     * [新建酒店树状结构图]
+     * @param  [int] $hotelid [酒店列表ID]
+     */
+    private function newTree($hotelid){
         $category = M('hotel')->field('id,pid,hotelname,hid')->order('hid asc')->select();
         $tree = new Tree($category);
         $str = "<option value=\$hid \$selected>\$spacer\$hotelname</option>"; //生成的形式
         $category = $tree->get_tree(0,$str,$hotelid);
         $this->assign('pHotel',$category);
-        return $map;
     }
-    //列表
+
+    /**
+     * [栏目管理主页]
+     */
     public function index(){
         $model = M(CONTROLLER_NAME);
-        $map = $this->_map();
-        $this->assign('hid',$map['hid']);
+        $array = $this->_array();
+        $hid_condition = $this->isHotelMenber();
+        // 查询账号关联酒店  并且没有其他模块关联查询  没有主页
+        if($hid_condition && empty($array['hotelid'])){
+            $map['hid'] = $hid_condition['1']['0'];
+        }else{
+            if(empty($array['hotelid'])){
+                $vv = M('hotel_category')->field('hid')->find();
+                $vo = M('hotel')->getByHid($vv['hid']);
+                $map['hid'] = $vo['hid'];
+                $hotelid = $vo['id'];
+            }else{
+                $map['hid'] = $array['map']['hid'];
+            }
+            $this->newTree($array['hotelid']);
+        }
+
         $list = $model ->where($map)->order("sort asc")->select();
+        //生成树状图
         $volist = $this->list_to_tree($list, 'id', 'pid', '_child', 0);
         $this -> assign("list",$volist);
         $this -> display();
     }
-    //获取上级栏目
-    public function get_catgory(){
-        $Modeldefine = D("Modeldefine");
-        $modelList=$Modeldefine->where('codevalue="100" or codevalue="101"')->select();
-        foreach ($modelList as $key => $value) {
-            $arr[$key]=$value['id'];
-        }
-        $hid = $_REQUEST['hid'];
-        $map['hid']=$hid;
-        $map['pid']=0;
-        $map['modeldefineid']=array("in",$arr);
-        $catlist = M(CONTROLLER_NAME)->where($map)->order("sort asc")->field('id,name')->select();
-        echo json_encode($catlist);
-    }
-    //添加
+
+    /**
+     * [栏目管理添加页]
+     */
     public function add(){
-        $this->isHotelMenber();
         $hotelid = 0;
+
+        //判断session 是否hid有查询
         $data = session(session_id());
         if(!empty($data['content_hid'])){
-            $vo=M('hotel')->getByHid($data['content_hid']);
-            $hotelid=$vo['id'];
+            $vo=M('hotel')->where('hid="'.$data['content_hid'].'"')->field('id')->find();
             //初始化栏目上级
             $Modeldefine = D("Modeldefine");
-            $modelList=$Modeldefine->where('codevalue="100" or codevalue="101"')->select();
+            $modelList=$Modeldefine->where('codevalue="100" or codevalue="101"')->field('id')->select();
             foreach ($modelList as $key => $value) {
                 $arr[$key]=$value['id'];
             }
-            $map['hid']=$data['content_hid'];
-            $map['pid']=0;
+            $map['hid'] = $data['content_hid'];
+            $map['pid'] = 0;
             $map['modeldefineid']=array("in",$arr);
             $catlist = M(CONTROLLER_NAME)->where($map)->order("sort asc")->field('id,name')->select();
             $this->assign('pcat',$catlist);
+            $this->assign('hid',$data['content_hid']);
         }
-        $this->assign('hid',$data['content_hid']);
+
+        //语言管理
         $Langcode = D("Langcode");
-        $list = $Langcode->where("status=1")->order("id asc")->select();
+        $list = $Langcode->field('id,name')->where("status=1")->order("id asc")->select();
         $this->assign("langlist",$list);
 
+        //栏目模型
         $Modeldefine = D("Modeldefine");
-        $modeldefinelist = $Modeldefine->where("status=1")->order("codevalue asc")->select();
+        $modeldefinelist = $Modeldefine->field('id,name')->where("status=1")->order("codevalue asc")->select();
         $this->assign("modeldefinelist",$modeldefinelist);
 
-        $category = M('hotel')->field('id,pid,hotelname,hid')->order('hid asc')->select();
-        $tree = new Tree($category);
-        $str = "<option value=\$hid \$selected>\$spacer\$hotelname</option>"; //生成的形式
-        $category = $tree->get_tree(0,$str,$hotelid);
-        $this->assign('pHotel',$category);
+        $hid_condition = $this->isHotelMenber();
+        if($hid_condition === false){
+            $this->newTree($hotelid);
+        }
+            
         $this->display();
     }
-    //修改
+
+    /**
+     * [栏目管理修改页]
+     */
     public function edit(){
-        $model = M(CONTROLLER_NAME);
-        $ids = isset($_POST['ids'])?$_POST['ids']:false;
+        $ids = I('post.ids');
         if(count($ids)!=1){
             $this->error('参数错误，每次只能修改一条内容！');
         }
+        $model = M(CONTROLLER_NAME);
         $var = $model->getById($ids[0]);
-        $this->assign('vo',$var);
+        $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.langcodeid,zxt_hotel_category.modeldefineid,zxt_hotel_category.pid,zxt_hotel_category.name,zxt_hotel_category.icon,zxt_hotel_category.size,zxt_hotel.hotelname,zxt_modeldefine.name as modeldefinename,zxt_langcode.name as langcodename";
+        $vo = D("hotel_category")->where('zxt_hotel_category.id='.$ids['0'])->join('zxt_hotel ON zxt_hotel_category.hid=zxt_hotel.hid','left')->join('zxt_modeldefine ON zxt_hotel_category.modeldefineid=zxt_modeldefine.id')->join('zxt_langcode on zxt_hotel_category.langcodeid=zxt_langcode.id')->field($field)->find();
 
-        $hotelname = D("hotel")->where("hid='".$var['hid']."'")->field('hotelname')->find();
-        $this->assign('hotelname',$hotelname['hotelname']);
-
-        $Langcode = D("Langcode");
-        $list = $Langcode->where("status=1")->order("id asc")->select();
-        $this->assign("langlist",$list);
-
-        $Modeldefine = D("Modeldefine");
-        $modeldefinelist = $Modeldefine->where("status=1")->order("codevalue asc")->select();
-        $this->assign("modeldefinelist",$modeldefinelist);
-
-        $currentMenuType=$Modeldefine->getById($var['modeldefineid']);
+        //判断栏目是否可选上级栏目
+        $currentMenuType = D("Modeldefine")->where('id='.$vo['modeldefineid'])->field('codevalue')->find();
         if ($currentMenuType['codevalue']=="100" || $currentMenuType['codevalue']=="101") {
             $catlist=array();
         }else{
-            $modelList=$Modeldefine->where('codevalue="100" or codevalue="101"')->select();
+            $modelList = $Modeldefine->where('codevalue="100" or codevalue="101"')->field('id')->select();
             foreach ($modelList as $key => $value) {
                 $arr[$key]=$value['id'];
             }
@@ -140,151 +156,132 @@ class HotelCategoryController extends ComController {
             $map['pid']=0;
             $map['langcodeid']=$var['langcodeid'];
             $map['modeldefineid']=array("in",$arr);
-            $catlist = $model->where($map)->order("sort asc")->field('id,name')->select();
+            $catlist = D("hotel_category")->field('id,name')->where($map)->order("sort asc")->select();
         }
         $this->assign("pcat",$catlist);
+        
+        $this->assign('vo',$vo);
         $this -> display();
     }
+
+    /**
+     * [获取酒店栏目的集团和上级菜单]
+     * [ajax动态获取]
+     * @return [json] $catlist [集团和上级菜单列表json集合]
+     */
+    public function get_catgory(){
+        $Modeldefine = D("Modeldefine");
+        $modelList = $Modeldefine->where('codevalue="100" or codevalue="101"')->field('id')->select();
+        foreach ($modelList as $key => $value) {
+            $arr[$key]=$value['id'];
+        }
+        $hid = I('get.hid','','strtoupper');
+        $map['hid'] = $hid;
+        $map['pid'] = 0;
+        $map['modeldefineid']= array("in",$arr);
+        $catlist = M(CONTROLLER_NAME)->where($map)->order("sort asc")->field('id,name')->select();
+        echo json_encode($catlist);
+    }
+
     //保存
     public function update(){
+
+        $data = $this->categoryInputProcess();
+
         $model=M(CONTROLLER_NAME);
+        $model->startTrans();
+        if($data['id']){//修改
+            
+            $vo = $model->where('id='.$data['id'])->field('size,icon')->find();
+
+            // 查询容量
+            $changesize = $data['size'] - $vo['size'];
+            $volumeResult = $this->checkVolume($data['hid'],$changesize);//检查容量是否超标
+            if($volumeResult === false){
+                @unlink(FILE_UPLOAD_ROOTPATH.$data['icon']);
+                $this->error("超过申请容量值，无法修改资源");
+            }
+            // 更新数据
+            $result = $model->data($data)->where('id='.$data['id'])->save();
+            if($result === false){
+                $model->rollback();
+                $this->error('新增数据失败');
+            }
+
+        }else{
+
+            // 查询容量
+            $volumeResult = $this->checkVolume($data['hid'],$data['size']);//检查容量是否超标
+            if($volumeResult === false){
+                @unlink(FILE_UPLOAD_ROOTPATH.$data['icon']);
+                $this->error("超过申请容量值，无法新增资源");
+            }
+            // 新增插入数据
+            $result = $model->data($data)->add();
+            if($result === false){
+                $model->rollback();
+                $this->error('新增数据失败');
+            }
+        }
+
+        // 更新容量表
+        $hmap['hid'] = $data['hid'];
+        $this->updatevolume($hmap);
+
+        // 更新资源json文件
+        $this->updatejson_one($data['hid']);
+
+        $model->commit();
+        if($data['id']){
+            @unlink(FILE_UPLOAD_ROOTPATH.$vo['icon']);
+        }
+        $this->success('恭喜，操作成功！',U('index'));
+    }
+
+    /**
+     * [栏目保存数据校验处理]
+     * @return [array] $data [保存数据]
+     */
+    private function categoryInputProcess(){
+
         $data['id'] = I('post.id','','intval');
-        $data['hid'] = $hmap['hid'] = I('post.hid','','strip_tags');
+        $data['hid'] = I('post.hid','','strip_tags');
         $data['name'] = isset($_POST['name'])?$_POST['name']:false;
         $data['pid'] = I('post.pid','','intval');
         $data['langcodeid'] = I('post.langcodeid','','intval');
         $data['modeldefineid'] = I('post.modeldefineid','','intval');
         $data['intro'] = I('post.intro','','strip_tags');
+        $sort = I('post.sort','','intval');
         $data['icon'] = I('post.icon','','strip_tags');
         $size = I('post.size','','intval');
         $data['size'] = round($size/1024,3);
+        $data['status'] = 0;
 
         if(empty($data['hid'])){
+            @unlink(FILE_UPLOAD_ROOTPATH.$data['icon']);
             $this->error('警告，请选择所属酒店！',U('index'));
         }
         if(!$data['name'] or !$data['langcodeid'] or !$data['modeldefineid'] ){
+            @unlink(FILE_UPLOAD_ROOTPATH.$data['icon']);
             $this->error('警告！栏目信息未填完整，请补充完整！',U('index'));
         }
         if ($data['pid']>0) {
             $foo=$model->getById($data['pid']);
             if ($foo['langcodeid']!=$data['langcodeid']) {
+                @unlink(FILE_UPLOAD_ROOTPATH.$data['icon']);
                 $this->error('警告！当前菜单要与上级菜单的语言一致！',U('index'));
             }
         }
-        $vo = '';
-        $model->startTrans();
-        if($data['id']){//修改
-            if ($data['pid']==$data['id']) {
-                $this->error('警告！栏目上级不能选本身！',U('index'));
-            }
-            $vo = $model->getById($data['id']);
-
-            //查询容量
-            $changesize = $data['size'] - $vo['size'];
-            $volumeResult = $this->checkVolume($data['hid'],$changesize);//检查容量是否超标
-      
-            if($volumeResult === false){
-                @unlink(FILE_UPLOAD_ROOTPATH.$data['icon']);
-                $this->error("超过申请容量值，无法修改资源");
-            }
-
-            $result = $model->data($data)->where('id='.$data['id'])->save();
-            addlog('修改栏目信息，栏目ID：'.$data['id']);
-
-            //修改资源时  对allresource表进行操作
-            $allresourceResult = true;
-            $delAllresourceResult = true;
-            $addAllresourceResult = true;
-            if($data['icon'] != $vo['icon']){
-                //删除
-                if(!empty($vo['icon'])){
-                    $delName_arr = explode("/", $vo['icon']);
-                    $allresourceMap['name'] = $delName_arr[count($delName_arr)-1];
-                    $delAllresourceResult = $this->allresource_del($allresourceMap);
-                }
-                //新增
-                if(!empty($data['icon'])){
-                    $allresourceDate = array();
-                    $allresourceDate['hid'] = $data['hid'];
-                    $allresourceDate['type'] = 2;
-                    $allresourceName_arr = explode("/", $data['icon']);
-                    $allresourceDate['name'] = $allresourceName_arr[count($allresourceName_arr)-1];
-                    $allresourceDate['timeunix'] = time();
-                    $allresourceDate['time'] = date("Y-m-d H:i:s");
-                    $allresourceDate['web_upload_file'] = $data['icon'];
-                    $addAllresourceResult = $this->allresource_add($allresourceDate);
-                }
-                if($delAllresourceResult!==false && $addAllresourceResult!==false){
-                    $allresourceResult = true;
-                }else{
-                    $allresourceResult = false;
-                }
-            }
-
-        }else{//新增
-            
-            //查询容量
-            $volumeResult = $this->checkVolume($data['hid'],$data['size']);//检查容量是否超标
-
-            if($volumeResult === false){
-                @unlink(FILE_UPLOAD_ROOTPATH.$data['icon']);
-                $this->error("超过申请容量值，无法新增资源");
-            }
-
-            $data['status'] = 0;
-            $sort = $model->where('pid='.$data['pid'].' and langcodeid='.$data['langcodeid'].' and hid="'.$data['hid'].'"  ')->max('sort');
-            $data['sort'] = $sort+1;
-            $result = $model->data($data)->add();
-            addlog('添加栏目信息，栏目ID：'.$result);
-            
-            // 新增资源的信息保存到allresource表
-            $allresourceResult = true;
-            if(!empty($data['icon'])){
-                $allresourceDate = array();
-                $allresourceDate['hid'] = $data['hid'];
-                $allresourceName_arr = explode("/", $data['icon']);
-                $allresourceDate['name'] = $allresourceName_arr[count($allresourceName_arr)-1];
-                $allresourceDate['type'] = 2;
-                $allresourceDate['timeunix'] = time();
-                $allresourceDate['time'] = date("Y-m-d H:i:s");
-                $allresourceDate['web_upload_file'] = $data['icon'];
-                $allresourceResult = $this->allresource_add($allresourceDate);
-            }
-
+        if ($data['pid']==$data['id'] && !empty($data['pid'])) {
+            @unlink(FILE_UPLOAD_ROOTPATH.$data['icon']);
+            $this->error('警告！栏目上级不能选本身！',U('index'));
         }
-        $sizelist = M('hotel_resource')->field('SUM(size)')->where($hmap)->select();
-        $csizelist = M('hotel_category')->field('SUM(size)')->where($hmap)->select();
-        $rsize = $sizelist[0]['sum(size)']+$csizelist[0]['sum(size)'];
-        if(M("hotel_volume")->where($hmap)->count()){
-            $updatesize = D("hotel_volume")->where($hmap)->setField("content_size",$rsize);
-        }else{
-            $arrdata['hid'] = $data['hid'];
-            $arrdata['content_size'] = $rsize;
-            $arrdata['topic_size'] = 0.00;
-            $arrdata['ad_size'] = 0.00;
-            $updatesize = M("hotel_volume")->data($arrdata)->add();
+        if (!is_null($sort)) {
+            $data['sort'] = $sort;
         }
-
-        if($result !== false && $updatesize !== false && $allresourceResult!==false){
-            $model->commit();
-            
-            //allresource资源写入xml文件
-            $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$data['hid'].'.txt';
-            $xmlResult = $this->fileputXml(D("hotel_allresource"),$data['hid'],$xmlFilepath);
-
-            if($data['id']){
-                if(!empty($vo)){
-                    if($data['icon'] != $vo['icon']){
-                        @unlink(FILE_UPLOAD_ROOTPATH.$vo['icon']);
-                    } 
-                }
-            }
-            $this->success('恭喜，操作成功！',U('index'));
-        }else{
-            $model->rollback();
-            $this->error('操作失败！',U('index'));
-        }
+        return $data;
     }
+
     public function upload_icon(){
         $callback = array();
         if (!empty($_FILES[$_REQUEST["name"]]["name"])) {
@@ -977,13 +974,44 @@ class HotelCategoryController extends ComController {
         echo json_encode($callback);
     }
 
-    //测试 xml生成并写入文件
-    public function test_xml(){
-        $hid = '1';
-        $model = D("hotel_allresource");
-        $filepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$hid.'.txt';
-        $result = $this->fileputXml($model,$hid,$filepath);
-        var_dump($result);
+    /**
+     * [更新容量表]
+     * @param  [array] $hmap [更新容量表条件]
+     * @return [array] $updatesizeResult [更新结果]
+     */
+    private function updatevolume($hmap){
+
+        $sizelist = M('hotel_resource')->field('SUM(size)')->where($hmap)->select();
+        $csizelist = M('hotel_category')->field('SUM(size)')->where($hmap)->select();
+        $rsize = $sizelist[0]['sum(size)']+$csizelist[0]['sum(size)'];
+        if(M("hotel_volume")->where($hmap)->count()){
+            $updatesizeResult = D("hotel_volume")->where($hmap)->setField("content_size",$rsize);
+        }else{
+            $arrdata['hid'] = $data['hid'];
+            $arrdata['content_size'] = $rsize;
+            $arrdata['topic_size'] = 0.00;
+            $arrdata['ad_size'] = 0.00;
+            $updatesizeResult = M("hotel_volume")->data($arrdata)->add();
+        }
+        if($updatesizeResult === false){
+            M("hotel_volume")->rollback();
+            $this->error('更新容量表失败');
+        }
+        return $updatesizeResult;
+    }
+
+    private function updatejson_one($hid){
+        $map = array();
+        $map['hid'] = $hid;
+        $map['pid'] = 0;
+        $field = "id,hid,name,sort,intro,icon";
+        $list = D("hotel_category")->where($map)->field($field)->select();
+        $jsondata = json_encode($list);
+        if(!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid)){
+            mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid);
+        }
+        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/hotelcategory_first.json';
+        file_put_contents($filename, $jsondata);
     }
 
 }

@@ -8,6 +8,7 @@
                         <if condition="$personhid neq ''">
                         <select id="hid" name="hid" class="select2" style="width:300px;">
                           <option value=""></option>
+                          <option value="hid-1gg">{查询所有酒店}</option>
                           <volist name="personhid" id="phid">
                             <option value="{$phid}" <if condition="$hid eq $phid">selected</if> >{$phid|getHotelnameByHid}</option>
                           </volist>
@@ -15,6 +16,7 @@
                         <else />
                         <select id="hid" name="hid" class="select2" style="width:300px;">
                             <option></option>
+                            <option value="hid-1gg">{查询所有酒店}</option>
                             {$pHotel}
                         </select>
                         </if>
