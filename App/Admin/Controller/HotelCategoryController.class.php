@@ -148,7 +148,7 @@ class HotelCategoryController extends ComController {
         if ($currentMenuType['codevalue']=="100" || $currentMenuType['codevalue']=="101") {
             $catlist=array();
         }else{
-            $modelList = $Modeldefine->where('codevalue="100" or codevalue="101"')->field('id')->select();
+            $modelList = D("Modeldefine")->where('codevalue="100" or codevalue="101"')->field('id')->select();
             foreach ($modelList as $key => $value) {
                 $arr[$key]=$value['id'];
             }
@@ -229,7 +229,11 @@ class HotelCategoryController extends ComController {
         $this->updatevolume($hmap);
 
         // 更新资源json文件
-        $this->updatejson_one($data['hid']);
+        if($data['pid'] == 0){
+            $this->updatejson_one($data['hid']);
+        }elseif($data['pid'] >0){
+            $this->updatejson_two($data['hid']);
+        }
 
         $model->commit();
         if($data['id']){
@@ -266,7 +270,7 @@ class HotelCategoryController extends ComController {
             $this->error('警告！栏目信息未填完整，请补充完整！',U('index'));
         }
         if ($data['pid']>0) {
-            $foo=$model->getById($data['pid']);
+            $foo = D("hotel_category")->getById($data['pid']);
             if ($foo['langcodeid']!=$data['langcodeid']) {
                 @unlink(FILE_UPLOAD_ROOTPATH.$data['icon']);
                 $this->error('警告！当前菜单要与上级菜单的语言一致！',U('index'));
@@ -282,6 +286,9 @@ class HotelCategoryController extends ComController {
         return $data;
     }
 
+    /**
+     * [上传图标]
+     */
     public function upload_icon(){
         $callback = array();
         if (!empty($_FILES[$_REQUEST["name"]]["name"])) {
@@ -314,6 +321,10 @@ class HotelCategoryController extends ComController {
         echo json_encode($callback);
     }
 
+    /**
+     * [动态删除图标]
+     * @return [type] [description]
+     */
     public function delfilepath(){
         if($_POST['filepath']){
             @unlink(FILE_UPLOAD_ROOTPATH.$_POST['filepath']);
@@ -321,7 +332,9 @@ class HotelCategoryController extends ComController {
         echo true;
     }
 
-    //删除、批量删除
+    /**
+     * [一级二级栏目删除]
+     */
     public function delete(){
 
         $ids = I('post.ids');
@@ -329,12 +342,14 @@ class HotelCategoryController extends ComController {
             $this->error('参数错误！');  
         }
 
+        //查询删除数据
         $map['zxt_hotel_category.id'] = $ids['0'];
         $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.icon,zxt_hotel_category.pid,zxt_hotel_category.size,zxt_modeldefine.codevalue";
         $vo = D("hotel_category")->where($map)->field($field)->join('zxt_modeldefine ON zxt_hotel_category.modeldefineid=zxt_modeldefine.id')->find();
 
+        //检验是否可以删除
         if($vo['pid'] == 0){
-            $Category = D("hotel_category")->where('pid="'.$vo['id'].'"')->find();
+            $Category = D("hotel_category")->where('pid="'.$vo['id'].'"')->field('id')->find();
             if(!empty($Category)){
                 $this->error('该栏目下含有二级栏目，请先删除该栏目下的二级栏目');
                 die();
@@ -343,11 +358,11 @@ class HotelCategoryController extends ComController {
             if($vo['codevalue'] == 501){
                 $carouselMap['hid'] = $vo['hid'];
                 $carouselMap['cid'] = $vo['id'];
-                $Resource = D("hotel_carousel_resource")->where($carouselMap)->find();
+                $Resource = D("hotel_carousel_resource")->where($carouselMap)->field('id')->find();
             }else{
                 $hotelMap['hid'] = $vo['hid'];
                 $hotelMap['category_id'] = $vo['id'];
-                $Resource = D("hotel_resource")->where($hotelMap)->find();
+                $Resource = D("hotel_resource")->where($hotelMap)->field('id')->find();
             }
             if(!empty($Resource)){
                 $this->error('该栏目下含有资源，请先删除该栏目下资源再删除栏目');
@@ -355,48 +370,59 @@ class HotelCategoryController extends ComController {
             }
         }
 
-        $model = M(CONTROLLER_NAME);
-        $model->startTrans();
-        $delAllresourceResult_f = true;
+        D("hotel_category")->startTrans();
         
+        //减少容量
         $vmap['hid']=$vo['hid'];
-        $vresult = $this->csetDec($vmap,'content_size',$vo['size']); //减少容量
-
-        //更新资源表
-        if(!empty($vo['icon'])){
-            $delName_arr_f = explode("/", $vo['icon']);
-            $allresourceMap_f['name'] = $delName_arr_f[count($delName_arr_f)-1];
-            $delAllresourceResult_f = D("hotel_allresource")->where($allresourceMap_f)->delete();
+        $vresult = $this->csetDec($vmap,'content_size',$vo['size']);
+        if($vresult === false){
+            D("hotel_category")->rollback();
+            $this->error('减少容量操作失败');
         }
 
-        //删除二级菜单
-        $delCategoryResult = $model->where($map)->delete();
-
-        if($vresult!==false && $delAllresourceResult_f!==false && $delCategoryResult!==false){
-            @unlink(FILE_UPLOAD_ROOTPATH.$vo['icon']);
-            addlog('删除hotel_category表数据');
-
-            //allresource资源写入xml文件
-            $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$vo['hid'].'.txt';
-            $xmlResult = $this->fileputXml(D("hotel_allresource"),$vo['hid'],$xmlFilepath);
-
-            $model->commit();
-            $this->success('恭喜，删除成功！');
-        }else{
-            $model->rollback();
-            $this->error('删除失败，参数错误！');
+        //删除栏目
+        $delCategoryResult = D("hotel_category")->where($map)->delete();
+        if($delCategoryResult === false){
+            D("hotel_category")->rollback();
+            $this->error('删除栏目失败');
         }
+
+        //更新json
+        if($vo['pid'] == 0){
+            $this->updatejson_one($vo['hid']);
+        }elseif($vo['pid'] >0){
+            $this->updatejson_two($vo['hid']);
+        }
+
+        @unlink(FILE_UPLOAD_ROOTPATH.$vo['icon']);
+        D("hotel_category")->commit();
+        $this->success('恭喜，删除成功！');
     }
 
-    //更新栏目排序
+    /**
+     * [更新栏目排序]
+     */
     public function sort() {
         $menuids = explode(",", $_REQUEST['menuid']);
         $sorts = explode(",",$_REQUEST['sort']);
-        $model = M(CONTROLLER_NAME);
-        for ($i = 0; $i < count($sorts); $i++) {
-            $model->where('id='.$menuids[$i])->setField('sort',$sorts[$i]);
+        $count = count($menuids);
+        if ($count>0) {
+            $sql = "UPDATE zxt_hotel_category SET sort = CASE id";
+            for ($i=0; $i < $count ; $i++) { 
+                $sql .= sprintf(" WHEN %d THEN '%s'",$menuids[$i],$sorts[$i]);
+            }
+            $menuids_str = implode(",", $menuids);
+            $sql .= "END WHERE id IN($menuids_str)";
+            D("hotel_category")->execute($sql);
+
+            $vo = D("hotel_category")->where('id='.$menuids['0'])->field('hid')->find();
+            $this->updatejson_one($vo['hid']);
+            $this->updatejson_two($vo['hid']);
+            $this->success('恭喜，操作成功！');
+        }else{
+            $this->error('系统提示：参数错误');
         }
-        $this->success('恭喜，操作成功！');
+        
     }
     //栏目复制
     public function copy() {
@@ -1000,17 +1026,56 @@ class HotelCategoryController extends ComController {
         return $updatesizeResult;
     }
 
+    /**
+     * [更新一级栏目json数据]
+     * @param  [string] $hid [酒店编号]
+     */
     private function updatejson_one($hid){
         $map = array();
-        $map['hid'] = $hid;
-        $map['pid'] = 0;
-        $field = "id,hid,name,sort,intro,icon";
-        $list = D("hotel_category")->where($map)->field($field)->select();
-        $jsondata = json_encode($list);
+        $map['zxt_hotel_category.hid'] = $hid;
+        $map['zxt_hotel_category.pid'] = 0;
+        $map['zxt_modeldefine.codevalue'] = array('in',array('100','101','102','103'));
+        $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.name,zxt_hotel_category.sort,zxt_hotel_category.intro,zxt_hotel_category.icon,zxt_modeldefine.codevalue";
+        $list = D("hotel_category")->field($field)->where($map)->join('zxt_modeldefine on zxt_hotel_category.modeldefineid = zxt_modeldefine.id')->select();
+        if(!empty($list)){
+            foreach ($list as $key => $value) {
+                $list[$key]['nexttype'] = 'hotelcategory_second';
+            }
+            $jsondata = json_encode($list);
+        }else{
+            $jsondata = '';
+        }
         if(!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid)){
             mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid);
         }
         $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/hotelcategory_first.json';
+        file_put_contents($filename, $jsondata);
+    }
+
+    /**
+     * [更新二级栏目json数据]
+     * @param  [string] $hid [酒店编号]
+     */
+    private function updatejson_two($hid){
+        $map = array();
+        $map['zxt_hotel_category.hid'] = $hid;
+        $map['zxt_hotel_category.pid'] = array('neq',0);
+        $map['zxt_modeldefine.codevalue'] = array('in',array('100','101','102','103'));
+        $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.name,zxt_hotel_category.pid,zxt_hotel_category.sort,zxt_hotel_category.intro,zxt_hotel_category.icon,zxt_modeldefine.codevalue";
+        $list = D("hotel_category")->where($map)->field($field)->join('zxt_modeldefine on zxt_hotel_category.modeldefineid = zxt_modeldefine.id')->select();
+        if (!empty($list)) {
+            foreach ($list as $key => $value) {
+                $value['nexttype'] = 'hotelresource';
+                $plist[$value['pid']][] = $value;
+            }
+            $jsondata = json_encode($plist);
+        }else{
+            $jsondata = '';
+        }
+        if(!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid)){
+            mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid);
+        }
+        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/hotelcategory_second.json';
         file_put_contents($filename, $jsondata);
     }
 
