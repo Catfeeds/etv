@@ -333,6 +333,44 @@ class HotelCategoryController extends ComController {
     }
 
     /**
+     * [启用栏目]
+     */
+    public function unlock(){
+        if(count($_POST['ids']) <1){
+            $this->error('系统提示：参数错误');
+        }
+        $map['id'] = array('in',$_POST['ids']);
+        $result = D("hotel_category")->where($map)->setField('status',1);
+        if($result === false){
+            $this->error('系统提示：修改失败');
+        }else{
+            $vo = D("hotel_category")->where($map)->field('hid')->find();
+            $this->updatejson_one($vo['hid']);
+            $this->updatejson_two($vo['hid']);
+            $this->success('系统提示：启用成功');
+        }
+    }
+
+    /**
+     * [禁用栏目]
+     */
+    public function lock(){
+        if(count($_POST['ids']) <1){
+            $this->error('系统提示：参数错误');
+        }
+        $map['id'] = array('in',$_POST['ids']);
+        $result = D("hotel_category")->where($map)->setField('status',0);
+        if($result === false){
+            $this->error('系统提示：修改失败');
+        }else{
+            $vo = D("hotel_category")->where($map)->field('hid')->find();
+            $this->updatejson_one($vo['hid']);
+            $this->updatejson_two($vo['hid']);
+            $this->success('系统提示：禁用成功');
+        } 
+    }
+
+    /**
      * [一级二级栏目删除]
      */
     public function delete(){
@@ -421,10 +459,10 @@ class HotelCategoryController extends ComController {
             $this->success('恭喜，操作成功！');
         }else{
             $this->error('系统提示：参数错误');
-        }
-        
+        }   
     }
-    //栏目复制
+
+    //栏目复制(暂时屏蔽)
     public function copy() {
         $model = M(CONTROLLER_NAME);
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
@@ -473,6 +511,7 @@ class HotelCategoryController extends ComController {
 
         $this->display();
     }
+    //栏目复制主页(暂时屏蔽)
     public function copy_run(){
         $hid=$_REQUEST['hid'];
         $langA = $_REQUEST['srcLang'];
@@ -570,7 +609,11 @@ class HotelCategoryController extends ComController {
         $this->success('恭喜，操作成功！',U('index').'?hid='.$hid);
     }
 
+    /**
+     * [栏目资源主页]
+     */
     public function resource(){
+
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
         if(is_array($ids)){
             if(count($ids)>1){
@@ -584,13 +627,13 @@ class HotelCategoryController extends ComController {
             $category_id=$ids;
         }
 
-        $vo = D("hotel_category")->getById($category_id);
+        $vo = D("hotel_category")->where('id='.$category_id)->field('id,hid,modeldefineid,pid')->find();
         if ($vo['pid']==0) {
             $this->error('该栏目没有资源管理！',U('index').'?hid='.$vo['hid']);
         }
         $this->assign("current_category",$vo);
-        $Modeldefine=M('modeldefine');
-        $fo=$Modeldefine->getById($vo['modeldefineid']);
+
+        $fo = D('modeldefine')->where('id='.$vo['modeldefineid'])->field('codevalue')->find();
         if($fo['codevalue']==501){
             $map['cid'] = $category_id;
             $map['ctype'] = 'videohotel';
@@ -606,11 +649,12 @@ class HotelCategoryController extends ComController {
             $map['category_id']=$category_id;
             $map['cat']="content";
             $list = M('HotelResource')->where($map)->order("sort asc")->select();
-            $this -> assign("list",$list);
+            $this->assign('codevalue',$fo['codevalue']);
+            $this->assign("list",$list);
             $this->display();
         }
-
     }
+
     //删除、批量删除资源
     public function resource_delete(){
         $model = M("HotelResource");
@@ -719,20 +763,23 @@ class HotelCategoryController extends ComController {
             $this->error('参数错误！',U('resource').'?ids='.$_REQUEST['category_id']);
         }
     }
-    //添加
+    
+    /**
+     * [栏目资源添加主页]
+     */
     public function resource_add(){
-        $model = M(CONTROLLER_NAME);
-        $category_id=$_REQUEST['category_id'];
-        $vo=$model->getById($category_id);
+
+        $category_id = I('get.category_id');
+        $vo = D("hotel_category")->where('id='.$category_id)->field('id,hid,modeldefineid')->find();
         $this->assign("current_category",$vo);
-        $Modeldefine=M('modeldefine');
-        $fo=$Modeldefine->getById($vo['modeldefineid']);
+
+        $codevalue = I('get.codevalue','','intval');
         if ($vo['pid']==0) {
             //一级栏目的资源只能是图片
             $type=2;//图片
-        }else if ($fo['codevalue']=="103") {
+        }else if ($codevalue == "103") {
             $type=1;//视频
-        }else if ($fo['codevalue']=="102") {
+        }else if ($codevalue == "102") {
             $type=2;//图片
         }else{
             $this->error('该栏目不可添加资源！',U('resource').'?ids='.$category_id);
@@ -740,23 +787,25 @@ class HotelCategoryController extends ComController {
         $this->assign("resource_type",$type);
         $this->display();
     }
-    //修改
+
+    /**
+     * [栏目资源修改主页]
+     */
     public function resource_edit(){
-        $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
-        if(count($ids)!=1){
+
+        if(count(I('request.ids'))!=1){
             $this->error('参数错误，每次请修改一条内容！');
         }
-        $Resource = M("HotelResource");
-        $fo=$Resource->getById($ids[0]);
-        $filepath = $fo['filepath'];
-        $video_image = $fo['video_image'];
-        if(!empty($filepath)){
-            $fo['size1'] = round(filesize(FILE_UPLOAD_ROOTPATH.$filepath)/1024);
+        $ids = I('request.ids');
+        $fo = D("hotel_resource")->getById($ids[0]);
+
+        if(!empty($fo['filepath'])){
+            $fo['size1'] = round(filesize(FILE_UPLOAD_ROOTPATH.$fo['filepath'])/1024);
         }else{
             $fo['size1'] = 0;
         }
-        if(!empty($video_image)){
-            $fo['size2'] = round(filesize(FILE_UPLOAD_ROOTPATH.$video_image)/1024);
+        if(!empty($fo['video_image'])){
+            $fo['size2'] = round(filesize(FILE_UPLOAD_ROOTPATH.$fo['video_image'])/1024);
         }else{
             $fo['size2'] = 0;
         }
@@ -764,34 +813,14 @@ class HotelCategoryController extends ComController {
         $this->assign('vo',$fo);
         $this -> display();
     }
+
     //保存
     public function resource_update(){
-        $model=M('HotelResource');
-        $data['id'] = I('post.id','','intval');
-        $data['hid'] = I('post.hid','','strip_tags');
-        $data['title'] = isset($_POST['title'])?$_POST['title']:false;
-        $data['intro'] = I('post.intro','','strip_tags');
-        $data['sort'] = I('post.sort','','intval');
-        $data['filepath'] = I('post.filepath','','strip_tags');
-        $data['video_image'] = I('post.vimage','','strip_tags');
-        $data['price'] = I('post.price','','strip_tags');
-        $data['status'] = 0;
-        $codevalue = I('post.codevalue','','intval');
-        $data['audit_status'] = 0;
-        $size1 = I('post.size1','','intval');
-        $size2 = I('post.size2','','intval');
-        $size = $size1 + $size2;
-        $data['size'] = round($size/1024,3);
 
-        $hmap['hid'] = I('post.hid');
-        if(!$data['title']){
-            $this->error('警告！资源标题必须填写！');
-        }
-        if (empty($data['filepath'])) {
-            $this->error('请上传资源文件！');
-        }
-        $model->startTrans();
-        $vo = '';
+        //数据校验
+        $data = $this->resourceInputProcess();
+        
+        D("hotel_resource")->startTrans();
 
         if($data['id']){//修改
             $vo = $model->getById($data['id']);
@@ -875,67 +904,30 @@ class HotelCategoryController extends ComController {
                 $allresourceResult = false;
             }
 
-        }else{//新增
-            
+        }else{
+
             //查询容量
             $volumeResult = $this->checkVolume($data['hid'],$data['size']);//检查容量是否超标
-
             if($volumeResult === false){
                 @unlink(FILE_UPLOAD_ROOTPATH.$data['filepath']);
                 @unlink(FILE_UPLOAD_ROOTPATH.$data['video_image']);
                 $this->error("超过申请容量值，无法新增资源");
             }
             
-            $data['type'] = I('post.type','','intval');
-            $data['cat'] = 'content';
-            $data['category_id'] = I('post.category_id','','intval');
-            $data['upload_time'] = time();
-            $result = $model->data($data)->add();
-            addlog('添加栏目资源，ID：'.$result);
-
-            // 新增资源的信息保存到allresource表
-            $allresourceResult_f = true;
-            $allresourceResult_q = true;
-            if(!empty($data['filepath'])){
-                $allresourceDate_f['hid'] = $data['hid'];
-                $allresourceDate_f['type'] = $data['type'];
-                $allresourceName_arr_f = explode("/", $data['filepath']);
-                $allresourceDate_f['name'] = $allresourceName_arr_f[count($allresourceName_arr_f)-1];
-                $allresourceDate_f['timeunix'] = time();
-                $allresourceDate_f['time'] = date("Y-m-d H:i:s");
-                $allresourceDate_f['web_upload_file'] = $data['filepath'];
-                $allresourceResult_f = $this->allresource_add($allresourceDate_f);
-            }
-            if(!empty($data['video_image'])){
-                $allresourceDate_q['hid'] = $data['hid'];
-                $allresourceDate_q['type'] = $data['type'];
-                $allresourceName_arr_f = explode("/", $data['video_image']);
-                $allresourceDate_q['name'] = $allresourceName_arr_f[count($allresourceName_arr_f)-1];
-                $allresourceDate_q['timeunix'] = time();
-                $allresourceDate_q['time'] = date("Y-m-d H:i:s");
-                $allresourceDate_q['web_upload_file'] = $data['video_image'];
-                $allresourceResult_q = $this->allresource_add($allresourceDate_q);
-            }
-            if($allresourceResult_f && $allresourceResult_q){
-                $allresourceResult == true;
-            }else{
-                $allresourceResult == false;
+            //插入新增数据
+            $result = D("hotel_resource")->data($data)->add();
+            if($result === false){
+                D("hotel_resource")->rollback();
+                $this->error('系统提示：新增失败');
             }
         }
-        $sizelist = M('hotel_resource')->field('SUM(size)')->where($hmap)->select();
-        $csizelist = M('hotel_category')->field('SUM(size)')->where($hmap)->select();
-        $rsize = $sizelist[0]['sum(size)']+$csizelist[0]['sum(size)'];
 
-        if(M("hotel_volume")->where($hmap)->count()){
-            $updatesize = D("hotel_volume")->where($hmap)->setField("content_size",$rsize);
-        }else{
-            $arrdata['hid'] = $data['hid'];
-            $arrdata['content_size'] = $rsize;
-            $arrdata['topic_size'] = 0.00;
-            $arrdata['ad_size'] = 0.00;
-            $updatesize = M("hotel_volume")->data($arrdata)->add();
-        }
-
+        $hmap['hid'] = I('post.hid');
+        //更新容量表
+        $this->updatevolume($hmap);
+        //更新资源json
+        // $this->
+        
         if($result !== false && $updatesize !== false && $allresourceResult!==false){
             $model->commit();
 
@@ -957,6 +949,41 @@ class HotelCategoryController extends ComController {
             $this->error('操作失败',U('resource').'?ids='.$_REQUEST['category_id']);
         }
     }
+
+
+    private function resourceInputProcess(){
+
+        $data['id'] = I('post.id','','intval');
+        $data['hid'] = I('post.hid','','strip_tags');
+        $data['title'] = isset($_POST['title'])?$_POST['title']:false;
+        $data['intro'] = I('post.intro','','strip_tags');
+        $data['sort'] = I('post.sort','','intval');
+        $data['filepath'] = I('post.filepath','','strip_tags');
+        $data['video_image'] = I('post.vimage','','strip_tags');
+        $data['price'] = I('post.price','','strip_tags');
+        $data['status'] = 0;
+        $codevalue = I('post.codevalue','','intval');
+        $data['audit_status'] = 0;
+        $size1 = I('post.size1','','intval');
+        $size2 = I('post.size2','','intval');
+        $size = $size1 + $size2;
+        $data['size'] = round($size/1024,3);
+        if (is_null($data['id'])) {
+            $data['cat'] = 'content';
+            $data['upload_time'] = time();
+            $data['type'] = I('post.type','','intval');
+            $data['category_id'] = I('post.category_id','','intval');
+        }
+
+        if(!$data['title']){
+            $this->error('警告！资源标题必须填写！');
+        }
+        if (empty($data['filepath'])) {
+            $this->error('请上传资源文件！');
+        }
+        return data;
+    }
+
     public function upload(){
         $callback = array();
         if (!empty($_FILES[$_REQUEST["name"]]["name"])) {
@@ -1034,6 +1061,7 @@ class HotelCategoryController extends ComController {
         $map = array();
         $map['zxt_hotel_category.hid'] = $hid;
         $map['zxt_hotel_category.pid'] = 0;
+        $map['zxt_hotel_category.status'] = 1;
         $map['zxt_modeldefine.codevalue'] = array('in',array('100','101','102','103'));
         $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.name,zxt_hotel_category.sort,zxt_hotel_category.intro,zxt_hotel_category.icon,zxt_modeldefine.codevalue";
         $list = D("hotel_category")->field($field)->where($map)->join('zxt_modeldefine on zxt_hotel_category.modeldefineid = zxt_modeldefine.id')->select();
@@ -1059,6 +1087,7 @@ class HotelCategoryController extends ComController {
     private function updatejson_two($hid){
         $map = array();
         $map['zxt_hotel_category.hid'] = $hid;
+        $map['zxt_hotel_category.status'] = 1;
         $map['zxt_hotel_category.pid'] = array('neq',0);
         $map['zxt_modeldefine.codevalue'] = array('in',array('100','101','102','103'));
         $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.name,zxt_hotel_category.pid,zxt_hotel_category.sort,zxt_hotel_category.intro,zxt_hotel_category.icon,zxt_modeldefine.codevalue";
@@ -1077,6 +1106,16 @@ class HotelCategoryController extends ComController {
         }
         $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/hotelcategory_second.json';
         file_put_contents($filename, $jsondata);
+    }
+
+    private function updatejson_hotelresource($hid){
+        $map = array();
+        $map['hid'] = $hid;
+        $map['cat'] = 'content';
+        $map['status'] = 1;
+        $map['audit_status'] = 4;
+        $field = "";
+        
     }
 
 }

@@ -4,7 +4,7 @@
     <div class="row">
         <div class="col-xs-12">
             <div class="row">
-                <a class="label label-xlg label-primary" href="{:U('resource_add')}?category_id={$current_category['id']}"><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;添加</a>
+                <a class="label label-xlg label-primary" href="{:U('resource_add')}?category_id={$current_category['id']}&codevalue={$codevalue}"><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;添加</a>
                 <a class="label label-xlg label-success" href="javascript:;" id="edit" val="{:U('resource_edit')}"><i class="ace-icon fa fa-pencil bigger-100"></i>&nbsp;修改</a>
                 <a class="label label-xlg label-info" href="javascript:;" id="unlock" val="{:U('resource_unlock')}" ><i class="ace-icon fa fa-unlock bigger-100"></i>&nbsp;启用</a>
                 <a class="label label-xlg label-warning" href="javascript:;" id="lock" val="{:U('resource_lock')}"><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;禁用</a>

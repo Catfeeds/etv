@@ -6,6 +6,8 @@
             <div class="row">
                 <a class="label label-xlg label-primary" id="upload_sleep"><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;添加</a>
                 <a class="label label-xlg label-success" href="javascript:;" id="edit" val="{:U('deviceimgedit')}" ><i class="ace-icon fa fa-pencil bigger-100"></i>&nbsp;修改</a>
+                <a class="label label-xlg label-danger" href="javascript:;" id="delete" val="{:U('image_delete')}"><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除</a>
+                <a class="label label-xlg label-inverse" id="sleep_image_default" val="{:U(sleep_image_default)}" ><i class="ace-icon fa fa-wrench bigger-100"></i>&nbsp;设置默认图</a>
             </div>
             <div class="space-8"></div>
             <div class="row">
@@ -17,6 +19,7 @@
                           <th class="center"><input class="check-all" type="checkbox" value=""></th>
                           <th>名称</th>
                           <th>图片</th>
+                          <th>默认图</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -26,8 +29,13 @@
                           <td>{$val.image_name}</td>
                           <td>
                           <if condition="$val['image_path'] neq ''">
-                          <img src="{:C('UPLOADPATH')}{$val['image_path']}" style="width:120px;height:90px;"/>
+                          <img src="{:C('UPLOADPATH')}{$val['image_path']}" style="width:300px;height:200px;"/>
                           </if>
+                          </td>
+                          <td>
+                            <if condition="$val['image_default'] eq 1">
+                              √
+                            </if>
                           </td>
                         </tr>
                       </volist>
@@ -215,6 +223,46 @@
           return;
       }
       $("#form").attr("action",$("#edit").attr("val"));
+      $("#form").submit();
+    });
+    $("#sleep_image_default").click(function(){
+      var len = $("input[name='ids[]']:checked").length;
+      if(len!=1){
+          bootbox.confirm({
+          title: "系统提示",
+          message: "仅能对一条数据进行操作", 
+          callback:function(result){},
+              buttons: {
+                  "cancel" : {"label" : "取消"},
+                  "confirm" : {
+                      "label" : "确定",
+                      "className" : "btn-danger"
+                  }
+              }
+          });
+          return;
+      }
+      $("#form").attr("action",$("#sleep_image_default").attr("val"));
+      $("#form").submit();
+    });
+    $("#delete").click(function(){
+      var len = $("input[name='ids[]']:checked").length;
+      if(len!=1){
+          bootbox.confirm({
+          title: "系统提示",
+          message: "仅能对一条数据进行操作", 
+          callback:function(result){},
+              buttons: {
+                  "cancel" : {"label" : "取消"},
+                  "confirm" : {
+                      "label" : "确定",
+                      "className" : "btn-danger"
+                  }
+              }
+          });
+          return;
+      }
+      $("#form").attr("action",$("#delete").attr("val"));
       $("#form").submit();
     });
   </script>

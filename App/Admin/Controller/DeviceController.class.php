@@ -1388,5 +1388,37 @@ class DeviceController extends ComController {
             echo 0;
         }
         
-    }   
+    }  
+
+    /**
+     * [删除休眠背景图]
+     */
+    public function image_delete(){
+        if(count($_POST['ids'])!=1){
+            $this->error('系统提示:参数错误');
+        }
+        $vo = D("device_mac_image")->where('image_default=1')->field('id')->find();
+        if (!empty($vo['id'])) {
+            $default_id = $vo['id'];
+        }else{
+            $default_id = '';
+        }
+        $map['sleep_imageid'] = D("device")->where('sleep_imageid='.$_POST['ids']['0'])->setField('sleep_imageid',$default_id);
+        D("device_mac_image")->where('id='.$_POST['ids']['0'])->delete();
+        $this->success('操作成功');
+    }
+
+    /**
+     * [设定默认休眠背景图]
+     */
+    public function sleep_image_default(){
+        if(count($_POST['ids'])!=1){
+            $this->error('系统提示：参数错误');
+        }
+        $map['id'] = $_POST['ids']['0'];
+        $nmap['id'] = array('neq',$_POST['ids']['0']);
+        D("device_mac_image")->where($nmap)->setField('image_default',0);
+        D("device_mac_image")->where($map)->setField('image_default',1);
+        $this->success('操作成功');
+    }
 }
