@@ -183,7 +183,9 @@ class HotelCategoryController extends ComController {
         echo json_encode($catlist);
     }
 
-    //保存
+    /**
+     * [更新栏目]
+     */
     public function update(){
 
         $data = $this->categoryInputProcess();
@@ -237,7 +239,9 @@ class HotelCategoryController extends ComController {
 
         $model->commit();
         if($data['id']){
-            @unlink(FILE_UPLOAD_ROOTPATH.$vo['icon']);
+            if ($data['icon'] != $vo['icon']) {
+                @unlink(FILE_UPLOAD_ROOTPATH.$vo['icon']);
+            }
         }
         $this->success('恭喜，操作成功！',U('index'));
     }
@@ -655,54 +659,38 @@ class HotelCategoryController extends ComController {
         }
     }
 
-    //删除、批量删除资源
+    /**
+     * [删除栏目资源]
+     */
     public function resource_delete(){
+
         $model = M("HotelResource");
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
-        if(is_array($ids)){
-            if(!$ids){
-                $this->error('参数错误！');
-            }
-            foreach($ids as $k=>$v){
-                $ids[$k] = intval($v);
-            }
+        if ($ids) {
             $map['id']  = array('in',$ids);
         }else{
-            $map['id']  = $ids;
+            $this->error('删除失败，参数错误！',U('resource').'?ids='.$_REQUEST['category_id']);
         }
-        $list = $model->where($map)->select();
+
+        $list = $model->where($map)->field('id,hid,filepath,video_image,size')->select();
         $model->startTrans();
-        $getName = array();
-        foreach ($list as $key => $value) {
-            $vmap['hid']=$value['hid'];
-            //更改volume表
-            $vresult = $this->csetDec($vmap,'content_size',$value['size']);
-            //需要删除的资源名称
-            if(!empty($value['filepath'])){
-                $getName_arr = explode("/", $value['filepath']);
-                $getName[] = $getName_arr[count($getName_arr)-1];
-            }
-            if(!empty($value['video_image'])){
-                $getName_arr = explode("/", $value['video_image']);
-                $getName[] = $getName_arr[count($getName_arr)-1];
-            }
+
+        //更新容量
+        $vresult = $this->updatevolume($list['0']['hid']);
+        if ($vresult === false) {
+            $model->rollback();
+            $this->error('删除失败，参数错误！',U('resource').'?ids='.$_REQUEST['category_id']);
         }
 
-        //删除资源表
-        $delAllresourceResult = true;
-        if(!empty($getName)){
-            $delAllresourceMap['name'] = array('in',$getName);
-            $delAllresourceResult = D("hotel_allresource")->where($delAllresourceMap)->delete();
-        }
+        if($model->where($map)->delete()){
 
-        if($model->where($map)->delete() && $delAllresourceResult!==false){
-            if(is_array($ids)){
-                $ids = implode(',',$ids);
-            }
-            addlog('删除资源表数据，数据ID：'.$ids);
             $model->commit();
+
+            //更新资源栏目
+            $this->updatejson_hotelresource($list['0']['hid']);
+
+            //删除对应文件
             foreach ($list as $key => $value) {
-                //删除对应文件
                 @unlink(FILE_UPLOAD_ROOTPATH.$value['filepath']);
                 @unlink(FILE_UPLOAD_ROOTPATH.$value['video_image']);
             }
@@ -712,28 +700,47 @@ class HotelCategoryController extends ComController {
             $this->error('删除失败，参数错误！',U('resource').'?ids='.$_REQUEST['category_id']);
         }
     }
+
+    /**
+     * [酒店栏目资源排序更新]
+     * @return [type] [description]
+     */
     public function resource_sort() {
         $menuids = explode(",", $_REQUEST['menuid']);
         $sorts = explode(",",$_REQUEST['sort']);
-        $Resource = D("HotelResource");
-        for ($i = 0; $i < count($sorts); $i++) {
-            $Resource->where('id='.$menuids[$i])->setField('sort',$sorts[$i]);
-        }
+        $count = count($menuids);
+        if ($count>0) {
+            $sql = "UPDATE zxt_hotel_resource SET sort = CASE id";
+            for ($i=0; $i < $count ; $i++) { 
+                $sql .= sprintf(" WHEN %d THEN '%s'",$menuids[$i],$sorts[$i]);
+            }
+            $menuids_str = implode(",", $menuids);
+            $sql .= "END WHERE id IN($menuids_str)";
+            D("hotel_resource")->execute($sql);
+
+            $vo = D("hotel_resource")->where('id='.$menuids['0'])->field('hid')->find();
+            $this->updatejson_hotelresource($vo['hid']);
+            $this->success('恭喜，操作成功！');
+        }else{
+            $this->error('系统提示：参数错误');
+        }   
         $this->success('恭喜，操作成功！',U('resource').'?ids='.$_REQUEST['category_id']);
     }
+
+    /**
+     * [栏目资源启用]
+     */
     public function resource_unlock(){
         $model = M("HotelResource");
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
         if($ids){
-            if(is_array($ids)){
-                $ids = implode(',',$ids);
-                $map['id']  = array('in',$ids);
-            }else{
-                $map = 'id='.$ids;
-            }
+            $ids_str = implode(',',$ids);
+            $map['id']  = array('in',$ids_str);
             $result = $model->where($map)->setField("status",1);
             if($result !== false){
-                addlog('启用'.CONTROLLER_NAME.'表数据，数据ID：'.$ids);
+                addlog('启用'.CONTROLLER_NAME.'表数据，数据ID：'.$ids_str);
+                $vo = D("hotel_resource")->where('id='.$ids['0'])->field('hid')->find();
+                $this->updatejson_hotelresource($vo['hid']);
                 $this->success('恭喜，启用成功！',U('resource').'?ids='.$_REQUEST['category_id']);
             }else{
                 $this->error('启用失败，参数错误！',U('resource').'?ids='.$_REQUEST['category_id']);
@@ -742,19 +749,21 @@ class HotelCategoryController extends ComController {
             $this->error('参数错误！',U('resource').'?ids='.$_REQUEST['category_id']);
         }
     }
+
+    /**
+     * [栏目资源禁用]
+     */
     public function resource_lock(){
         $model = M("HotelResource");
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
         if($ids){
-            if(is_array($ids)){
-                $ids = implode(',',$ids);
-                $map['id']  = array('in',$ids);
-            }else{
-                $map = 'id='.$ids;
-            }
+            $ids_str = implode(',',$ids);
+            $map['id']  = array('in',$ids_str);
             $result = $model->where($map)->setField("status",0);
             if($result !== false){
-                addlog('禁用'.CONTROLLER_NAME.'表数据，数据ID：'.$ids);
+                addlog('禁用'.CONTROLLER_NAME.'表数据，数据ID：'.$ids_str);
+                $vo = D("hotel_resource")->where('id='.$ids['0'])->field('hid')->find();
+                $this->updatejson_hotelresource($vo['hid']);
                 $this->success('恭喜，禁用成功！',U('resource').'?ids='.$_REQUEST['category_id']);
             }else{
                 $this->error('禁用失败，参数错误！',U('resource').'?ids='.$_REQUEST['category_id']);
@@ -770,20 +779,21 @@ class HotelCategoryController extends ComController {
     public function resource_add(){
 
         $category_id = I('get.category_id');
-        $vo = D("hotel_category")->where('id='.$category_id)->field('id,hid,modeldefineid')->find();
+        $vo = D("hotel_category")->where('id='.$category_id)->field('id,hid,pid,modeldefineid')->find();
         $this->assign("current_category",$vo);
 
         $codevalue = I('get.codevalue','','intval');
         if ($vo['pid']==0) {
             //一级栏目的资源只能是图片
             $type=2;//图片
-        }else if ($codevalue == "103") {
+        }else if ($codevalue == 103) {
             $type=1;//视频
-        }else if ($codevalue == "102") {
+        }else if ($codevalue == 102) {
             $type=2;//图片
         }else{
             $this->error('该栏目不可添加资源！',U('resource').'?ids='.$category_id);
         }
+        
         $this->assign("resource_type",$type);
         $this->display();
     }
@@ -814,12 +824,14 @@ class HotelCategoryController extends ComController {
         $this -> display();
     }
 
-    //保存
+    /**
+     * [栏目资源保存]
+     */
     public function resource_update(){
 
         //数据校验
         $data = $this->resourceInputProcess();
-        
+
         D("hotel_resource")->startTrans();
 
         if($data['id']){//修改
@@ -828,80 +840,20 @@ class HotelCategoryController extends ComController {
             //查询容量
             $changesize = $data['size'] - $vo['size'];
             $volumeResult = $this->checkVolume($data['hid'],$changesize);//检查容量是否超标
-
             if($volumeResult === false){
                 if($vo['video_image'] != $data['video_image']){
                     @unlink(FILE_UPLOAD_ROOTPATH.$data['video_image']);
-                    
                 }
                 if($vo['filepath'] != $data['filepath']){
                     @unlink(FILE_UPLOAD_ROOTPATH.$data['filepath']);
-                    
                 }
                 $this->error("超过申请容量值，无法修改资源");
             }
 
             $result = $model->data($data)->where('id='.$data['id'])->save();
-            addlog('修改栏目资源，ID：'.$data['id']);
-
-            //修改资源时 对allresource表进行操作 记录所存资源
-            $delAllresourceResult_f = true;
-            $delAllresourceResult_q = true;
-            $addAllresourceResult_f = true;
-            $addAllresourceResult_q = true;
-            if($data['filepath'] != $vo['filepath']){
-                //删除
-                if(!empty($vo['filepath'])){
-                    $delName_arr_f = explode("/", $vo['filepath']);
-                    $allresourceMap_f['name'] = $delName_arr_f[count($delName_arr_f)-1];
-                    $delAllresourceResult_f = $this->allresource_del($allresourceMap_f);
-                }
-                //新增
-                if(!empty($data['filepath'])){
-                    $allresourceDate_f['hid'] = $data['hid'];
-                    $allresourceDate_f['type'] = $vo['type'];
-                    $allresourceName_arr_f = explode("/", $data['filepath']);
-                    $allresourceDate_f['name'] = $allresourceName_arr_f[count($allresourceName_arr_f)-1];
-                    $allresourceDate_f['timeunix'] = time();
-                    $allresourceDate_f['time'] = date("Y-m-d H:i:s");
-                    $allresourceDate_f['web_upload_file'] = $data['filepath'];
-                    $addAllresourceResult_f = $this->allresource_add($allresourceDate_f);
-                }
-            }
-            if($data['video_image'] != $vo['video_image']){
-                //删除
-                if(!empty($vo['video_image'])){
-                    $delName_arr_q = explode("/", $vo['video_image']);
-                    $allresourceMap_q['name'] = $delName_arr_q[count($delName_arr_q)-1];
-                    $delAllresourceResult_q = $this->allresource_del($allresourceMap_q);
-                }
-                //新增
-                if(!empty($data['video_image'])){
-                    $allresourceDate_q['hid'] = $data['hid'];
-                    $allresourceDate_q['type'] = $vo['type'];
-                    $allresourceName_arr_q = explode("/", $data['video_image']);
-                    $allresourceDate_q['name'] = $allresourceName_arr_q[count($allresourceName_arr_q)-1];
-                    $allresourceDate_q['timeunix'] = time();
-                    $allresourceDate_q['time'] = date("Y-m-d H:i:s");
-                    $allresourceDate_q['web_upload_file'] = $data['video_image'];
-                    $addAllresourceResult_q = $this->allresource_add($allresourceDate_q);
-                }
-            }
-            if($delAllresourceResult_f!==false && $delAllresourceResult_q!==false){
-                $delAllresourceResult = true;
-            }else{
-                $delAllresourceResult = false;
-            }
-            if($addAllresourceResult_f!==false && $addAllresourceResult_q!==false){
-                $addAllresourceResult = true;
-            }else{
-                $addAllresourceResult = false;
-            }
-
-            if($delAllresourceResult!==false && $addAllresourceResult!==false){
-                $allresourceResult = true;
-            }else{
-                $allresourceResult = false;
+            if($result === false){
+                D("hotel_resource")->rollback();
+                $this->error('系统提示：新增失败');
             }
 
         }else{
@@ -913,7 +865,7 @@ class HotelCategoryController extends ComController {
                 @unlink(FILE_UPLOAD_ROOTPATH.$data['video_image']);
                 $this->error("超过申请容量值，无法新增资源");
             }
-            
+
             //插入新增数据
             $result = D("hotel_resource")->data($data)->add();
             if($result === false){
@@ -926,31 +878,24 @@ class HotelCategoryController extends ComController {
         //更新容量表
         $this->updatevolume($hmap);
         //更新资源json
-        // $this->
-        
-        if($result !== false && $updatesize !== false && $allresourceResult!==false){
-            $model->commit();
+        // $this->updatejson_hotelresource($hmap);
 
-            //allresource资源写入xml文件
-            $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$data['hid'].'.txt';
-            $xmlResult = $this->fileputXml(D("hotel_allresource"),$data['hid'],$xmlFilepath);
-
-            if(!empty($vo)){
-                if($data['filepath'] != $vo['filepath']){
-                    @unlink(FILE_UPLOAD_ROOTPATH.$vo['filepath']);
-                }
-                if ($data['video_image'] != $vo['video_image']) {
-                    @unlink(FILE_UPLOAD_ROOTPATH.$vo['video_image']);
-                }
+        if (!empty($data['id'])) {
+            if($data['filepath'] != $vo['filepath']){
+                @unlink(FILE_UPLOAD_ROOTPATH.$vo['filepath']);
             }
-            $this->success('恭喜，操作成功！',U('resource').'?ids='.$_REQUEST['category_id']);
-        }else{
-            $model->rollback();
-            $this->error('操作失败',U('resource').'?ids='.$_REQUEST['category_id']);
+            if ($data['video_image'] != $vo['video_image']) {
+                @unlink(FILE_UPLOAD_ROOTPATH.$vo['video_image']);
+            }
         }
+        
+        D("hotel_resource")->commit();
+        $this->success('恭喜，操作成功！',U('resource').'?ids='.$_REQUEST['category_id']);
     }
 
-
+    /**
+     * [栏目资源输入数据处理]
+     */
     private function resourceInputProcess(){
 
         $data['id'] = I('post.id','','intval');
@@ -968,7 +913,7 @@ class HotelCategoryController extends ComController {
         $size2 = I('post.size2','','intval');
         $size = $size1 + $size2;
         $data['size'] = round($size/1024,3);
-        if (is_null($data['id'])) {
+        if (empty($data['id'])) {
             $data['cat'] = 'content';
             $data['upload_time'] = time();
             $data['type'] = I('post.type','','intval');
@@ -981,7 +926,7 @@ class HotelCategoryController extends ComController {
         if (empty($data['filepath'])) {
             $this->error('请上传资源文件！');
         }
-        return data;
+        return $data;
     }
 
     public function upload(){
@@ -1108,14 +1053,29 @@ class HotelCategoryController extends ComController {
         file_put_contents($filename, $jsondata);
     }
 
+    /**
+     * [更新栏目资源json文件]
+     */
     private function updatejson_hotelresource($hid){
-        $map = array();
         $map['hid'] = $hid;
         $map['cat'] = 'content';
         $map['status'] = 1;
         $map['audit_status'] = 4;
         $field = "";
-        
+        $list = D("hotel_resource")->where($map)->field()->select();
+        if (!empty($list)) {
+            foreach ($list as $key => $value) {
+                $plist[$value['category_id']][] = $value; 
+            }
+            $jsondata = json_encode($plist);
+        }else{
+            $jsondata = '';
+        }
+        if(!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid)){
+            mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid);
+        }
+        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/hotelresource.json';
+        file_put_contents($filename, $jsondata);
     }
 
 }

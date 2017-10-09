@@ -45,13 +45,26 @@ class PushHotelResourceController extends ComController {
         $this -> assign("list",$list);
         $this->display();
     }
+    
+    /**
+     * [内容发布通过]
+     */
     public function push(){
         $this->changeAuditStatus(4);
     }
+
+    /**
+     * [内容发布不通过]
+     */
     public function unpush(){
         $this->changeAuditStatus(3);
     }
+
+    /**
+     * [内容发布流程处理]
+     */
     public function changeAuditStatus($audit_status){
+
         if(empty($_REQUEST['ids'])){
             $this->error("至少选择一条记录");
             die();
@@ -69,9 +82,16 @@ class PushHotelResourceController extends ComController {
             $data = array('audit_time'=>time(),'audit_status'=>$audit_status);
             $result = $model->where($map)->setField($data);
         }
+
         if($result === false){
             $this->error("修改状态失败");
         }else{
+
+            //获取需更新hid并更新hid对应的栏目资源json
+            $hidlist = $model->where($map)->group('hid')->field('hid')->select();
+            foreach ($hidlist as $key => $value) {
+                $this->updatejson_hotelresource($value);
+            }
             if($audit_status == 3){
                addAuditlog("内容发布未通过,数据ID为：".$idsstr,$resouce_type=11,$type=2);
             }elseif($audit_status == 4){
@@ -79,5 +99,30 @@ class PushHotelResourceController extends ComController {
             }
             $this->success("修改状态成功");
         }
+    }
+
+    /**
+     * [更新栏目资源的json方法]
+     * @param  [array] $map [hid]
+     */
+    private function updatejson_hotelresource($map){
+        $map['cat'] = 'content';
+        $map['status'] = 1;
+        $map['audit_status'] = 4;
+        $field = "";
+        $list = D("hotel_resource")->where($map)->field()->select();
+        if (!empty($list)) {
+            foreach ($list as $key => $value) {
+                $plist[$value['category_id']][] = $value; 
+            }
+            $jsondata = json_encode($plist);
+        }else{
+            $jsondata = '';
+        }
+        if(!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid)){
+            mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid);
+        }
+        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/hotelresource.json';
+        file_put_contents($filename, $jsondata);
     }
 }
