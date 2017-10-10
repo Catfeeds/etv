@@ -878,7 +878,7 @@ class HotelCategoryController extends ComController {
         //更新容量表
         $this->updatevolume($hmap);
         //更新资源json
-        // $this->updatejson_hotelresource($hmap);
+        $this->updatejson_hotelresource(I('post.hid'));
 
         if (!empty($data['id'])) {
             if($data['filepath'] != $vo['filepath']){
@@ -1007,12 +1007,19 @@ class HotelCategoryController extends ComController {
         $map['zxt_hotel_category.hid'] = $hid;
         $map['zxt_hotel_category.pid'] = 0;
         $map['zxt_hotel_category.status'] = 1;
-        $map['zxt_modeldefine.codevalue'] = array('in',array('100','101','102','103'));
-        $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.name,zxt_hotel_category.sort,zxt_hotel_category.intro,zxt_hotel_category.icon,zxt_modeldefine.codevalue";
+        // $map['zxt_modeldefine.codevalue'] = array('in',array('100','101','102','103'));
+        $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.name,zxt_hotel_category.sort,zxt_hotel_category.intro,zxt_hotel_category.icon,zxt_modeldefine.codevalue,zxt_modeldefine.packagename,zxt_modeldefine.classname";
         $list = D("hotel_category")->field($field)->where($map)->join('zxt_modeldefine on zxt_hotel_category.modeldefineid = zxt_modeldefine.id')->select();
         if(!empty($list)){
             foreach ($list as $key => $value) {
                 $list[$key]['nexttype'] = 'hotelcategory_second';
+            }
+            if (in_array(array('100','101','102','103'), $value['codevalue'])) {
+                $list[$key]['nexttype'] = 'hotelcategory_second';
+            }elseif ($value['codevalue'] == '501') {
+                $value['nexttype'] = 'videohotel';
+            }else{
+                $value['nexttype'] = 'app';
             }
             $jsondata = json_encode($list);
         }else{
@@ -1034,12 +1041,18 @@ class HotelCategoryController extends ComController {
         $map['zxt_hotel_category.hid'] = $hid;
         $map['zxt_hotel_category.status'] = 1;
         $map['zxt_hotel_category.pid'] = array('neq',0);
-        $map['zxt_modeldefine.codevalue'] = array('in',array('100','101','102','103'));
-        $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.name,zxt_hotel_category.pid,zxt_hotel_category.sort,zxt_hotel_category.intro,zxt_hotel_category.icon,zxt_modeldefine.codevalue";
+        // $map['zxt_modeldefine.codevalue'] = array('in',array('100','101','102','103'));
+        $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.name,zxt_hotel_category.pid,zxt_hotel_category.sort,zxt_hotel_category.intro,zxt_hotel_category.icon,zxt_modeldefine.codevalue,zxt_modeldefine.packagename,zxt_modeldefine.classname";
         $list = D("hotel_category")->where($map)->field($field)->join('zxt_modeldefine on zxt_hotel_category.modeldefineid = zxt_modeldefine.id')->select();
         if (!empty($list)) {
             foreach ($list as $key => $value) {
-                $value['nexttype'] = 'hotelresource';
+                if (in_array(array('100','101','102','103'), $value['codevalue'])) {
+                    $value['nexttype'] = 'hotelresource';
+                }elseif ($value['codevalue'] == '501') {
+                    $value['nexttype'] = 'videohotel';
+                }else{
+                    $value['nexttype'] = 'app';
+                }
                 $plist[$value['pid']][] = $value;
             }
             $jsondata = json_encode($plist);

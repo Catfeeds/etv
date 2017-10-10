@@ -72,6 +72,12 @@ class PushCarouselController extends ComController {
         if($result === false){
             $this->error("修改状态失败");
         }else{
+
+            //获取需更新hid并更新hid对应的视频轮播json
+            $hidlist = $model->where($map)->group('hid,ctype')->field('hid,ctype')->select();
+            foreach ($hidlist as $key => $value) {
+                $this->updatejson_hotelcarousel($value);
+            }
             if($audit_status == 3){
                addAuditlog("SD卡视频资源发布未通过,数据ID为：".$idsstr,$resouce_type=20,$type=2);
             }elseif($audit_status == 4){
@@ -79,5 +85,29 @@ class PushCarouselController extends ComController {
             }
             $this->success("修改状态成功");
         }
+    }
+
+    /**
+     * [更新酒店视频轮播json数据]
+     * @param  [array] $hmap [hid数组]
+     */
+    private function updatejson_hotelcarousel($hmap){
+        $hmap['audit_status'] = 4;
+        $hmap['status'] = 1;
+        $field = "hid,cid,title,intro,sort,filepath,video_image";
+        $list = D("hotel_carousel_resource")->where($hmap)->field($field)->order('sort')->select();
+        if (!empty($list)) {
+            foreach ($list as $key => $value) {
+                $plist[$value['cid']][] = $value;
+            }
+            $jsondata = json_encode($plist);
+        }else{
+            $jsondata = '';
+        }
+        if(!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hmap['hid'])){
+            mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hmap['hid']);
+        }
+        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hmap['hid'].'/'.$hmap['ctype'].'.json';
+        file_put_contents($filename, $jsondata);
     }
 }

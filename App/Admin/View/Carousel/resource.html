@@ -114,29 +114,29 @@
 			})
 			.done(function(data) {
 				if(data == true){
-                    var str = "更新成功";
-                }else{
-                    var str = "更新失败";
+          var str = "更新成功";
+        }else{
+            var str = "更新失败";
+        }
+        bootbox.confirm({
+            title: "更新排序",
+            message: str, 
+            callback:function(result){},
+            buttons: {
+                "cancel" : {"label" : "取消"},
+                "confirm" : {
+                    "label" : "确定",
+                    "className" : "btn-danger"
                 }
-                bootbox.confirm({
-                    title: "更新排序",
-                    message: str, 
-                    callback:function(result){},
-                    buttons: {
-                        "cancel" : {"label" : "取消"},
-                        "confirm" : {
-                            "label" : "确定",
-                            "className" : "btn-danger"
-                        }
-                    }
-                });
-            })
-            .fail(function() {
-                console.log("error");
-            })
-            .always(function() {
-                console.log("complete");
-            });
+            }
+        });
+      })
+      .fail(function() {
+          console.log("error");
+      })
+      .always(function() {
+          console.log("complete");
+      });
 		});
 
 		$("#unlock").click(function(){

@@ -129,78 +129,6 @@ class CarouselController extends ComController {
 
             $chghotellist[] = $data['hid'];
             $result = D("hotel_carousel_resource")->data($data)->where('id='.$data['id'])->save();
-            addlog('修改栏目资源，ID：'.$data['id']);
-
-            //修改资源时 对allresource表进行操作 记录所存资源
-            // $delAllresourceResult_f = true;
-            // $delAllresourceResult_q = true;
-            // $addAllresourceResult_f = true;
-            // $addAllresourceResult_q = true;
-            // if($data['filepath'] != $vo['filepath']){
-            //     //删除
-            //     if(!empty($vo['filepath'])){
-            //         $delName_arr_f = explode("/", $vo['filepath']);
-            //         $allresourceMap_f['name'] = $delName_arr_f[count($delName_arr_f)-1];
-            //         $delAllresourceResult_f = D("hotel_sd_allresource")->where($allresourceMap_f)->delete();
-            //     }
-            //     //新增
-            //     if(!empty($data['filepath'])){
-            //         $allresourceName_arr_f = explode("/", $data['filepath']);
-            //          $theallresourceName = $allresourceName_arr_f[count($allresourceName_arr_f)-1];
-            //         foreach ($chghotellist as $key => $value) {
-            //             $allresourceDate_f[$key]['hid'] = $value;
-            //             $allresourceDate_f[$key]['type'] = 1;
-            //             $allresourceDate_f[$key]['mold'] = 'carousel';
-            //             $allresourceDate_f[$key]['name'] = $theallresourceName;
-            //             $allresourceDate_f[$key]['timeunix'] = time();
-            //             $allresourceDate_f[$key]['time'] = date("Y-m-d H:i:s");
-            //             $allresourceDate_f[$key]['web_upload_file'] = $data['filepath'];
-            //         }
-            //         $addAllresourceResult_f = D("hotel_sd_allresource")->addAll($allresourceDate_f);
-            //     }
-            // }
-            // if($data['video_image'] != $vo['video_image']){
-            //     //删除
-            //     if(!empty($vo['video_image'])){
-            //         $delName_arr_q = explode("/", $vo['video_image']);
-            //         $allresourceMap_q['name'] = $delName_arr_q[count($delName_arr_q)-1];
-            //         // $delAllresourceResult_q = $this->allresource_del($allresourceMap_q);
-            //         $delAllresourceResult_q = D("hotel_sd_allresource")->where($allresourceMap_q)->delete();
-
-            //     }
-            //     //新增
-            //     if(!empty($data['video_image'])){
-            //         $allresourceName_arr_q = explode("/", $data['video_image']);
-            //         $theallresourceName = $allresourceName_arr_q[count($allresourceName_arr_q)-1];
-            //         foreach ($chghotellist as $key => $value) {
-            //             $allresourceDate_q[$key]['hid'] = $value;
-            //             $allresourceDate_q[$key]['type'] = 2;
-            //             $allresourceDate_q[$key]['mold'] = 'carousel';
-            //             $allresourceDate_q[$key]['name'] = $theallresourceName;
-            //             $allresourceDate_q[$key]['timeunix'] = time();
-            //             $allresourceDate_q[$key]['time'] = date("Y-m-d H:i:s");
-            //             $allresourceDate_q[$key]['web_upload_file'] = $data['video_image'];
-            //         }
-            //         // $addAllresourceResult_q = D("hotel_allresource")->addAll($allresourceDate_q);
-            //         $addAllresourceResult_q = D("hotel_sd_allresource")->addAll($allresourceDate_q);
-            //     }
-            // }
-            // if($delAllresourceResult_f!==false && $delAllresourceResult_q!==false){
-            //     $delAllresourceResult = true;
-            // }else{
-            //     $delAllresourceResult = false;
-            // }
-            // if($addAllresourceResult_f!==false && $addAllresourceResult_q!==false){
-            //     $addAllresourceResult = true;
-            // }else{
-            //     $addAllresourceResult = false;
-            // }
-
-            // if($delAllresourceResult!==false && $addAllresourceResult!==false){
-            //     $allresourceResult = true;
-            // }else{
-            //     $allresourceResult = false;
-            // }
 
         }else{  //新增
                 
@@ -230,46 +158,6 @@ class CarouselController extends ComController {
             $data['ctype'] = I('post.ctype');
             $data['cid'] = $cid;		
             $result = D("hotel_carousel_resource")->data($data)->add();
-
-            // 新增资源的信息保存到allresource表
-            // $allresourceResult_f = true;
-            // $allresourceResult_q = true;
-            // if(!empty($data['filepath'])){
-            //     $allresourceName_arr_f = explode("/", $data['filepath']);
-            //     $theallresourceName = $allresourceName_arr_f[count($allresourceName_arr_f)-1];
-            //     foreach ($chghotellist as $key => $value) {
-            //         $allresourceDate_f[$key]['hid'] = $value;
-            //         $allresourceDate_f[$key]['type'] = 1;
-            //         $allresourceDate_f[$key]['mold'] = 'carousel';
-            //         $allresourceDate_f[$key]['name'] = $theallresourceName;
-            //         $allresourceDate_f[$key]['timeunix'] = time();
-            //         $allresourceDate_f[$key]['time'] = date("Y-m-d H:i:s");
-            //         $allresourceDate_f[$key]['web_upload_file'] = $data['filepath'];
-            //     }
-            //     // $allresourceResult_f = D("hotel_allresource")->addAll($allresourceDate_f);
-            //     $allresourceResult_f = D("hotel_sd_allresource")->addAll($allresourceDate_f);
-            // }
-            // if(!empty($data['video_image'])){
-            //     $allresourceName_arr_q = explode("/", $data['video_image']);
-            //     $theallresourceName = $allresourceName_arr_q[count($allresourceName_arr_q)-1];
-            //     foreach ($chghotellist as $key => $value) {
-            //         $allresourceDate_q[$key]['hid'] = $value;
-            //         $allresourceDate_q[$key]['type'] = 2;
-            //         $allresourceDate_q[$key]['mold'] = 'carousel';
-            //         $allresourceDate_q[$key]['name'] = $theallresourceName;
-            //         $allresourceDate_q[$key]['timeunix'] = time();
-            //         $allresourceDate_q[$key]['time'] = date("Y-m-d H:i:s");
-            //         $allresourceDate_q[$key]['web_upload_file'] = $data['video_image'];
-            //     }
-            //     // $allresourceResult_q = D("hotel_allresource")->addAll($allresourceDate_q);
-            //     $allresourceResult_q = D("hotel_sd_allresource")->addAll($allresourceDate_q);
-            // }
-            // if($allresourceResult_f && $allresourceResult_q){
-            //     $allresourceResult == true;
-            // }else{
-            //     $allresourceResult == false;
-            // }
-            
         }
 
         //更新容量表
@@ -298,8 +186,16 @@ class CarouselController extends ComController {
         }
 
         if($result !== false && $updatesize !== false){
-           D("hotel_carousel_resource")->commit();
+            //更新酒店内容云宣教资源
+            $jsonmap = $hmap;
+            if($incontroller == "Chg"){
+                $jsonmap['ctype'] = 'videochg';
+            }else{
+                $jsonmap['ctype'] = 'videohotel';
+            }
+            $this->updatejson_hotelcarousel($jsonmap);
 
+            D("hotel_carousel_resource")->commit();
             if(!empty($vo)){
                 if($data['filepath'] != $vo['filepath']){
                     @unlink(FILE_UPLOAD_ROOTPATH.$vo['filepath']);
@@ -387,16 +283,20 @@ class CarouselController extends ComController {
         echo json_encode($callback);
     }
 
+    /**
+     * [视频轮播资源启用]
+     */
     public function resource_unlock(){
     	$ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
         $gocontroller = I('get.gocontroller');
         if($ids){
-            $ids = implode(',',$ids);
-            $map['id']  = array('in',$ids);
+            $ids_str = implode(',',$ids);
+            $map['id']  = array('in',$ids_str);
             $map['ctype'] = I('get.ctype');
             $result = D('hotel_carousel_resource')->where($map)->setField("status",1);
             if($result !== false){
-                addlog('启用hotel_carousel_resource表数据，数据ID：'.$ids);
+                $jsonmap = D("hotel_carousel_resource")->where('id='.$ids['0'])->field('hid,ctype')->find();
+                $this->updatejson_hotelcarousel($jsonmap);
                 $this->success('恭喜，启用成功！',U($gocontroller.'/resource').'?ids='.I('get.category_id'));
             }else{
                 $this->error('启用失败，参数错误！',U($gocontroller.'/resource').'?ids='.I('get.category_id'));
@@ -406,17 +306,20 @@ class CarouselController extends ComController {
         }
     }
 
+    /**
+     * [视频轮播资源禁用]
+     */
     public function resource_lock(){
     	$ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
         $gocontroller = I('get.gocontroller');
-
         if($ids){
-            $ids = implode(',',$ids);
-            $map['id']  = array('in',$ids);
+            $ids_str = implode(',',$ids);
+            $map['id']  = array('in',$ids_str);
             $map['ctype'] = I('get.ctype');
             $result = D('hotel_carousel_resource')->where($map)->setField("status",0);
             if($result !== false){
-                addlog('启用hotel_carousel_resource表数据，数据ID：'.$ids);
+                $jsonmap = D("hotel_carousel_resource")->where('id='.$ids['0'])->field('hid,ctype')->find();
+                $this->updatejson_hotelcarousel($jsonmap);
                 $this->success('恭喜，禁用成功！',U($gocontroller.'/resource').'?ids='.I('get.category_id'));
             }else{
                 $this->error('禁用失败，参数错误！',U($gocontroller.'/resource').'?ids='.I('get.category_id'));
@@ -426,6 +329,9 @@ class CarouselController extends ComController {
         }
     }
 
+    /**
+     * [删除视频轮播资源]
+     */
     public function resource_delete(){
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
         $gocontroller = I('get.gocontroller');
@@ -450,37 +356,19 @@ class CarouselController extends ComController {
         $decVmap['hid'] = array('in',$chghotellist); 
         $vresult = $this->csetDec($decVmap,'carousel_size',$vo['size']);
 
-        //需要删除的资源名称
-        // if(!empty($vo['filepath'])){
-        //     $getName_arr = explode("/", $vo['filepath']);
-        //     $getName[] = $getName_arr[count($getName_arr)-1];
-        // }
-        // if(!empty($vo['video_image'])){
-        //     $getName_arr = explode("/", $vo['video_image']);
-        //     $getName[] = $getName_arr[count($getName_arr)-1];
-        // }
-
-        //删除资源表
-        // $delAllresourceResult = true;
-        // if(!empty($getName)){
-        //     $delAllresourceMap['name'] = array('in',$getName);
-        //     $delAllresourceResult = D("hotel_sd_allresource")->where($delAllresourceMap)->delete();
-        // }
-
         if($model->where($map)->delete() && $vresult!==false){
     
             addlog('删除资源表数据，数据ID：'.$ids['0']);
-
             $model->commit();
+
+            //更新视频轮播json文件
+            $jsonmap['hid'] = $vo['hid'];
+            $jsonmap['ctype'] = $map['ctype'];
+            $this->updatejson_hotelcarousel($jsonmap);
+
             //删除对应文件
             @unlink(FILE_UPLOAD_ROOTPATH.$vo['filepath']);
             @unlink(FILE_UPLOAD_ROOTPATH.$vo['video_image']);
-
-            //allresource资源写入xml文件
-            // foreach ($chghotellist as $key => $value) {
-            //     $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/sdresourceXml/'.$value.'.txt';
-            //     $xmlResult = $this->fileputXml(D("hotel_allresource"),$value,$xmlFilepath);
-            // }
 
             $this->success('恭喜，删除成功！',U($gocontroller.'/resource').'?ids='.I('get.category_id'));
         }else{
@@ -494,7 +382,6 @@ class CarouselController extends ComController {
         $remarks_str = I('post.remarks','','strip_tags');
         $menuid = explode(",", $menuid_str);
         $remarks = explode(",", $remarks_str);
-
         $model = D("hotel_carousel_resource");
         $model->startTrans();
         $map['ctype'] = I('post.ctype');
@@ -579,8 +466,28 @@ class CarouselController extends ComController {
         }
     }
 
-    //查询绑定的子栏目
-    private function getchgcategory(){
-
+    /**
+     * [更新酒店视频轮播json数据]
+     * @param  [array] $hmap [hid数组]
+     */
+    private function updatejson_hotelcarousel($jsonmap){
+        $jsonmap['audit_status'] = 4;
+        $jsonmap['status'] = 1;
+        $field = "hid,cid,title,intro,sort,filepath,video_image";
+        $list = D("hotel_carousel_resource")->where($jsonmap)->field($field)->order('sort')->select();
+        if (!empty($list)) {
+            foreach ($list as $key => $value) {
+                $plist[$value['cid']][] = $value;
+            }
+            $jsondata = json_encode($plist);
+        }else{
+            $jsondata = '';
+        }
+        if(!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$jsonmap['hid'])){
+            mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$jsonmap['hid']);
+        }
+        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$jsonmap['hid'].'/'.$jsonmap['ctype'].'.json';
+        file_put_contents($filename, $jsondata);
     }
+
 }

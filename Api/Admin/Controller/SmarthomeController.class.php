@@ -21,32 +21,53 @@ class SmarthomeController extends Controller{
 	public function uploadhomeparams(){
 		$mac = strtoupper(I('post.mac'));
 		if(empty($mac)){
-			$this->errorCallback(10000,'ERROR: The mac is empty');
+			$this->Callback(10000,'ERROR: The mac is empty');
 		}
 		$controller_type = trim(I('post.controller_type'));
 
 		if(empty($controller_type)){
-			$this->errorCallback(10000,'ERROR: The controller_type is empty');
+			$this->Callback(10000,'ERROR: The controller_type is empty');
 		}
 
 		if(in_array($controller_type, $controller_type_arr)){
-			$this->errorCallback(10000,'ERROR:The controller_type is illegal');
+			$this->Callback(10000,'ERROR:The controller_type is illegal');
 		}
-
+		$model = D("controller_order");
+		$model->startTrans();
+		$addcontrollerData['mac'] = $mac;
+		$addcontrollerData['add_time'] =  time();
+		$addcontrollerData['device_type'] = $controller_type;
 		switch ($controller_type) {
 			case 'air':
-				$air_id = I('post.air_id');
 				break;
 			case 'lamp':
-				# code...
+				$lampData['basic_param'] = I('post.basic_param','','strip_tags');
+				$lampData['devicetype_param'] = I('post.devicetype_param','','strip_tags');
+				$lampData['deviceorder_param'] = I('post.deviceorder_param','','strip_tags');
+				$lampData['deviceorderchannel_param'] = I('post.deviceorderchannel_param','','strip_tags');
+				$lampData['deviceaction_param'] = I('post.deviceaction_param','','strip_tags');
+				$lampData['devicecheck_param'] = I('post.devicecheck_param','','strip_tags');
+				if(empty($lampData['basic_param']) || empty($lampData['devicetype_param']) || empty($lampData['deviceorder_param']) || empty($lampData['deviceorderchannel_param']) || empty($lampData['deviceaction_param']) || empty($lampData['devicecheck_param'])){
+					$this->Callback(10000,'ERROR:the controller params is empty');
+				}
+				$cid = $model->data($addcontrollerData)->add();
+				$lampData['mac'] = $mac;
+				$lampData['cid'] = $cid;
+				$result = D("controller_lamporder")->data($lampData)->add();
 				break;
 			default:
 				# code...
 				break;
 		}
+
+		if($result !== false){
+			$this->Callback(200,'Success');
+		}else{
+			$this->Callback(0,'Error');
+		}
 	}
 
-	private function errorCallback($status,$info){
+	private function Callback($status,$info){
         $data['status'] = $status;
         $data['info'] = $info;
         header('Content-Type: application/json; charset=utf-8');
