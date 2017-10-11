@@ -275,44 +275,6 @@ class ChgController extends ComController {
 
             $result = $model->data($data)->where('id='.$data['id'])->save();
             addlog('修改栏目信息，栏目ID：'.$data['id']);
-
-            //修改资源对allresource表进行操作
-            $allresourceResult = true;
-            $allresourceHidList =array(); //酒店hid集合
-            if($vo['filepath'] != $data['filepath']){ //资源修改才进行操作
-                //查找绑定的hid列表
-                if(!empty($vo['filepath'])){
-                    $lastName_arr = explode("/", $vo['filepath']);
-                    $lastName = $lastName_arr[count($lastName_arr)-1];
-                    $searchHidList = D("hotel_allresource")->where('name="'.$lastName.'"')->field('hid')->select();
-                    //通过名字删除
-                    $delAllresourceResult = D('hotel_allresource')->where('name="'.$lastName.'"')->delete();
-        
-                }else{
-                    $searchHidList = D("hotel_chglist")->where('chg_cid="'.$vo['id'].'"')->field('hid')->select();
-                }
-
-                //通过查找到的hid列表进行新增          
-                if(!empty($searchHidList)){
-                    $i = 0;
-                    $getName_arr = explode("/", $data['filepath']);
-                    $getName = $getName_arr[count($getName_arr)-1];
-                    foreach ($searchHidList as $key => $value) {
-                        $allresourceHidList[] = $value['hid'];
-                        $addlist[$i]['hid'] = $value['hid'];
-                        $addlist[$i]['name'] = $getName;
-                        $addlist[$i]['type'] = 2;
-                        $addlist[$i]['timeunix'] = time();
-                        $addlist[$i]['time'] = date("Y-m-d H:i:s");
-                        $addlist[$i]['web_upload_file'] = $data['filepath'];
-                        $i++;
-                    }
-                    $addAllresourceResult = D("hotel_allresource")->addAll($addlist);
-                    if($addAllresourceResult===false || $delAllresourceResult===false){
-                        $allresourceResult = false;
-                    }
-                }               
-            }
         
         }else{//新增
             
@@ -355,40 +317,6 @@ class ChgController extends ComController {
             $data['sort'] = $sort+1;
             $result = $model->data($data)->add();
             addlog('添加酒店通用栏目信息，栏目ID：'.$result);
-
-            //新增资源时候 保存到allresource表
-            $allresourceResult = true;
-            if(!empty($data['filepath'])){
-                if($data['pid']>0){  //只有pid>0 才有可能有绑定关系
-                    $allresourceMap_s['zxt_hotel_chg_category.id'] = $data['pid'];
-                    $allresourceField = "zxt_hotel_chg_category.id,zxt_hotel_chglist.hid";
-                    $searchReleteHid = D("hotel_chg_category")->where($allresourceMap_s)->join('zxt_hotel_chglist ON zxt_hotel_chg_category.id=zxt_hotel_chglist.chg_cid and zxt_hotel_chg_category.hid=zxt_hotel_chglist.phid','left')->field($allresourceField)->select();
-
-                }
-                $allresourceHidList = array();//hid数组集合
-                foreach ($searchReleteHid as $key => $value) {
-                    if(!empty($value['hid'])){
-                        $allresourceHidList[] = $value['hid'];
-                    }
-                }
-                if(!empty($allresourceHidList)){ //作allresource表的新增操作
-                    $i = 0;
-                    $getName_arr = explode("/", $data['filepath']);
-                    $getName = $getName_arr[count($getName_arr)-1];
-
-                    foreach ($allresourceHidList as $key => $value) {
-                        $addlist[$i]['hid'] = $value;
-                        $addlist[$i]['name'] = $getName;
-                        $addlist[$i]['type'] = 2;//二级栏目 默认图片类型
-                        $addlist[$i]['timeunix'] = time();
-                        $addlist[$i]['time'] = date("Y-m-d H:i:s");
-                        $addlist[$i]['web_upload_file'] = $data['filepath'];
-                        $i++;
-                    }
-                    $allresourceResult = D("hotel_allresource")->addAll($addlist);
-                }
-            }
-
         }
 
         //修改酒店通用栏目某一级栏目下所有资源的总和大小字段值
@@ -411,17 +339,15 @@ class ChgController extends ComController {
         $sql = "UPDATE `zxt_hotel_volume` SET `chg_size`=chg_size"."+".$changesize." where hid in(".$volumeHid_str.")";
         $volumeResult = D("hotel_volume")->execute($sql);
 
-        if($result !== false  && $chgallsizeResult !== false && $volumeResult!==false && $allresourceResult!==false){
+        if($result !== false  && $chgallsizeResult !== false && $volumeResult!==false){
+            //写入json文件
+            if($data['pid'] == 0){
+                $this->updatejson_one($data['hid']);
+            }else{
+                $this->updatejson_two($data['hid']);
+            }
             $model->commit();
             
-            //生成资源xml文件
-            if(!empty($allresourceHidList)){
-                foreach ($allresourceHidList as $key => $value) {
-                    $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$value.'.txt';
-                    $this->fileputXml(D("hotel_allresource"),$value,$xmlFilepath);
-                }
-            }
-
             if($data['id']){
                 if(!empty($vo)){
                     if($data['filepath'] != $vo['filepath']){
@@ -868,19 +794,17 @@ class ChgController extends ComController {
         }
         $volumeHid_str = trim($volumeHid_str,",");
         $sql = "UPDATE `zxt_hotel_volume` SET `chg_size`=chg_size"."+".$changesize." where hid in(".$volumeHid_str.")";
-        $volumeResult = D("hotel_volume")->execute($sql);
-        // $volumeResult = D("hotel_volume")->where($volumeMap)->setInc('chg_size',$changesize); //修改容量表酒店的chg_size字段
+        $volumeResult = D("hotel_volume")->execute($sql); //修改容量表酒店的chg_size字段
 
         if($result !== false && $chgallsizeResult !== false && $volumeResult!==false && $allresourceResult!==false){
             $model->commit();
-            //将资源写入xml文件
-            if(!empty($allresourceHidList)){
-                $allresourceHidList_unique = array_unique($allresourceHidList);
-                foreach ($allresourceHidList_unique as $key => $value) {
-                    $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$value.'.txt';
-                    $this->fileputXml(D("hotel_allresource"),$value,$xmlFilepath);
-                }
-            }
+            //写入json文件
+            // if($data['pid'] == 0){
+            //     $this->updatejson_one($data['hid']);
+            // }else{
+            //     $this->updatejson_two($data['hid']);
+            // }
+
             if(!empty($vo)){
                 if($data['filepath'] != $vo['filepath']){
                     @unlink(FILE_UPLOAD_ROOTPATH.$vo['filepath']);
@@ -1198,5 +1122,66 @@ class ChgController extends ComController {
     	}
 
     	return $returnarr;
+    }
+
+    /**
+     * [更新集团一级栏目json]
+     */
+    private function updatejson_one($hid){
+        $jsonmap['zxt_hotel_chg_category.hid'] = $hid;
+        $jsonmap['zxt_hotel_chg_category.pid'] = 0;
+        $jsonmap['zxt_hotel_chg_category.status'] = 1;
+        $field = "zxt_hotel_chg_category.id,zxt_hotel_chg_category.hid,zxt_hotel_chg_category.name,zxt_hotel_chg_category.modeldefineid,zxt_hotel_chg_category.sort,zxt_hotel_chg_category.filepath,zxt_hotel_chg_category.intro,zxt_modeldefine.codevalue,zxt_modeldefine.packagename,zxt_modeldefine.classname";
+        $list = D("hotel_chg_category")->field($field)->where($jsonmap)->join('zxt_modeldefine on zxt_hotel_chg_category.modeldefineid  = zxt_modeldefine.id')->order('zxt_hotel_chg_category.sort')->select();
+        if (!empty($list)) {
+            foreach ($list as $key => $value) {
+                if (in_array($value['codevalue'],array('100','101','102','103'))) {
+                    $list[$key]['nexttype'] = 'chgcategory_second';
+                }elseif ($value['codevalue'] == '501') {
+                    $list[$key]['nexttype'] = 'videochg';
+                }else{
+                    $list[$key]['nexttype'] = 'app';
+                }
+            }
+            $jsondata = json_encode($list);
+        }else{
+            $jsondata = '';
+        }
+        if(!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid)){
+            mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid);
+        }
+        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/chgcategory_first.json';
+        file_put_contents($filename, $jsondata);
+    }
+
+    /**
+     * [更新集团二级栏目json]
+     */
+    private function updatejson_two($hid){
+        $jsonmap['zxt_hotel_chg_category.hid'] = $hid;
+        $jsonmap['zxt_hotel_chg_category.pid'] = array('neq',0);
+        $jsonmap['zxt_hotel_chg_category.status'] = 1;
+        $field = "zxt_hotel_chg_category.id,zxt_hotel_chg_category.pid,zxt_hotel_chg_category.hid,zxt_hotel_chg_category.name,zxt_hotel_chg_category.modeldefineid,zxt_hotel_chg_category.sort,zxt_hotel_chg_category.filepath,zxt_hotel_chg_category.intro,zxt_modeldefine.codevalue,zxt_modeldefine.packagename,zxt_modeldefine.classname";
+        $list = D("hotel_chg_category")->field($field)->where($jsonmap)->join('zxt_modeldefine on zxt_hotel_chg_category.modeldefineid  = zxt_modeldefine.id')->order('zxt_hotel_chg_category.sort')->select();
+        if (!empty($list)) {
+            foreach ($list as $key => $value) {
+                if (in_array($value['codevalue'],array('100','101','102','103'))) {
+                    $value['nexttype'] = 'chgcategory_second';
+                }elseif ($value['codevalue'] == '501') {
+                    $value['nexttype'] = 'videochg';
+                }else{
+                    $value['nexttype'] = 'app';
+                }
+                $plist[$value['pid']][] = $value;
+            }
+            $jsondata = json_encode($plist);
+        }else{
+            $jsondata = '';
+        }
+        if(!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid)){
+            mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid);
+        }
+        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/chgcategory_second.json';
+        file_put_contents($filename, $jsondata);
     }
 }

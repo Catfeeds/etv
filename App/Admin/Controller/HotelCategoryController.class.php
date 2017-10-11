@@ -1013,13 +1013,13 @@ class HotelCategoryController extends ComController {
         if(!empty($list)){
             foreach ($list as $key => $value) {
                 $list[$key]['nexttype'] = 'hotelcategory_second';
-            }
-            if (in_array(array('100','101','102','103'), $value['codevalue'])) {
-                $list[$key]['nexttype'] = 'hotelcategory_second';
-            }elseif ($value['codevalue'] == '501') {
-                $value['nexttype'] = 'videohotel';
-            }else{
-                $value['nexttype'] = 'app';
+                if (in_array($value['codevalue'],array('100','101','102','103'))) {
+                    $list[$key]['nexttype'] = 'hotelcategory_second';
+                }elseif ($value['codevalue'] == '501') {
+                    $list[$key]['nexttype'] = 'videohotel';
+                }else{
+                    $list[$key]['nexttype'] = 'app';
+                }
             }
             $jsondata = json_encode($list);
         }else{
@@ -1046,7 +1046,7 @@ class HotelCategoryController extends ComController {
         $list = D("hotel_category")->where($map)->field($field)->join('zxt_modeldefine on zxt_hotel_category.modeldefineid = zxt_modeldefine.id')->select();
         if (!empty($list)) {
             foreach ($list as $key => $value) {
-                if (in_array(array('100','101','102','103'), $value['codevalue'])) {
+                if (in_array($value['codevalue'],array('100','101','102','103'))) {
                     $value['nexttype'] = 'hotelresource';
                 }elseif ($value['codevalue'] == '501') {
                     $value['nexttype'] = 'videohotel';

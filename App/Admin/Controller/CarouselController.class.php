@@ -382,24 +382,20 @@ class CarouselController extends ComController {
         $remarks_str = I('post.remarks','','strip_tags');
         $menuid = explode(",", $menuid_str);
         $remarks = explode(",", $remarks_str);
-        $model = D("hotel_carousel_resource");
-        $model->startTrans();
-        $map['ctype'] = I('post.ctype');
-        $j = 1;
-        for ($i=0; $i <count($menuid) ; $i++) { 
-            $map['id'] = intval($menuid[$i]);
-            $data['sort'] = $remarks[$i];
-            $result = $model->where($map)->data($data)->save();
-            if($result === false){
-                --$j;
-            }
+        $count = count($menuid);
+        $sql = "UPDATE zxt_hotel_carousel_resource SET sort = CASE id";
+        for ($i=0; $i <$count ; $i++) { 
+            $sql .= sprintf(" WHEN %d THEN '%s'",$menuid[$i],$remarks[$i]);
         }
-        if($j>0){
-            $model->commit();
-            echo true;
-        }else{
-            $model->rollback();
+        $sql .= "END WHERE id IN($menuid_str)";
+        $result = D("hotel_carousel_resource")->execute($sql);
+
+        if ($result === false) {
             echo false;
+        }else{
+            $vo = D("hotel_carousel_resource")->where('id='.$menuid['0'])->field('hid,ctype')->find();
+            $this->updatejson_hotelcarousel($vo);
+            echo true;
         }
     }
 
