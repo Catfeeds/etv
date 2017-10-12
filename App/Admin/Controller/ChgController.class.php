@@ -401,61 +401,70 @@ class ChgController extends ComController {
         $this -> display();
     }
 
-    //启用
+    /**
+     * [启用栏目]
+     */
     public function unlock(){
-        $model = M("hotel_chg_category");
-        $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
-        if($ids){
-            if(is_array($ids)){
-                $ids = implode(',',$ids);
-                $map['id']  = array('in',$ids);
-            }else{
-                $map = 'id='.$ids;
-            }
-            $result = $model->where($map)->setField("status",1);
-            if($result){
-                addlog('启用hotel_chg_category表数据，数据ID：'.$ids);
-                $this->success('恭喜，启用成功！');
-            }else{
-                $this->error('启用失败，参数错误！');
-            }
+        if (count($_POST['ids'])<1) {
+            $this->error('系统提示：参数错误');
+        }
+        $map['id'] = array('in',$_POST['ids']);
+        $result = D("hotel_chg_category")->where($map)->setField('status',1);
+        if ($result === false) {
+            $this->error('系统提示:启用失败');
         }else{
-            $this->error('参数错误！');
+            $vo = D("hotel_chg_category")->where('id='.$_POST['ids']['0'])->field('hid')->find();
+            $this->updatejson_one($vo['hid']);
+            $this->updatejson_two($vo['hid']);
+            $this->success('系统提示：启用成功');
         }
     }
 
-    //禁用
+    /**
+     * [禁用栏目]
+     */
     public function lock(){
-        $model = M("hotel_chg_category");
-        $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
-        if($ids){
-            if(is_array($ids)){
-                $ids = implode(',',$ids);
-                $map['id']  = array('in',$ids);
-            }else{
-                $map = 'id='.$ids;
-            }
-            $result = $model->where($map)->setField("status",0);
-            if($result){
-                addlog('启用hotel_chg_category表数据，数据ID：'.$ids);
-                $this->success('恭喜，启用成功！');
-            }else{
-                $this->error('启用失败，参数错误！');
-            }
+        if (count($_POST['ids'])<1) {
+            $this->error('系统提示：参数错误');
+        }
+        $map['id'] = array('in',$_POST['ids']);
+        $result = D("hotel_chg_category")->where($map)->setField('status',0);
+        if ($result === false) {
+            $this->error('系统提示:禁用失败');
         }else{
-            $this->error('参数错误！');
+            $vo = D("hotel_chg_category")->where('id='.$_POST['ids']['0'])->field('hid')->find();
+            $this->updatejson_one($vo['hid']);
+            $this->updatejson_two($vo['hid']);
+            $this->success('系统提示：禁用成功');
         }
     }
 
-    //更新栏目排序
+    /**
+     * [更新栏目排序]
+     */
     public function sort() {
         $menuids = explode(",", $_REQUEST['menuid']);
         $sorts = explode(",",$_REQUEST['sort']);
-        $model = M("hotel_chg_category");
-        for ($i = 0; $i < count($sorts); $i++) {
-            $model->where('id='.$menuids[$i])->setField('sort',$sorts[$i]);
+        $count = count($menuids);
+        $sql = "UPDATE zxt_hotel_chg_category SET sort = CASE id";
+        for ($i=0; $i < $count; $i++) { 
+            $sql .= sprintf(" WHEN %d THEN '%s'",$menuids[$i],$sorts[$i]);
         }
-        $this->success('恭喜，操作成功！');
+        $menuids_str = $_REQUEST['menuid'];
+        $sql .= "END WHERE id IN($menuids_str)";
+        D("hotel_chg_category")->startTrans();
+        $result = D("hotel_chg_category")->execute($sql);
+
+        if($result === false){
+            D("hotel_chg_category")->rollback();
+            $this->error('更新失败');
+        }else{
+            $vo = D("hotel_chg_category")->where('id='.$menuids['0'])->field('hid')->find();
+            $this->updatejson_one($vo['hid']);
+            $this->updatejson_two($vo['hid']);
+            D("hotel_chg_category")->commit();
+            $this->success('更新成功');
+        }
     }
 
     //栏目内的资源
@@ -610,7 +619,6 @@ class ChgController extends ComController {
 	                }
 	                $this->error("超过申请容量值，无法修改资源");
 	            }
-
 	            //查找所关联酒店是否会超标
 	            //查找现栏目的资源总和
             	$chg_all_size = D("hotel_chg_category")->where('id='.$pcid)->field('hid,all_size')->find();
@@ -627,81 +635,14 @@ class ChgController extends ComController {
             		}
             		$volumeHid_arr[] = $value['hid'];
             	}
-
             	if(!empty($overproof_hid_arr)){
             		$overproof_hid = implode(',',$overproof_hid_arr);
             		@unlink(FILE_UPLOAD_ROOTPATH.$data['filepath']);
             		$this->error('新增资源后，该栏目的总容量加上关联子酒店的总容量已有值，将超过子酒店设定的容量值，上传不成功！子酒店酒店编号为：'.$overproof_hid);
             	}
             }
-
             $result = $model->data($data)->where('id='.$data['id'])->save();
             addlog('修改栏目资源，ID：'.$data['id']);
-
-            //修改资源对allresource表进行操作
-            $allresourceResult = true;
-            $allresourceHidList = array();//酒店hid集合
-            $addlist = array(); //添加资源数组
-            $delAllresourceResult_f = true;
-            $delAllresourceResult_i = true;
-            $addAllresourceResult = true;
-            if($vo['filepath'] != $data['filepath']){ //资源不同进行修改
-                //查询绑定的hid资源
-                $lastName_arr_f = explode("/", $vo['filepath']);
-                $lastName_f = $lastName_arr_f[count($lastName_arr_f)-1];
-                $searchHidList = D("hotel_allresource")->where('name="'.$lastName_f.'"')->field('hid')->select();
-                //通过名字删除
-                $delAllresourceResult_f = D("hotel_allresource")->where('name="'.$lastName_f.'"')->delete();
-                //通过查找到的hid列表进行新增 
-                if(!empty($searchHidList)){
-                    $i = 0;
-                    $getName_arr_f = explode("/", $data['filepath']);
-                    $getName_f = $getName_arr_f[count($getName_arr_f)-1];
-                    foreach ($searchHidList as $key => $value) {
-                        $allresourceHidList[] = $value['hid'];
-                        $addlist[$i]['hid'] = $value['hid'];
-                        $addlist[$i]['name'] = $getName_f;
-                        $addlist[$i]['type'] = $vo['file_type'];
-                        $addlist[$i]['timeunix'] = time();
-                        $addlist[$i]['time'] = date("Y-m-d H:i:s");
-                        $addlist[$i]['web_upload_file'] = $data['filepath'];
-                        $i++;
-                    }
-                }
-            }
-            if($vo['icon'] != $data['icon']){
-                //如果不为空 删除之前保存的记录
-                if(!empty($vo['icon'])){
-                    $lastName_arr_i = explode("/", $vo['icon']);
-                    $lastName_i = $lastName_arr_i[count($lastName_arr_i)-1];
-                    $searchHidList = D("hotel_allresource")->where('name="'.$lastName_i.'"')->field('hid')->select();
-                    $delAllresourceResult_i = D("hotel_allresource")->where('name="'.$lastName_i.'"')->delete();
-                }
-                //如果不为空 做新增
-                if(!empty($data['icon'])){
-                    $j = count($addlist);
-                    $getName_arr_i = explode("/", $data['icon']);
-                    $getName_i = $getName_arr_i[count($getName_arr_i)-1];
-                    $searchHidList = D("hotel_chglist")->where('chg_cid="'.$pcid.'"')->field('hid')->select();
-                    foreach ($searchHidList as $key => $value) {
-                        $allresourceHidList[] = $value['hid'];
-                        $addlist[$j]['hid'] = $value['hid'];
-                        $addlist[$j]['name'] = $getName_i;
-                        $addlist[$j]['type'] = 2;
-                        $addlist[$j]['timeunix'] = time();
-                        $addlist[$j]['time'] = date("Y-m-d H:i:s");
-                        $addlist[$j]['web_upload_file'] = $data['icon'];
-                        $j++;
-                    }
-                }
-            }
-
-            if(!empty($addlist)){
-                $addAllresourceResult = D("hotel_allresource")->addAll($addlist);
-            }
-            if($delAllresourceResult_f===false || $delAllresourceResult_i===false || $addAllresourceResult===false){
-                $allresourceResult = false;
-            }
 
         }else{//新增
             
@@ -743,67 +684,30 @@ class ChgController extends ComController {
             $result = $model->data($data)->add();
             addlog('添加栏目资源，ID：'.$result);
 
-            //新增资源时候 添加allresource表记录
-            $allresourceResult = true;
-            $allresourceHidList = array();
             //通过pcid查找表hotel_chglist中的hid列表
             $searchHidList = D("hotel_chglist")->where('chg_cid="'.$pcid.'"')->field('hid')->select();
-
-            //通过hid列表与对应的资源名称类型新增数据到hotel_allresource
-            if(!empty($searchHidList)){
-                $getName_arr_f = explode("/", $data['filepath']);
-                $getName_f = $getName_arr_f[count($getName_arr_f)-1];
-                $i = 0;
-                foreach ($searchHidList as $key => $value) {
-                    $allresourceHidList[] = $value['hid'];
-                    $addlist[$i]['hid'] = $value['hid'];
-                    $addlist[$i]['name'] = $getName_f;
-                    $addlist[$i]['type'] = $data['file_type'];
-                    $addlist[$i]['timeunix'] = time();
-                    $addlist[$i]['time'] = date("Y-m-d H:i:s");
-                    $addlist[$i]['web_upload_file'] = $data['filepath'];
-                    $i++;
-                }
-                //判断是否有上传icon字段
-                if(!empty($data['icon'])){ 
-                    $j = count($addlist);
-                    $getName_arr_i = explode("/", $data['icon']);
-                    $getName_i = $getName_arr_i[count($getName_arr_i)-1];
-                    foreach ($searchHidList as $key => $value) {
-                        $addlist[$j]['hid'] = $value['hid'];
-                        $addlist[$j]['name'] = $getName_i;
-                        $addlist[$j]['type'] = 2;
-                        $addlist[$j]['timeunix'] = time();
-                        $addlist[$j]['time'] = date("Y-m-d H:i:s");
-                        $addlist[$j]['web_upload_file'] = $data['icon'];
-                        $j++;
-                    }
-                }
-                $allresourceResult = D("hotel_allresource")->addAll($addlist);                
-            }
-
-            
         }
         
-        $chgallsizeResult = D("hotel_chg_category")->where('id='.$pcid)->setInc('all_size',$changesize);//修改所在的一级栏目统计总容量字段
+        //改变容量不为0进行更新容量
+        $chgallsizeResult = true;
+        $volumeResult = true;
+        if($changesize){
+            $chgallsizeResult = D("hotel_chg_category")->where('id='.$pcid)->setInc('all_size',$changesize);//修改所在的一级栏目统计总容量字段
+            $volumeHid_len = count($volumeHid_arr);
+            $volumeHid_str = "";
+            for ($i=0; $i < $volumeHid_len; $i++) { 
+                $volumeHid_str = $volumeHid_str."'".$volumeHid_arr[$i]."',";
+            }
 
-        $volumeHid_len = count($volumeHid_arr);
-        $volumeHid_str = "";
-        for ($i=0; $i < $volumeHid_len; $i++) { 
-            $volumeHid_str = $volumeHid_str."'".$volumeHid_arr[$i]."',";
+            $volumeHid_str = trim($volumeHid_str,",");
+            $sql = "UPDATE `zxt_hotel_volume` SET `chg_size`=chg_size"."+".$changesize." where hid in(".$volumeHid_str.")";
+            $volumeResult = D("hotel_volume")->execute($sql); //修改容量表酒店的chg_size字段
         }
-        $volumeHid_str = trim($volumeHid_str,",");
-        $sql = "UPDATE `zxt_hotel_volume` SET `chg_size`=chg_size"."+".$changesize." where hid in(".$volumeHid_str.")";
-        $volumeResult = D("hotel_volume")->execute($sql); //修改容量表酒店的chg_size字段
 
-        if($result !== false && $chgallsizeResult !== false && $volumeResult!==false && $allresourceResult!==false){
-            $model->commit();
+        if($result !== false && $chgallsizeResult !== false && $volumeResult!==false){
             //写入json文件
-            // if($data['pid'] == 0){
-            //     $this->updatejson_one($data['hid']);
-            // }else{
-            //     $this->updatejson_two($data['hid']);
-            // }
+            $this->updatejson_chgresource($data['hid']);
+            $model->commit();
 
             if(!empty($vo)){
                 if($data['filepath'] != $vo['filepath']){
@@ -820,20 +724,18 @@ class ChgController extends ComController {
         }
     }
 
-    //栏目资源启用
+    /**
+     * [栏目资源启用]
+     */
     public function resource_unlock(){
         $model = D("hotel_chg_resource");
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
         if($ids){
-            if(is_array($ids)){
-                $ids = implode(',',$ids);
-                $map['id']  = array('in',$ids);
-            }else{
-                $map = 'id='.$ids;
-            }
+            $map['id'] = array('in',$ids);
             $result = $model->where($map)->setField("status",1);
             if($result !== false){
-                addlog('启用hotel_chg_resource表数据，数据ID：'.$ids);
+                $vo = D("hotel_chg_resource")->where('id='.$ids['0'])->field('hid')->find();
+                $this->updatejson_chgresource($vo['hid']);
                 $this->success('恭喜，启用成功！',U('resource').'?ids='.$_REQUEST['cid']);
             }else{
                 $this->error('启用失败，参数错误！',U('resource').'?ids='.$_REQUEST['cid']);
@@ -843,20 +745,18 @@ class ChgController extends ComController {
         }
     }
 
-    //栏目资源禁用
+    /**
+     * [栏目资源禁用]
+     */
     public function resource_lock(){
-        $model = M("hotel_chg_resource");
+        $model = D("hotel_chg_resource");
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
         if($ids){
-            if(is_array($ids)){
-                $ids = implode(',',$ids);
-                $map['id']  = array('in',$ids);
-            }else{
-                $map = 'id='.$ids;
-            }
+            $map['id'] = array('in',$ids);
             $result = $model->where($map)->setField("status",0);
             if($result !== false){
-                addlog('禁用hotel_chg_resource表数据，数据ID：'.$ids);
+                $vo = D("hotel_chg_resource")->where('id='.$ids['0'])->field('hid')->find();
+                $this->updatejson_chgresource($vo['hid']);
                 $this->success('恭喜，禁用成功！',U('resource').'?ids='.$_REQUEST['cid']);
             }else{
                 $this->error('禁用失败，参数错误！',U('resource').'?ids='.$_REQUEST['cid']);
@@ -866,16 +766,25 @@ class ChgController extends ComController {
         }
     }
 
-
     //栏目资源排序更新
     public function resource_sort() {
         $menuids = explode(",", $_REQUEST['menuid']);
         $sorts = explode(",",$_REQUEST['sort']);
-        $Resource = D("hotel_chg_resource");
-        for ($i = 0; $i < count($sorts); $i++) {
-            $Resource->where('id='.$menuids[$i])->setField('sort',$sorts[$i]);
+        $count = count($menuids);
+        $sql = "UPDATE zxt_hotel_chg_resource SET sort = CASE id";
+        for ($i=0; $i < $count ; $i++) { 
+            $sql .= sprintf(" WHEN %d THEN '%s'",$menuids[$i],$sorts[$i]);
         }
-        $this->success('恭喜，操作成功！',U('resource').'?ids='.$_REQUEST['cid']);
+        $menuids_str = $_REQUEST['menuid'];
+        $sql .= "END WHERE id IN($menuids_str)";
+        $result = D("hotel_chg_resource")->execute($sql);
+        if($result === false){
+            $this->success('系统提示，操作失败！',U('resource').'?ids='.$_REQUEST['cid']);
+        }else{
+            $vo = D("hotel_chg_resource")->where('id='.$menuids['0'])->field('hid')->find();
+            $this->updatejson_chgresource($vo['hid']);
+            $this->success('恭喜，操作成功！',U('resource').'?ids='.$_REQUEST['cid']);
+        }
     }
 
     //栏目删除  （只做单个栏目删除  不做批量删除）
@@ -945,27 +854,15 @@ class ChgController extends ComController {
     		
     		$delResult = $model->where($cMap)->delete(); //删除栏目
 
-            //删除allresource表中的资源记录
-            $allresourceHidList = array();
-            $delResourceName_arr = explode("/", $vo['filepath']);
-            $delResourceName = $delResourceName_arr[count($delResourceName_arr)-1];
-            $searchHidList = D("hotel_allresource")->where('name="'.$delResourceName.'"')->field('hid')->group('hid')->select();
-            if(!empty($searchHidList)){
-                foreach ($searchHidList as $key => $value) {
-                    $allresourceHidList[] = $value['hid'];
+    		if($delAllsizeResult!==false && $delResult!==false && $delChaglistResult!==false && $decVolumeResult!==false){
+                //更新json文件
+                if ($vo['pid']>0) {
+                    $this->updatejson_two($vo['hid']);
+                }else{
+                    $this->updatejson_one($vo['hid']);
                 }
-            }
-            $allresourceResult = D("hotel_allresource")->where('name="'.$delResourceName.'"')->delete();
-
-    		if($delAllsizeResult!==false && $delResult!==false && $delChaglistResult!==false && $decVolumeResult!==false && $allresourceResult!==false){
     			$model->commit();
-                //allresource资源写入xml文件
-                if(!empty($allresourceHidList)){
-                    foreach ($allresourceHidList as $key => $value) {
-                        $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$value.'.txt';
-                        $xmlResult = $this->fileputXml(D("hotel_allresource"),$value,$xmlFilepath);
-                    }
-                }
+
     			if(!empty($vo['filepath'])){
     				@unlink(FILE_UPLOAD_ROOTPATH.$vo['filepath']);
     			}
@@ -975,10 +872,11 @@ class ChgController extends ComController {
     			$this->error('删除失败');
     		}
     	}
-
     }
 
-    //资源删除
+    /**
+     * [集团栏目资源删除]
+     */
     public function resource_delete(){
     	$model = D("hotel_chg_resource");
     	$ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
@@ -1036,10 +934,6 @@ class ChgController extends ComController {
     				$volume_hid_arr[] = $value['hid'];
     			}
     		}
-    		// $volume_hid_unique = array_unique($volume_hid_arr); //用于查询容量表需要修改容量的查询条件
-      //       $decVolumeMap['hid'] = array('in',$volume_hid_unique);
-      //       $sql = "UPDATE `zxt_hotel_volume` SET `chg_size`=chg_size"."-".$all_size;
-      //       $decVolumeResult = D("hotel_volume")->where($decVolumeMap)->execute($sql);
 
             $volume_hid_unique = array_unique($volume_hid_arr); //用于查询容量表需要修改容量的查询条件
             $volumeHid_len = count($volume_hid_unique);
@@ -1054,37 +948,12 @@ class ChgController extends ComController {
     		//删除资源
     		$delResourceResult = D("hotel_chg_resource")->where($rMap)->delete();
 
-            //删除allresource表中记录
-            $allresourceResult = true;
-            $allresourceHidList = array();
-
-            if(!empty($delFilepath)){
-                foreach ($delFilepath as $key => $value) {
-                    $delName_arr = explode("/", $value);
-                    $delResourceName_arr[] = $delName_arr[count($delName_arr)-1];
-                }
-                $delResourceMap['name'] = array('in',$delResourceName_arr);
-                $searchHidList = D("hotel_allresource")->where($delResourceMap)->field('hid')->group('hid')->select();//用于查询hid列表
-                
-                if(!empty($searchHidList)){
-                    foreach ($searchHidList as $key => $value) {
-                        $allresourceHidList[] = $value['hid'];
-                    }
-                }
-                $allresourceResult = D("hotel_allresource")->where($delResourceMap)->delete();
-            }
-
     		//写入日志
     		addlog("删除集团栏目资源");
-    		if($decCsizeResult!==false && $decVolumeResult!==false && $delResourceResult!==false && $allresourceResult!==false){
+    		if($decCsizeResult!==false && $decVolumeResult!==false && $delResourceResult!==false){
+                //更新json文件
+                $this->updatejson_chgresource($hid_unique[0]);
     			$model->commit();
-                //allresource资源写入xml文件
-                if(!empty($allresourceHidList)){
-                    foreach ($allresourceHidList as $key => $value) {
-                        $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$value.'.txt';
-                        $xmlResult = $this->fileputXml(D("hotel_allresource"),$value,$xmlFilepath);
-                    }
-                }
     			//删除服务器资源
     			foreach ($delFilepath as $key => $value) {
     				@unlink(FILE_UPLOAD_ROOTPATH.$value);
@@ -1098,7 +967,6 @@ class ChgController extends ComController {
     	}else{
     		$this->error('系统错误，请联系系统管理员',U('index'));
     	}
-    	// var_dump($ids,$rList,$hid_unique,$cid_unique,$all_size,$delFilepath,$decCsizeMap,$releateHCMap,$volume_hid_unique);
     }
 
     //查找关联子酒店的剩余容量
@@ -1126,6 +994,7 @@ class ChgController extends ComController {
 
     /**
      * [更新集团一级栏目json]
+     * @param  [string] $hid [酒店编号]
      */
     private function updatejson_one($hid){
         $jsonmap['zxt_hotel_chg_category.hid'] = $hid;
@@ -1156,6 +1025,7 @@ class ChgController extends ComController {
 
     /**
      * [更新集团二级栏目json]
+     * @param  [string] $hid [酒店编号]
      */
     private function updatejson_two($hid){
         $jsonmap['zxt_hotel_chg_category.hid'] = $hid;
@@ -1166,7 +1036,7 @@ class ChgController extends ComController {
         if (!empty($list)) {
             foreach ($list as $key => $value) {
                 if (in_array($value['codevalue'],array('100','101','102','103'))) {
-                    $value['nexttype'] = 'chgcategory_second';
+                    $value['nexttype'] = 'chgresource';
                 }elseif ($value['codevalue'] == '501') {
                     $value['nexttype'] = 'videochg';
                 }else{
@@ -1182,6 +1052,31 @@ class ChgController extends ComController {
             mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid);
         }
         $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/chgcategory_second.json';
+        file_put_contents($filename, $jsondata);
+    }
+
+    /**
+     * [更新集团通用栏目资源]
+     * @param  [string] $hid [酒店编号]
+     */
+    private function updatejson_chgresource($hid){
+        $map['hid'] = $hid;
+        $map['status'] = 1;
+        $map['audit_status'] = 4;
+        $field = "id,hid,cid,title,intro,sort,filepath,file_type,icon";
+        $list = D("hotel_chg_resource")->field($field)->where($map)->select();
+        if (!empty($list)) {
+            foreach ($list as $key => $value) {
+                $plist[$value['cid']][] = $value;
+            }
+            $jsondata = json_encode($plist);
+        }else{
+            $jsondata = '';
+        }
+        if(!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid)){
+            mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid);
+        }
+        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/chgresource.json';
         file_put_contents($filename, $jsondata);
     }
 }
