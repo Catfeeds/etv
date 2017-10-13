@@ -1009,7 +1009,7 @@ class HotelCategoryController extends ComController {
         $map['zxt_hotel_category.status'] = 1;
         // $map['zxt_modeldefine.codevalue'] = array('in',array('100','101','102','103'));
         $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.name,zxt_hotel_category.sort,zxt_hotel_category.intro,zxt_hotel_category.icon,zxt_modeldefine.codevalue,zxt_modeldefine.packagename,zxt_modeldefine.classname";
-        $list = D("hotel_category")->field($field)->where($map)->join('zxt_modeldefine on zxt_hotel_category.modeldefineid = zxt_modeldefine.id')->select();
+        $list = D("hotel_category")->field($field)->where($map)->join('zxt_modeldefine on zxt_hotel_category.modeldefineid = zxt_modeldefine.id')->order('sort')->select();
         if(!empty($list)){
             foreach ($list as $key => $value) {
                 $list[$key]['nexttype'] = 'hotelcategory_second';
@@ -1043,7 +1043,7 @@ class HotelCategoryController extends ComController {
         $map['zxt_hotel_category.pid'] = array('neq',0);
         // $map['zxt_modeldefine.codevalue'] = array('in',array('100','101','102','103'));
         $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.name,zxt_hotel_category.pid,zxt_hotel_category.sort,zxt_hotel_category.intro,zxt_hotel_category.icon,zxt_modeldefine.codevalue,zxt_modeldefine.packagename,zxt_modeldefine.classname";
-        $list = D("hotel_category")->where($map)->field($field)->join('zxt_modeldefine on zxt_hotel_category.modeldefineid = zxt_modeldefine.id')->select();
+        $list = D("hotel_category")->where($map)->field($field)->join('zxt_modeldefine on zxt_hotel_category.modeldefineid = zxt_modeldefine.id')->order('sort')->select();
         if (!empty($list)) {
             foreach ($list as $key => $value) {
                 if (in_array($value['codevalue'],array('100','101','102','103'))) {
@@ -1074,11 +1074,11 @@ class HotelCategoryController extends ComController {
         $map['cat'] = 'content';
         $map['status'] = 1;
         $map['audit_status'] = 4;
-        $field = "";
-        $list = D("hotel_resource")->where($map)->field()->select();
+        $field = "id,hid,category_id as cid,title,intro,sort,filepath,type as file_type,video_image as icon";
+        $list = D("hotel_resource")->where($map)->field($field)->order('sort')->select();
         if (!empty($list)) {
             foreach ($list as $key => $value) {
-                $plist[$value['category_id']][] = $value; 
+                $plist[$value['cid']][] = $value; 
             }
             $jsondata = json_encode($plist);
         }else{

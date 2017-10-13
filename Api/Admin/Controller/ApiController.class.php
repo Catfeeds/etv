@@ -69,6 +69,7 @@ class ApiController extends Controller{
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
     }
+
     /**
      * @interfaceName getWelcomeImg
      * @uses 获取欢迎背景图
@@ -181,8 +182,7 @@ class ApiController extends Controller{
         if (empty($hid)) {
             $this->errorCallback(404, "Error: hid param is needed!");
         }
-        $cityCode = $this->getCityCode($hid);
-        $cityName=$this->getCityName($cityCode);
+        $cityName=$this->getCityName($hid);
         $gb_cityName =  urlencode(mb_convert_encoding($cityName,'gb2312','utf-8'));
         $url = "http://php.weather.sina.com.cn/xml.php?city=".$gb_cityName.'&password=DJOYnieT8234jlsK&day=0';
         $curl = curl_init();
@@ -235,7 +235,6 @@ class ApiController extends Controller{
         }
     }
      
-    
     /**
      * http request:/api.php/Api/getMessage
      * @author Blues
@@ -251,7 +250,6 @@ class ApiController extends Controller{
      *     -content 内容
      *     -start_time 开始时间
      *     -end_time 结束时间
-     *     Notice表已经废弃 现改用message表
      */
     public function getMessage(){
         $json = array();
@@ -296,6 +294,7 @@ class ApiController extends Controller{
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
     }
+
     /**
      * http request:/api.php/Api/getBaseSet
      * @author Blues
@@ -351,6 +350,7 @@ class ApiController extends Controller{
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
     }
+
     /**
      * http request:/api.php/Api/getMainleft
      * @author Blues
@@ -401,6 +401,7 @@ class ApiController extends Controller{
         echo json_encode($json); 
         die();
     }
+
     /**
      * http request:/api.php/Api/getMainAd
      * @author Blues
@@ -440,6 +441,7 @@ class ApiController extends Controller{
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
     }
+
     /**
      * http request:/api.php/Api/getMenu
      * @version 2015-11-10并入集团、专题栏目，集团栏目最前、专题最后
@@ -655,6 +657,7 @@ class ApiController extends Controller{
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
     }
+
     /**
      * http request:/api.php/Api/getContent
      * @author Blues
@@ -855,6 +858,7 @@ class ApiController extends Controller{
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
     }
+
     /**
      * http request:/api.php/Api/getUpgrade
      * @author Blues
@@ -949,6 +953,7 @@ class ApiController extends Controller{
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($result);
     }
+
     /**
      * http request:/api.php/Api/postUpgradeResult
      * @author Blues
@@ -979,6 +984,7 @@ class ApiController extends Controller{
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
     }
+
     //STB运行日志
     private function stbLog($hid="NULL",$roomno='NULL',$mac='NULL', $cversion='NULL',$uversion='NULL',$status=4,$ip='') {
         date_default_timezone_set('Asia/Shanghai');
@@ -994,42 +1000,7 @@ class ApiController extends Controller{
         $data['status'] = $status;
         $result = $stblogs->add($data);
     }
-    /**
-     * http request:/api.php/Api/postErrorInfo
-     * @author Blues
-     * @uses 错误代码上传
-     * @param hid 酒店编号
-     * @param room 房间号
-     * @param mac Mac地址
-     * @var json
-     * @return
-     *     status 状态  （200成功    404失败）
-     *     info 发送状态说明
-     *     此接口 有问题 2017.08.08发现
-     */
-    public function postErrorInfo(){
-        $json = array();
-        $hid = empty($_REQUEST['hid'])?"":strtoupper($_REQUEST["hid"]);
-        $room = empty($_REQUEST['room'])?"":$_REQUEST["room"];
-        $mac = empty($_REQUEST['mac'])?"":$_REQUEST["mac"];
-        if (empty($hid)) {
-            $this->errorCallback(404, "Error: hid param is needed!");
-        }
-        if (empty($room)) {
-            $this->errorCallback(404, "Error: room param is needed!");
-        }
-        if (empty($mac)) {
-            $this->errorCallback(404, "Error: mac param is needed!");
-        }
-        if (TRUE) {
-            $json['status'] = 200;
-            $json['info'] = "Successed!";
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode($json);
-        }else{
-            $this->errorCallback(404, "Error: post errorInfo has bug!");
-        }
-    }
+
     /**
      * http request:/api.php/Api/getwifiinfo
      * @author Blues
@@ -1069,214 +1040,7 @@ class ApiController extends Controller{
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
     }
-    /**
-     * http request:/api.php/Api/postWifiResult
-     * @author Blues
-     * @uses Wifi设置结果上传
-     * 传入参数
-     * @param hid 酒店编号
-     * @param room 房间号
-     * @param mac Mac地址
-     * @param status  wifi设置状态   1：成功  0：失败
-     * @return
-     *     status 状态  （200成功   404失败）
-     *     info 发送状态说明
-     */
-    public function postWifiResult(){
-        $hid = empty($_REQUEST['hid'])?"":strtoupper($_REQUEST["hid"]);
-        $room = empty($_REQUEST['room'])?"":$_REQUEST["room"];
-        $mac = empty($_REQUEST['mac'])?"":$_REQUEST["mac"];
-        $status = empty($_REQUEST["status"]) ? 0 : $_REQUEST["status"];
-        if (empty($hid)) {
-            $this->errorCallback(404, "Error: hid param is needed");
-        }
-        if (empty($room)) {
-            $this->errorCallback(404, "Error: room param is needed");
-        }
-        if (empty($mac)) {
-            $this->errorCallback(404, "Error: mac param is needed");
-        }
-        $DeviceWifi = D("DeviceWifi");
-        $map['hid']=$hid;
-        $map['room']=$room;
-        $map['mac']=$mac;
-        $data['result']=$status;//1开启wifi，0关闭
-        $list=$DeviceWifi->where($map)->save($data);
 
-        if ($list) {
-            $result['status'] = 200;
-            $result['info'] = "Successed!";
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode($result);
-        }else{
-            $this->errorCallback(404, "Error: post Wifi result error!");
-        }
-    }
-    /**
-     * http request:/api.php/Api/postStbInfo
-     * @author Blues
-     * @uses 机顶盒信息上传
-     * @param  json格式的机顶盒信息
-     * @var json
-     * @return
-     *     status 状态  （200成功   404失败）
-     *     info 发送状态说明
-     */
-    public function postStbInfo(){
-        $result = array();
-        $json_input = file_get_contents('php://input');
-        if (empty($json_input)) {
-            $this->errorCallback(404, "Error: did not transport datas!");
-        }
-        $jsonData = json_decode($json_input);
-        $arrayData = $this->object_array($jsonData);
-
-        $stbData=array();
-        $stbData['model']=$arrayData['model'];
-        $stbData['brand']=$arrayData['brand'];
-        $stbData['board']=$arrayData['board'];
-        $stbData['dev_desc']=$arrayData['dev_desc'];
-
-        $stbData['firmware_version']=$arrayData['firmware_version'];
-        $stbData['aaa_account']=$arrayData['aaa_account'];
-        $stbData['aaa_passwd']=$arrayData['aaa_passwd'];
-
-        $stbData['network_mode']=$arrayData['network_mode'];
-        $stbData['itv_mode']=$arrayData['itv_mode'];
-        $stbData['wan_mode']=$arrayData['wan_mode'];
-
-        $stbData['itv_dhcp_user']=$arrayData['itv_dhcp_user'];
-        $stbData['itv_dhcp_pwd']=$arrayData['itv_dhcp_pwd'];
-        $stbData['itv_pppoe_user']=$arrayData['itv_pppoe_user'];
-        $stbData['itv_pppoe_pwd']=$arrayData['itv_pppoe_pwd'];
-        $stbData['itv_static_ip']=$arrayData['itv_static_ip'];
-        $stbData['itv_netmask']=$arrayData['itv_netmask'];
-        $stbData['itv_gateway']=$arrayData['itv_gateway'];
-        $stbData['itv_dns1']=$arrayData['itv_dns1'];
-        $stbData['itv_dns2']=$arrayData['itv_dns2'];
-
-        $stbData['wan_pppoe_user']=$arrayData['wan_pppoe_user'];
-        $stbData['wan_pppoe_pwd']=$arrayData['wan_pppoe_pwd'];
-        $stbData['wan_static_ip']=$arrayData['wan_static_ip'];
-        $stbData['wan_netmask']=$arrayData['wan_netmask'];
-        $stbData['wan_gateway']=$arrayData['wan_gateway'];
-        $stbData['wan_dns1']=$arrayData['wan_dns1'];
-        $stbData['wan_dns2']=$arrayData['wan_dns2'];
-
-        $stbData['online'] = 1;
-        $stbData['last_login_time'] = time();
-        $stbData['last_login_ip'] = $this->get_client_ip();
-
-        $stbData['hid']=$arrayData['hid'];
-        $stbData['room']=$arrayData['room'];
-        $stbData['mac']=$arrayData['mac'];
-
-        $Device=D("Device");
-        //$map['hid']=$arrayData['hid'];
-        //$map['room']=$arrayData['room'];
-        $map['mac']=$arrayData['mac'];
-        $list=$Device->where($map)->select();
-        if (empty($list)) {
-            $stbData['status'] = 1;
-            $deviceID=$Device->add($stbData);
-        }else{
-            $deviceID=$Device->where($map)->save($stbData);
-        }
-        $DeviceWifi = D("DeviceWifi");
-        $wifiData=array();
-        $wifiData['ssid'] = $arrayData['wifi_ssid'];
-        if ($arrayData['wifi_psk_type']=="none") {
-            $wifiData['security'] = 0;
-        }else if($arrayData['wifi_psk_type']=="psk2"){
-            $wifiData['security'] = 1;
-        }
-        $wifiData['password'] = $arrayData['wifi_passwd'];
-        $wifiData['wifistatus'] = 1;
-        $wifiData['result'] = 1;
-        $wifiData['hid']=$arrayData['hid'];
-        $wifiData['room']=$arrayData['room'];
-        $wifiData['mac']=$arrayData['mac'];
-        $wifiList=$DeviceWifi->where($map)->select();
-        if (empty($wifiList)) {
-            $wifiID=$DeviceWifi->add($wifiData);
-        }else{
-            $wifiID=$DeviceWifi->where($map)->save($wifiData);
-        }
-        if (($deviceID !== false) && ($wifiID !== false)) {
-            $result['status'] = 200;
-            $result['info'] = "Successed!";
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode($result);
-        }else{
-            $this->errorCallback(404, "Error: post error or update error!");
-        }
-    }
-    /**
-     * http request:/api.php/Api/getEventList
-     * @author Blues
-     * @uses 心跳例询,获取酒店事件更新表
-     * @param hid 酒店编号
-     * @param room 房间号
-     * @param mac Mac地址
-     * @var json
-     * @return
-     *     status 状态  （200成功   404失败）
-     *     info 发送状态说明
-     *     list 当前酒店事件列表
-     *     --type 事件代码
-     *     --update_time 事件更新时间
-     */
-    public function getEventList(){
-        $json = array();
-        $hid = empty($_REQUEST['hid'])?"":strtoupper($_REQUEST["hid"]);
-        $room = empty($_REQUEST['room'])?"":$_REQUEST["room"];
-        $mac = empty($_REQUEST['mac'])?"":$_REQUEST["mac"];
-        if (empty($hid)) {
-            $this->errorCallback(404, "Error: hid param is needed");
-        }
-        if (empty($room)) {
-            $this->errorCallback(404, "Error: room param is needed");
-        }
-        if (empty($mac)) {
-            $this->errorCallback(404, "Error: mac param is needed");
-        }
-        /*更新Device表 Start*/
-        $Device = D("Device");
-        $DeviceWifi = D("DeviceWifi");
-        $deviceList = $Device->where('mac = "'.$mac.'"')->select();
-        $deviceWifiList = $DeviceWifi->where('mac = "'.$mac.'"')->select();
-        $data = array();
-        $wifiData=array();
-        $data['hid'] = $wifiData['hid'] = $hid;
-        $data['mac'] =  $wifiData['mac'] = $mac;
-        $data['room'] = $wifiData['room'] = $room;
-        $data['online'] = 1;
-        $data['last_login_time'] = time();
-        $data['last_login_ip'] = $this->get_client_ip();
-        if (empty($deviceList)) {
-            $data['status'] = 1;
-            $Device->add($data);
-        }else{
-            $Device->where('mac = "'.$mac.'"')->save($data);
-        }
-        if (empty($deviceWifiList)) {
-            $DeviceWifi->add($wifiData);
-        }else{
-            $DeviceWifi->where('mac = "'.$mac.'"')->save($wifiData);
-        }
-        /*更新Device表 end*/
-        $Event=D("Event");
-        $map['hid']=$hid;
-        $list=$Event->where($map)->field('type,update_time')->select();
-        if (empty($list)) {
-            $this->errorCallback(404, "Error: event is empty!");
-        }
-        $json['status'] = 200;
-        $json['info'] = "Successed!";
-        $json['list']=$list;
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($json);
-    }
     /**
      * @interfaceName getBlackApp
      * @uses 获取终端不显示的APP列表
@@ -1316,14 +1080,7 @@ class ApiController extends Controller{
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
     }
-    private function execUrl($url){
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        $content = curl_exec($ch);
-        return $content;
-    }
+
     private function object_array($array) {
         if(is_object($array)) {
             $array = (array)$array;
@@ -1335,6 +1092,11 @@ class ApiController extends Controller{
         }
         return $array;
     }
+
+    /**
+     * [获取客户端IP]
+     * @return [string] $ip [IP]
+     */
     private function get_client_ip(){
         if (getenv("HTTP_CLIENT_IP") && strcasecmp(getenv("HTTP_CLIENT_IP"), "unknown"))
         $ip = getenv("HTTP_CLIENT_IP");
@@ -1348,30 +1110,10 @@ class ApiController extends Controller{
         $ip = "unknown";
         return($ip);
     }
-    public function get_client_ip_New($type = 0,$adv=false) {
-        $type = $type ? 1 : 0;
-        static $ip = NULL;
-        if ($ip !== NULL) return $ip[$type];
-        if($adv){
-            if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-                $arr = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-                $pos = array_search('unknown',$arr);
-                if(false !== $pos) unset($arr[$pos]);
-                $ip     =   trim($arr[0]);
-            }elseif (isset($_SERVER['HTTP_CLIENT_IP'])) {
-                $ip     =   $_SERVER['HTTP_CLIENT_IP'];
-            }elseif (isset($_SERVER['REMOTE_ADDR'])) {
-                $ip     =   $_SERVER['REMOTE_ADDR'];
-            }
-        }elseif (isset($_SERVER['REMOTE_ADDR'])) {
-            $ip     =   $_SERVER['REMOTE_ADDR'];
-        }
-        // IP地址合法验证
-        $long = sprintf("%u",ip2long($ip));
-        $ip   = $long ? array($ip, $long) : array('0.0.0.0', 0);
-        echo $ip[$type];
-        return $ip[$type];
-    }
+
+    /**
+     * [错误方法调用]
+     */
     private function errorCallback($status,$info){
         $data['status'] = $status;
         $data['info'] = $info;
@@ -1379,219 +1121,21 @@ class ApiController extends Controller{
         echo json_encode($data);
         exit;
     }
-    private function reCollectCityWeather($hid){
-        $cityCode=$this->getCityCode($hid);
-        $datetime = date('YmdHi');
-        $areaid = $cityCode;
-        $public_key = "http://webapi.weather.com.cn/data/?areaid=$areaid&type=forecast3d&date=$datetime&appid=9c6b98d6b9e7f42f";
-        $appid = "9c6b98d6b9e7f42f";
-        $private_key = "e0d331_SmartWeatherAPI_ee1b2e7";
-        $key = urlencode(base64_encode(hash_hmac('sha1', $public_key, $private_key,true)));
-        $url = "http://webapi.weather.com.cn/data/?areaid=$areaid&type=forecast3d&date=$datetime&appid=9c6b98&key=$key";
-        $ch = curl_init ( );
-        curl_setopt($ch, CURLOPT_URL, $url );
-        curl_setopt ( $ch, CURLOPT_HEADER, 0 );
-        curl_setopt ( $ch, CURLOPT_POST, false );
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $json = curl_exec ( $ch );
-        curl_close ( $ch );
-         
-        $data = json_decode($json);
-        $dataArray = $this->object_array($data);
-        $threeDayWeather = $dataArray['f']['f1'];
-        $weatherdata = array();
-        if (empty($dataArray)) {
-            echo "Error : Curl Collect weather failed";
-            exit;
-        }else{
-            $ctime = time();
-            $today = date("Y-m-d",$ctime);
-            $time = strtotime($today);
-            for ($i = 0; $i < 3; $i++) {
-                $weatherdata[$i]['high_c'] = $threeDayWeather[$i]['fc'];
-                $weatherdata[$i]['low_c'] = $threeDayWeather[$i]['fd'];
-                $weatherdata[$i]['date'] = $time+86400*$i;
-                $weatherdata[$i]['weather'] = $threeDayWeather[$i]['fa'];
-                $weatherdata[$i]['wind'] = $threeDayWeather[$i]['fg'];
-            }
-            $rn = "\n";
-            $xml = '';
-            $xml .= '<?xml version="1.0" encoding="UTF-8"?>';
-            $xml .= '<data>';
-            $xml .= '<version>1.0</version>';
-            $xml .= '<content>';
-            $xml .= '<city>';
-            $xml .= '<name>'.$this->getCityName($cityCode).'</name>';
-            $xml .= '<code>'.$cityCode.'</code>';
-            $xml .= '<weathers>';
-            foreach ($weatherdata as $wd) {
-                $xml .= '<weather>';
-                $xml .= '<date>'.date("Y-m-d",$wd["date"]).'</date>';
-                $xml .= '<sign>'.$wd["weather"].'</sign>';
-                $xml .= '<image>'.$wd["weather"].'.png</image>';
-                $xml .= '<high_c>'.$wd["high_c"].'</high_c>';
-                $xml .= '<low_c>'.$wd["low_c"].'</low_c>';
-                $xml .= '<wind>'.$wd["wind"].'</wind>';
-                $xml .= '<discription>'.$this->getWeatherDescription($wd['weather']).'</discription>';
-                $xml .= '</weather>';
-            }
-            $xml .= '</weathers>';
-            $xml .= '</city>';
-            $xml .= '</content>';
-            $xml .= '</data>';
-            file_put_contents('./Public/weather/'.$cityCode.'.xml', $xml);
-        }
-    }
-    private function getCityCode($hid){
+
+    /**
+     * [根据hid获取地址代码]
+     * @param  [type] $hid [description]
+     * @return [type]      [description]
+     */
+    private function getCityName($hid){
         $Hotel=D("Hotel");
         $voHotel=$Hotel->getByHid($hid);
         $cityID=$voHotel['cityid'];
         $Region=D("Region");
         $c=$Region->getById($cityID);
-        $cityCode=$c['code'];
-        return $cityCode;
-    }
-    private function getCityName($cityCode){
-        $Region = D("Region");
-        $c = $Region->getByCode($cityCode);
         return $c['name'];
     }
-    private function getWeatherDescription($weather){
-        $weather = intval($weather);
-        $name = '未知';
-        switch ($weather) {
-            case 0:
-                $name = '晴';
-                break;
-            case 1:
-                $name = '多云';
-                break;
-            case 2:
-                $name = '阴';
-                break;
-            case 3:
-                $name = '阵雨';
-                break;
-            case 4:
-                $name = '雷阵雨';
-                break;
-            case 5:
-                $name = '雷阵雨伴有冰雹';
-                break;
-            case 6:
-                $name = '雨夹雪';
-                break;
-            case 7:
-                $name = '小雨';
-                break;
-            case 8:
-                $name = '中雨';
-                break;
-            case 9:
-                $name = '大雨';
-                break;
-            case 10:
-                $name = '暴雨';
-                break;
-            case 11:
-                $name = '大暴雨';
-                break;
-            case 12:
-                $name = '特大暴雨';
-                break;
-            case 13:
-                $name = '阵雪';
-                break;
-            case 14:
-                $name = '小雪';
-                break;
-            case 15:
-                $name = '中雪';
-                break;
-            case 16:
-                $name = '大雪';
-                break;
-            case 17:
-                $name = '暴雪';
-                break;
-            case 18:
-                $name = '雾';
-                break;
-            case 19:
-                $name = '冻雨';
-                break;
-            case 20:
-                $name = '沙尘暴';
-                break;
-            case 21:
-                $name = '小到中雨';
-                break;
-            case 22:
-                $name = '中到大雨';
-                break;
-            case 23:
-                $name = '大到暴雨';
-                break;
-            case 24:
-                $name = '暴雨到大暴雨';
-                break;
-            case 25:
-                $name = '大暴雨到特大暴雨';
-                break;
-            case 26:
-                $name = '小到中雪';
-                break;
-            case 27:
-                $name = '中到大雪';
-                break;
-            case 28:
-                $name = '大到暴雪';
-                break;
-            case 29:
-                $name = '浮尘';
-                break;
-            case 30:
-                $name = '扬沙';
-                break;
-            case 31:
-                $name = '强沙尘暴';
-                break;
-            case 53:
-                $name = '霾';
-                break;
-            default:
-                $name = '无';
-                break;
-        }
-        return $name;
-    }
-    //getWeatherXml内部调用(不一定使用)
-    public function getWeatherXml(){
-        $hid = $_REQUEST['hid'];
-        $Hotel=D("Hotel");
-        $voHotel=$Hotel->getByHid($hid);
-        $cityID=$voHotel['cid'];
-        $Region=D("Region");
-        $c=$Region->getById($cityID);
-        $cityCode=$c['code'];
-        $xmlpath = "./Public/weather/".$cityCode."weather.xml";
-        if (file_exists($xmlpath)) {
-            $xml2 = simplexml_load_file($xmlpath);
-            $mtime = filemtime($xmlpath);
-            if (time()-$mtime>3600*3) {
-                $this->reCollectCityWeather($hid);
-            }else{
-                if($xml2->content->city->code != $cityCode){
-                    $this->reCollectCityWeather($hid);
-                }
-            }
-        }else{
-            $this->reCollectCityWeather($hid);
-        }
-        header('Content-Type: text/xml; charset=utf-8');
-        echo file_get_contents($xmlpath);
-    }
-    /***************下方为2016-12-21增加的接口*******************/
+
     /**
      * @interfaceName getLastCommand
      * @uses 获取设备最近一次的指令（如重启、强制改设备参数）
@@ -1633,6 +1177,7 @@ class ApiController extends Controller{
             echo json_encode($json);
         }
     }
+
     /**
      * http request:/api.php/Api/postCommandResult
      * @author Blues
@@ -1680,6 +1225,7 @@ class ApiController extends Controller{
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
     }
+
     /**
      * http request:/api.php/Api/getStbInfo
      * @author Blues
@@ -1709,6 +1255,7 @@ class ApiController extends Controller{
             echo json_encode($json);
         }
     }
+
     /**
      * http request:/api.php/Api/postStbParaInfo
      * @author Blues by 2016-12-21
@@ -1803,6 +1350,7 @@ class ApiController extends Controller{
         }
     }
     
+    //内部调用方法
     private function DeviceParaLog($after_info=array(),$before_info=array()) {
         $Device_para_log = D('device_para_log');
         $data = array();
@@ -1822,6 +1370,8 @@ class ApiController extends Controller{
             return "Failed!";
         }
     }
+
+    //内部调用方法
     private function LogBefore($stbinfo=array()){
         $str = "";
         $str .="<p><strong>硬件信息</strong></p>";
@@ -1897,9 +1447,9 @@ class ApiController extends Controller{
         }
         return $str;
     }
+
     /**
      * interfaceName:getStbSleepInfo
-     * @author Blues
      * @uses 获取设备休眠设置信息
      * @param hid 酒店编号
      * @param room 房间号
@@ -1954,23 +1504,11 @@ class ApiController extends Controller{
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
     }
-    //通过账号查询酒店信息
-    public function getHotleinfoBymember(){
-        $token = $_REQUEST['token'];
-        if($token != 'zxtorder'){
-            $this->errorCallback(404, "Error:bad param");
-        }
 
-        $hotel = D("hotel");
-
-        $hotellist = $hotel->getField('id,hid,hotelname');
-        
-        $json = json_encode($hotellist);
-        header('Content-Type: application/json; charset=utf-8');
-        echo $json;
-    }
-
-    //查找appstore列表
+    /**
+     * [获取APK列表]
+     * @return [array] $list [所有需要安装的最高版本的apk列表]
+     */
     public function getApklist(){
 
         $hid = strtoupper(I('request.hid','','strip_tags'));
@@ -2037,7 +1575,9 @@ class ApiController extends Controller{
         }
     }
 
-    //appstore安装情况
+    /**
+     * [记录apk安装情况]
+     */
     public function installedapk(){
 
         $hid = strtoupper(I('request.hid'));
@@ -2073,6 +1613,9 @@ class ApiController extends Controller{
         $this->Callback(200,'Success');
     }
 
+    /**
+     * [内部调用方法]
+     */
     private function Callback($status,$info){
         $data['status'] = $status;
         $data['data'] = $info;
@@ -2081,8 +1624,9 @@ class ApiController extends Controller{
         exit;
     }
 
-
-    //2017-08-15 保持盒子在线接口
+    /**
+     * [保持终端在线接口]
+     */
     public function keepDeviceStatus(){
         $hid = I('post.hid','','strtoupper,strip_tags');
         $room = I('post.room');
@@ -2102,7 +1646,6 @@ class ApiController extends Controller{
         }
     }
 
-    /***************lauch 网页端接口  2017.07.07*************/
 
     /**
      * [获取一级栏目  酒店+集团+通用]
@@ -2204,7 +1747,7 @@ class ApiController extends Controller{
     }
 
     /**
-     * [checkPid description]
+     * [根据hid查找PID]
      * @param  [string] $hid [酒店编号]
      * @return [int]    $pid [父id]
      */
@@ -2349,8 +1892,10 @@ class ApiController extends Controller{
         $this->Callback(200,$url);
     }
 
-    //2017.08.03  新增弹窗广告接口
-    
+    /**
+     * [获取广告弹窗信息列表]
+     * @return [array] $adsetList [广告弹窗信息列表]
+     */
     public function getAdresource(){
 
         $hid = I('post.hid','','strtoupper');
@@ -2405,7 +1950,10 @@ class ApiController extends Controller{
         }
     }
 
-    //2017-08-25  查询所有视频轮播资源
+    /**
+     * [根据HID查询酒店视频轮播资源]
+     * @return [array] $list [视频轮播资源列表]
+     */
     public function getVideoCarousel(){
         $hid = I('post.hid');
         if(empty($hid)){
