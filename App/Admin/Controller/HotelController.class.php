@@ -454,35 +454,13 @@ class HotelController extends ComController {
             $arrdata['ad_size'] = 0.00;
             $updatesize = M("hotel_volume")->data($arrdata)->add();
         }
-        //更新资源表
-        $addgetName = $this->searchTopicAndName($add_id_arr);
-        $delgetName = $this->searchTopicAndName($del_id_arr);
-        $allresourceResult = true;
-        $addAllresourceResult = true;
-        $delAllresourceResult = true;
-        if(!empty($addgetName['name'])){
-            $count = count($addgetName['name']);
-            for ($i=0; $i < $count; $i++) { 
-                $addlist[$i]['hid'] = $hid;
-                $addlist[$i]['name'] = $addgetName['name'][$i];
-                $addlist[$i]['type'] = $addgetName['type'][$i];
-                $addlist[$i]['timeunix'] = time();
-                $addlist[$i]['time'] = date("Y-m-d H:i:s");
-                $addlist[$i]['web_upload_file'] = $addgetName['filepath'][$i];
-            }
-            $addAllresourceResult = D("hotel_allresource")->addAll($addlist);
-        }
-        if(!empty($delgetName['name'])){
-            $delAllResourceMap['name'] = array('in',$delgetName['name']);
-            $delAllresourceResult = D("hotel_allresource")->where($delAllResourceMap)->delete();
-        }
-        if($addAllresourceResult===false || $delAllresourceResult===false){
-            $allresourceResult = false;
-        }
-        if($hoteltopicResult!== false && $updatesize !== false && $allresourceResult!==false){
+
+        if($hoteltopicResult!== false && $updatesize !== false){
             $model->commit();
-            $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$hid.'.txt';
-            $this->fileputXml(D("hotel_allresource"),$hid,$xmlFilepath);
+            //更新json
+            $this->updatejson_one($hid,$topic_list_arr);
+            $this->updatejson_two($hid,$topic_list_arr);
+            $this->updatejson_resource($hid,$topic_list_arr);
             $this->success('关联成功','index');
         }else{
             $model->rollback();
@@ -1836,6 +1814,74 @@ class HotelController extends ComController {
             $callback['message'] = $str;
         }
         echo json_encode($callback);
+    }
+
+    /**
+     * [更新一级栏目json数据]
+     * @param  [string] $hid [酒店编号]
+     * @param  [array] $gid [栏目组ID集合]
+     */
+    private function updatejson_one($hid,$gid){
+        $map['id'] = array('in',$gid);
+        $map['status'] = 1;
+        $list = D("topic_group")->where($map)->field('id,title,name,en_name,intro,icon')->select();
+        if (!empty($list)) {
+            foreach ($list as $key => $value) {
+                $list[$key]['nexttype'] = 'topic_second';
+            }
+            $jsondata = json_encode($list);
+        }else{
+            $jsondata = '';
+        }
+        if (!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid)) {
+            mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid);
+        }
+        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/topic_first.json';
+        file_put_contents($filename, $jsondata);
+    }
+
+    /**
+     * [更新二级栏目json数据]
+     * @param  [string] $hid [酒店编号]
+     * @param  [array] $gid [栏目组ID集合]
+     */
+    private function updatejson_two($hid,$gid){
+        $map['groupid'] = array('in',$gid);
+        $map['status'] = 1;
+        $list = D("topic_category")->where($map)->field('id,groupid,name,modeldefineid,icon')->order('sort')->select();
+        if (!empty($list)) {
+            foreach ($list as $key => $value) {
+                $value['nexttype'] = 'topicresource';
+                $plist[$value['groupid']][] = $value;
+            }
+            $jsondata = json_encode($plist);
+        }else{
+            $jsondata = '';
+        }
+        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/topic_second.json';
+        file_put_contents($filename,$jsondata);
+    }
+
+    /**
+     * [更新栏目资源json数据]
+     * @param  [string] $hid [酒店编号]
+     * @param  [array] $gid [栏目组ID集合]
+     */
+    private function updatejson_resource($hid,$gid){
+        $map['gid'] = array('in',$gid);
+        $map['audit'] = 1;
+        $map['audit_status'] = 4;
+        $list = D("topic_resource")->where($map)->field('cid,gid,title,type,video,image,video_image,intro,sort')->order('sort')->select();
+        if (!empty($list)) {
+            foreach ($list as $key => $value) {
+                $plist[$value['cid']][] = $value;
+            }
+            $jsondata = json_encode($plist);
+        }else{
+            $jsondata = '';
+        }
+        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/topicresource.json';
+        file_put_contents($filename, $jsondata);
     }
 
 }

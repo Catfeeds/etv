@@ -988,7 +988,7 @@ class ChgController extends ComController {
     		$returnarr[$key]['hid'] = $value['hid'];
     		$returnarr[$key]['lastvolume'] = $value['space'] - $value['content_size'] - $value['topic_size'] - $value['ad_size'] - $value['devicebg_size'];
     	}
-
+        
     	return $returnarr;
     }
 

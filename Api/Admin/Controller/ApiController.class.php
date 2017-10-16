@@ -21,6 +21,7 @@ class ApiController extends Controller{
 
     static protected $serverUrl = 'http://61.143.52.102:9090/etv/Public';
     // static protected $serverUrl = 'http://125.88.254.149/etv/Public';
+    // static protected $serverUrl = 'http://localhost/etv/Public';
     
     /**
      * @interfaceName getSkinPath
@@ -1979,6 +1980,86 @@ class ApiController extends Controller{
         }else{
             $this->Callback(404,'not find');
         }        
+    }
+
+    public function hotelresource_json(){
+        $hid = I('post.hid','','strtoupper');
+        if (empty($hid)) {
+            $this->Callback(10000,'the hid is empty');
+        }
+        $hoteldataMap['zxt_hotel.hid'] = $hid;
+        $hoteldata = D("hotel")->where($hoteldataMap)->field('zxt_hotel.pid,zxt_hotel_chglist.phid')->join('zxt_hotel_chglist ON zxt_hotel.hid=zxt_hotel_chglist.hid','left')->find();
+        $dir = dirname(dirname(dirname(dirname(__FILE__)))).DIRECTORY_SEPARATOR.'Public'.DIRECTORY_SEPARATOR.'hotel_json'.DIRECTORY_SEPARATOR.$hid;
+
+        if ($hoteldata['pid']==0) { //集团酒店
+            if (!is_dir($dir)) {
+                $this->Callback(404,'the dir is empty');
+            }
+        }else{
+            $dir_pre = dirname(dirname(dirname(dirname(__FILE__)))).DIRECTORY_SEPARATOR.'Public'.DIRECTORY_SEPARATOR.'hotel_json';
+            $phidfile = false;
+            if(!empty($hoteldata['phid'])){
+                if (!is_dir($dir_pre.DIRECTORY_SEPARATOR.$hoteldata['phid'])) {
+                    $phidfile = false;
+                }
+            }
+            if (!is_dir($dir) && $phidfile) {
+                $this->Callback(404,'the dir is empty');
+            }
+        }
+        $list = array();
+
+        $filelist = scandir($dir);
+
+        if (count($filelist)>2) {
+            unset($filelist['0'],$filelist['1']);
+            foreach ($filelist as $key => $value) {
+                $list[substr($value, 0,-5)] = self::$serverUrl.DIRECTORY_SEPARATOR.'hotel_json'.DIRECTORY_SEPARATOR.$hid.DIRECTORY_SEPARATOR.$value;
+            }
+        }
+        if ($hoteldata['pid']>0 && !empty($hoteldata['phid'])) {
+            $pfilelist = scandir($dir_pre.DIRECTORY_SEPARATOR.$hoteldata['phid']);
+            if (count($pfilelist)>2) {
+                unset($pfilelist[0],$pfilelist[1]);
+                $chg_arr = array('chgcategory_first','chgcategory_second','chgresource','videochg');
+                foreach ($pfilelist as $key => $value) {
+                    if (in_array(substr($value,0,-5), $chg_arr)) {
+                        $list[substr($value,0,-5)] = self::$serverUrl.DIRECTORY_SEPARATOR.'hotel_json'.DIRECTORY_SEPARATOR.$hoteldata['phid'].DIRECTORY_SEPARATOR.$value;
+                    }
+                }
+            }
+        }
+        if (!empty($list)) {
+            if (empty($list['chgcategory_first'])) {
+                $list['chgcategory_first'] = '';
+            }
+            if (empty($list['chgcategory_second'])) {
+                $list['chgcategory_second'] = '';
+            }
+            if (empty($list['chgresource'])) {
+                $list['chgresource'] = '';
+            }
+            if (empty($list['hotelcategory_first'])) {
+                $list['hotelcategory_first'] = '';
+            }
+            if (empty($list['hotelcategory_second'])) {
+                $list['hotelcategory_second'] = '';
+            }
+            if (empty($list['hotelresource'])) {
+                $list['hotelresource'] = '';
+            }
+            if (empty($list['videochg'])) {
+                $list['videochg'] = '';
+            }
+            if (empty($list['videohotel'])) {
+                $list['videohotel'] = '';
+            }
+         
+            $this->Callback(200,$list);
+        }else{
+            $this->Callback(404,'the resource is empty');
+        }
+        
     }
 
 }
