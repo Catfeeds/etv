@@ -87,7 +87,7 @@
                                 if($val['ad_position']==0){echo "全屏播放";}elseif($val['ad_position']==1){echo "左上角播放";}elseif($val['ad_position']==2){echo "右上角播放";}elseif($val['ad_position']==3){echo "左下角播放";}elseif($val['ad_position']==4){echo "右下角播放";}
                               ?>
                           </td>
-                          <td title="{$val['ad_word']}">{$val['ad_word']|extract_title|shorter_title}</td>
+                          <td title="{$val['ad_word']}">{$val['ad_word']|shorter_title}</td>
                           <td>{$val['status']|get_status}</td>
                         </tr>
                       </volist>

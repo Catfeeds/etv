@@ -2062,5 +2062,28 @@ class ApiController extends Controller{
         
     }
 
+    /**
+     * [验证酒店HID合法性]
+     * @return [json] [成功返回酒店基本信息]
+     */
+    public function verify_hotel(){
+        $hid = I('post.hid','','strtoupper');
+        $token = I('post.token','','strip_tags');
+        if(trim($token) != "zxt_check_hotelinfo" ){
+            $this->Callback(10002,'wrong token!');
+        }
+        if(!empty($hid)){
+            $map['hid'] = $hid;
+            $vo = D("hotel")->where($map)->field('id,hid,name,hotelname,manager,mobile,status')->find();
+            if(!empty($vo)){
+                $this->Callback(200,$vo);
+            }else{
+                $this->Callback(404,'the hid is wrong');
+            }
+        }else{
+            $this->Callback(10000,'the hid is needed');
+        }
+    }
+
 }
 ?>

@@ -58,6 +58,9 @@ class TopicCategoryController extends ComController {
         $this->assign('modeList', $modeList);
     }
 
+    /**
+     * [保存通用二级栏目]
+     */
     public function update(){
         $model = M(CONTROLLER_NAME);
         $data['id'] = I('post.id','','intval');
@@ -70,80 +73,37 @@ class TopicCategoryController extends ComController {
         $size = I('post.size','','intval');
         $data['size'] = round($size/1024,3);
         $model->startTrans();
-        $allresourceResult = true;
         $hotelvolumeResult = true;
-        $allresourceHidList = array();
+        $searchHidList = D("hotel_topic")->where('topic_id="'.$data["groupid"].'"')->field('hid')->select();
         if($data['id']){
             $vo = $model->getById($data['id']);
-            //allresource删除
-            $delAllresourceResult = true;
-            if(!empty($vo['icon'])){
-                $lastName_arr = explode("/", $vo['icon']);
-                $lastName = $lastName_arr[count($lastName_arr)-1];
-                $delAllresourceResult = D('hotel_allresource')->where('name="'.$lastName.'"')->delete();
-            }
-            //allresource新增
-            $searchHidList = D("hotel_topic")->where('topic_id="'.$data["groupid"].'"')->field('hid')->select();
-            $addAllresourceResult = true;
             if($searchHidList){
-                $getName_arr = explode("/", $data['icon']);
-                $getName = $getName_arr[count($getName_arr)-1];
-                $i = 0;
                 foreach ($searchHidList as $key => $value) {
                     $allresourceHidList[] = $value['hid'];
-                    $addlist[$i]['hid'] = $value['hid'];
-                    $addlist[$i]['name'] = $getName;
-                    $addlist[$i]['type'] = 2;
-                    $addlist[$i]['timeunix'] = time();
-                    $addlist[$i]['time'] = date("Y-m-d H:i:s");
-                    $addlist[$i]['web_upload_file'] = $data['icon'];
-                    $i++;
                 }
-                $addAllresourceResult = D("hotel_allresource")->addAll($addlist);
                 //修改hotel_volume表
                 $vo['size'] = empty($vo['size'])?0:$vo['size'];
                 $changeSize = $data['size'] - $vo['size'];
                 $hotelVolumeMap['hid'] = array('in',$allresourceHidList);
                 $hotelvolumeResult = D("hotel_volume")->where($hotelVolumeMap)->setInc('topic_size',$changeSize);
             }
-
-            if($addAllresourceResult===false || $delAllresourceResult===false){
-                $allresourceResult = false;
-            }
             $result = $model->data($data)->where('id='.$data['id'])->save();
-            addlog('修改专题分组，ID：'.$data['id']);
         }else{
-            $result = $model->data($data)->add();
-            addlog('添加专题二级栏目，ID：'.$result);
-            $searchHidList = D("hotel_topic")->where('topic_id="'.$data["groupid"].'"')->field('hid')->select();
             if($searchHidList){
-                $getName_arr = explode("/", $data['icon']);
-                $getName = $getName_arr[count($getName_arr)-1];
-                $i = 0;
                 foreach ($searchHidList as $key => $value) {
                     $allresourceHidList[] = $value['hid'];
-                    $addlist[$i]['hid'] = $value['hid'];
-                    $addlist[$i]['name'] = $getName;
-                    $addlist[$i]['type'] = 2;
-                    $addlist[$i]['timeunix'] = time();
-                    $addlist[$i]['time'] = date("Y-m-d H:i:s");
-                    $addlist[$i]['web_upload_file'] = $data['icon'];
-                    $i++;
                 }
-                $allresourceResult = D("hotel_allresource")->addAll($addlist);
                 //修改hotel_volume表
                 $hotelVolumeMap['hid'] = array('in',$allresourceHidList);
                 $hotelvolumeResult = D("hotel_volume")->where($hotelVolumeMap)->setInc('topic_size',$data['size']);
             }
+            $result = $model->data($data)->add();
         }
-        if($result!==false && $allresourceResult!==false && $hotelvolumeResult!==false){
+        if($result!==false && $hotelvolumeResult!==false){
             $model->commit();
-            //生成资源xml文件
-            if(!empty($allresourceHidList)){
-                foreach ($allresourceHidList as $key => $value) {
-                    $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$value.'.txt';
-                    $this->fileputXml(D("hotel_allresource"),$value,$xmlFilepath);
-                }
+            //生成json文件
+            if(!empty($searchHidList)){
+               $this->updatejson_two($searchHidList);
             }
             if($vo['icon'] != $data['icon']){
                 @unlink(FILE_UPLOAD_ROOTPATH.$vo['icon']);
@@ -152,9 +112,12 @@ class TopicCategoryController extends ComController {
         }else{
             $model->rollback();
             $this->error('操作失败',U('index'));
-        }
-        
+        } 
     }
+
+    /**
+     * [通用二级栏目上移]
+     */
     public function moveup(){
         $model = D(CONTROLLER_NAME);
         $currentid = $_REQUEST['ids'];
@@ -163,7 +126,7 @@ class TopicCategoryController extends ComController {
             die();
         }
         $currentid = $currentid['0'];
-        $vo = $model->getById($currentid);
+        $vo = $model->where('id="'.$currentid.'"')->field('sort,langcodeid,groupid')->find();
         $currentsort=$vo['sort'];
         $currentlang=$vo['langcodeid'];
         $currentgroup=$vo['groupid'];
@@ -176,12 +139,18 @@ class TopicCategoryController extends ComController {
                     $tempsort=$list[$i-1]['sort'];
                     $model-> where('id='.$list[$i-1]['id'].'')->setField('sort',$currentsort);
                     $model-> where('id='.$currentid.'')->setField('sort',$tempsort);
+                    $hid_arr = D("hotel_topic")->where('topic_id='.$currentgroup)->field('hid')->select();
+                    $this->updatejson_two($hid_arr);
                     $this->success("操作成功");
                     die();
                 }
             }
         }
     }
+
+    /**
+     * [通用二级栏目下移]
+     */
     public function movedown(){
         $model = D(CONTROLLER_NAME);
         $currentid = $_REQUEST['ids'];
@@ -189,7 +158,7 @@ class TopicCategoryController extends ComController {
             $this->error("只能移动一条数据");
             die();
         }        
-        $vo = $model->getById($currentid['0']);
+        $vo = $model->where('id="'.$currentid['0'].'"')->field('sort,langcodeid,groupid')->find();
         $currentsort=$vo['sort'];
         $currentlang=$vo['langcodeid'];
         $currentgroup=$vo['groupid'];
@@ -202,12 +171,112 @@ class TopicCategoryController extends ComController {
                     $tempsort=$list[$i+1]['sort'];
                     $model-> where('id='.$list[$i+1]['id'].'')->setField('sort',$currentsort);
                     $model-> where('id='.$currentid['0'].'')->setField('sort',$tempsort);
+                    $hid_arr = D("hotel_topic")->where('topic_id='.$currentgroup)->field('hid')->select();
+                    $this->updatejson_two($hid_arr);
                     $this->success("操作成功");
                     die();
                 }
             }
         }
     }
+
+    /**
+     * [通用二级栏目删除]
+     */
+    public function delete(){
+        $ids = $_POST['ids'];
+        if(count($ids)!=1){
+            $this->error('请选择需要删除的一则专题栏目!');
+            die();
+        }
+        $model = D(CONTROLLER_NAME);
+        $model->startTrans();
+        $list = $model->where('id="'.$ids['0'].'"')->find();
+        $TopicResource = D("TopicResource"); //二级栏目
+        $map['id'] = array('in',$ids);
+        $rMap['cid'] = array('in',$ids);
+        $TRlist = $TopicResource->where($rMap)->find(); //对应栏目下的资源
+        if(!empty($TRlist)){
+            $this->error('该栏目下含有资源，请先删除该栏目下的资源');
+            die();
+        }
+        $searchHidList = D("hotel_topic")->where('topic_id="'.$list['groupid'].'"')->field('hid')->select();
+        //删除volueme表
+        $delvolumeResult = true;
+        if(!empty($list['size'])){
+            if(!empty($searchHidList)){
+                foreach ($searchHidList as $key => $value) {
+                    $allresourceHidList[] = $value['hid'];
+                }
+                $vMap['hid'] = array('in',$allresourceHidList);
+                $delvolumeResult = D("hotel_volume")->where($vMap)->setDec('topic_size',$list['size']);
+            }
+        }
+        
+        //删除二级栏目
+        $result = $model->where($map)->delete();
+        if($result!==false && $delvolumeResult!==false){
+            $model->commit();
+            if(!empty($list['icon'])){
+                @unlink(FILE_UPLOAD_ROOTPATH.$list['icon']);
+            }
+            //生成json文件
+            if(!empty($searchHidList)){
+               $this->updatejson_two($searchHidList);
+            }
+            $this->success('恭喜，删除成功！');
+        }else{
+            $model->rollback();
+            $this->error('删除失败，参数错误！');
+        }
+    }
+
+    /**
+     * [通用二级栏目启用]
+     */
+    public function unlock(){
+        if (count($_POST['ids'])<1) {
+            $this->error('系统提示：参数错误');
+        }
+        $map['id'] = array('in',$_POST['ids']);
+        $result = D("topic_category")->where($map)->setField('status',1);
+        if ($result === false) {
+            $this->error('系统提示：启用失败');
+        }else{
+            $grouplist = D("topic_category")->where($map)->field('groupid')->group('groupid')->select();
+            foreach ($grouplist as $key => $value) {
+                $groupid_arr[] = $value['groupid'];
+            }
+            $htMap['topic_id'] = array('in',$groupid_arr);
+            $hidlist = D("hotel_topic")->where($htMap)->field('hid')->group('hid')->select();
+            $this->updatejson_two($hidlist);
+            $this->success('系统提示：启用成功');
+        } 
+    }
+
+    /**
+     * [通用二级栏目禁用]
+     */
+    public function lock(){
+        if (count($_POST['ids'])<1) {
+            $this->error('系统提示：参数错误');
+        }
+        $map['id'] = array('in',$_POST['ids']);
+        $result = D("topic_category")->where($map)->setField('status',0);
+        if ($result === false) {
+            $this->error('系统提示：禁用失败');
+        }else{
+            $grouplist = D("topic_category")->where($map)->field('groupid')->group('groupid')->select();
+            foreach ($grouplist as $key => $value) {
+                $groupid_arr[] = $value['groupid'];
+            }
+            $htMap['topic_id'] = array('in',$groupid_arr);
+            $hidlist = D("hotel_topic")->where($htMap)->field('hid')->group('hid')->select();
+            $this->updatejson_two($hidlist);
+            $this->success('系统提示：禁用成功');
+        } 
+    }
+
     public function resource(){
         $menuid = is_array($_REQUEST['ids'])?$_REQUEST['ids']:array($_REQUEST['ids']);
         $model = D(CONTROLLER_NAME);
@@ -254,63 +323,6 @@ class TopicCategoryController extends ComController {
         $this->display();
     }
 
-    public function delete(){
-        $ids = $_POST['ids'];
-        if(count($ids)!=1){
-            $this->error('请选择需要删除的一则专题栏目!');
-            die();
-        }
-        $model = D(CONTROLLER_NAME);
-        $model->startTrans();
-        $list = $model->where('id="'.$ids['0'].'"')->find();
-        $TopicResource = D("TopicResource"); //二级栏目
-        $map['id'] = array('in',$ids);
-        $rMap['cid'] = array('in',$ids);
-        $TRlist = $TopicResource->where($rMap)->find(); //对应栏目下的资源
-        if(!empty($TRlist)){
-            $this->error('该栏目下含有资源，请先删除该栏目下的资源');
-            die();
-        }
-        //删除volueme表
-        $delvolumeResult = true;
-        if(!empty($list['size'])){
-            $searchHidList = D("hotel_topic")->where('topic_id="'.$list['groupid'].'"')->field('hid')->select();
-            if(!empty($searchHidList)){
-                foreach ($searchHidList as $key => $value) {
-                    $allresourceHidList[] = $value['hid'];
-                }
-                $vMap['hid'] = array('in',$allresourceHidList);
-                $delvolumeResult = D("hotel_volume")->where($vMap)->setDec('topic_size',$list['size']);
-            }
-        }
-        //删除allresource表
-        $allresourceResult = true;
-        if(!empty($list['icon'])){
-            $delName_arr = explode("/", $list['icon']);
-            $delName = $delName_arr[count($delName_arr)-1];
-            $allresourceResult = D("hotel_allresource")->where('name="'.$delName.'"')->delete();
-        }
-        //删除二级栏目
-        $result = $model->where($map)->delete();
-        if($result!==false && $allresourceResult!==false && $delvolumeResult!==false){
-            addlog('删除通用栏目二级栏目');
-            $model->commit();
-            if(!empty($list['icon'])){
-                @unlink(FILE_UPLOAD_ROOTPATH.$list['icon']);
-            }
-            //生成资源xml文件
-            if(!empty($allresourceHidList)){
-                foreach ($allresourceHidList as $key => $value) {
-                    $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$value.'.txt';
-                    $this->fileputXml(D("hotel_allresource"),$value,$xmlFilepath);
-                }
-            }
-            $this->success('恭喜，删除成功！');
-        }else{
-            $model->rollback();
-            $this->error('删除失败，参数错误！');
-        }
-    }
     public function upload(){
         $callback = array();
         if (!empty($_FILES[$_REQUEST["name"]]["name"])) {
@@ -346,6 +358,10 @@ class TopicCategoryController extends ComController {
         }
         echo json_encode($callback);
     }
+
+    /**
+     * [通用栏目资源新增保存]
+     */
     public function resourceadd(){
         $model = D('topic_resource');
         $data['cid'] = $_REQUEST['menuid'];
@@ -357,16 +373,9 @@ class TopicCategoryController extends ComController {
         if($_REQUEST['resType'] == 1){
             $data['type'] = 1;
             $data['video'] = $data['filepath'];
-            $addName_arr = explode("/", $data['video']);
-            $getName= $addName_arr[count($addName_arr)-1];
-            //视频封面
-            $vimage_arr = explode("/", $data['video_image']);
-            $vimageName = $vimage_arr[count($vimage_arr)-1];
         }elseif($_REQUEST['resType'] == 2){
             $data['type'] = 2;
             $data['image'] = $data['filepath'];
-            $addName_arr = explode("/", $data['image']);
-            $getName= $addName_arr[count($addName_arr)-1];
         }
         $data['audit_status'] = 0;
         $data['status'] = 1;
@@ -385,48 +394,21 @@ class TopicCategoryController extends ComController {
             array_push($arr, $vv['hid']);
         }
 
-        $allresourceResult = true;
         $updatesize = true;
         if(!empty($arr)){
             $arrmap['hid'] = array('in',$arr);
             $updatesize = M("hotel_volume")->where($arrmap)->setInc('topic_size',$data['size']);
-            $i = 0;
-            foreach ($vo as $key => $value) {
-                $addlist[$i]['hid'] = $value['hid'];
-                $addlist[$i]['name'] = $getName;
-                $addlist[$i]['type'] = $_REQUEST['resType'];
-                $addlist[$i]['timeunix'] = time();
-                $addlist[$i]['time'] = date("Y-m-d H:i:s");
-                $addlist[$i]['web_upload_file'] = $data['filepath'];
-                $i++;
-                if(!empty($data['video_image'])){
-                    $addlist[$i]['hid'] = $value['hid'];
-                    $addlist[$i]['name'] = $vimageName;
-                    $addlist[$i]['type'] = 1;
-                    $addlist[$i]['timeunix'] = time();
-                    $addlist[$i]['time'] = date("Y-m-d H:i:s");
-                    $addlist[$i]['web_upload_file'] = $data['video_image'];
-                    $i++;
-                }
-            }
-            $allresourceResult = D("hotel_allresource")->addAll($addlist);
         }
         $result = $model->add($data);
-        if ($result !== false && $updatesize !== false && $allresourceResult!==false) {
+        if ($result !== false && $updatesize !== false) {
             $model->commit();
-            //生成资源xml文件
-            if(!empty($arr)){
-                foreach ($arr as $key => $value) {
-                    $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$value.'.txt';
-                    $this->fileputXml(D("hotel_allresource"),$value,$xmlFilepath);
-                }
-            }
             $this->success("操作成功",U('resource').'?ids='.$_REQUEST['menuid']);
         }else{
             $model->rollback();
             $this->error("操作失败",U('resource').'?ids='.$_REQUEST['menuid']);
         }
     }
+
     public function resourceedit(){
         $menuid = $_REQUEST['ids'];
         if(count($menuid)!=1){
@@ -469,29 +451,10 @@ class TopicCategoryController extends ComController {
         $size2 = I('post.size2','','strip_tags');
         $data['size'] = round(($size+$size2)/1024,3);
         $vo = $model->getById($_REQUEST['ids']);
-        $getVideoName = "";
-        $voVideoName = "";
         if($_REQUEST['type'] == 1){
             $data['video'] = $data['filepath'];
-            $editName_arr = explode("/", $data['video']);
-            $getName = $editName_arr[count($editName_arr)-1];
-            $voName_arr = explode("/", $vo['video']);
-            $voName = $voName_arr[count($voName_arr)-1];
-            //视频封面
-            if(!empty($vo['video_image'])){
-                $voVideoName_arr = explode("/", $vo['video_image']);
-                $voVideoName = $voVideoName_arr[count($voVideoName_arr)-1];
-            }
-            if(!empty($data['video_image'])){
-                $getVideoName_arr = explode("/", $data['video_image']);
-                $getVideoName = $getVideoName_arr[count($getVideoName_arr)-1];
-            }
         }elseif($_REQUEST['type'] == 2){
             $data['image'] = $data['filepath'];
-            $editName_arr = explode("/", $data['image']);
-            $getName = $editName_arr[count($editName_arr)-1];
-            $voName_arr = explode("/", $vo['image']);
-            $voName = $voName_arr[count($voName_arr)-1];
         }
 
         $model->startTrans();
@@ -502,82 +465,24 @@ class TopicCategoryController extends ComController {
             $passName = $vo['image'];
         }
         //修改容量表
+        $sql = "SELECT hid,topic_id FROM zxt_hotel_topic WHERE hid IN(SELECT hid FROM zxt_hotel_topic WHERE topic_id = ".$vo['gid'].")";
+        $hidlist = D("hotel_topic")->query($sql);
         $vo['size'] = empty($vo['size'])?0:$vo['size'];
         if($passName != $data['filepath'] || $vo['video_image'] != $data['video_image']){
             $changesize = $data['size']-$vo['size'];
-            $tmap['topic_id'] = $vo['gid'];
-            $hidlist = M("hotel_topic")->field('hid')->where($tmap)->select();
             if(!empty($hidlist)){
                 $arr = array();
                 foreach ($hidlist as $key => $vv) {
                     array_push($arr, $vv['hid']);
                 }
+                $arr = array_unique($arr);
                 $arrmap['hid'] = array('in',$arr);
                 $updatesize = M("hotel_volume")->where($arrmap)->setInc('topic_size',$changesize);
             }
         }
         $result = $model->data($data)->where($map)->save();
-        //修改allresource表
-        $allresourceResult = true;
-        $delAllresourceResult = true;
-        $addAllresourceResult = true;
-        $allresourceHidList = array();
         
-        if($passName != $data['filepath']){
-            $searchHidList = D("hotel_topic")->where('topic_id="'.$data['gid'].'"')->field('hid')->select();
-            $delAllresourceResult = D("hotel_allresource")->where('name="'.$voName.'"')->delete();
-
-            if($searchHidList){
-                $i = 0;
-                foreach ($searchHidList as $key => $value) {
-                    $allresourceHidList[] = $value['hid'];
-                    $addlist[$i]['hid'] = $value['hid'];
-                    $addlist[$i]['name'] = $getName;
-                    $addlist[$i]['type'] = $_REQUEST['type'];
-                    $addlist[$i]['timeunix'] = time();
-                    $addlist[$i]['time'] = date("Y-m-d H:i:s");
-                    $addlist[$i]['web_upload_file'] = $data['filepath'];
-                    $i++;
-                }
-                $addAllresourceResult = D("hotel_allresource")->addAll($addlist);
-            }
-            if($addAllresourceResult===false || $delAllresourceResult===false){
-                $allresourceResult = false;
-            }
-
-        }
-        if($vo['video_image'] != $data['video_image']){
-            if(!empty($vo['video_image'])){
-                $videosearchHidList = D("hotel_topic")->where('topic_id="'.$data['gid'].'"')->field('hid')->select();
-                $delAllresourceResult = D("hotel_allresource")->where('name="'.$voVideoName.'"')->delete();
-            }else{
-                $delAllresourceResult = true;
-                $videosearchHidList = array();
-            }
-
-            if(!empty($videosearchHidList)){
-                $i = 0;
-                foreach ($videosearchHidList as $key => $value) {
-                    $allresourceHidList[] = $value['hid'];
-                    $addlist[$i]['hid'] = $value['hid'];
-                    $addlist[$i]['name'] = $getVideoName;
-                    $addlist[$i]['type'] = $_REQUEST['type'];
-                    $addlist[$i]['timeunix'] = time();
-                    $addlist[$i]['time'] = date("Y-m-d H:i:s");
-                    $addlist[$i]['web_upload_file'] = $data['video_image'];
-                    $i++;
-                }
-                $addAllresourceResult = D("hotel_allresource")->addAll($addlist);
-            }else{
-                $addAllresourceResult = true;
-            }
-            if($addAllresourceResult===false || $delAllresourceResult===false){
-                $allresourceResult = false;
-            }
-
-        }
-        
-        if($result !== false && $updatesize !== false && $allresourceResult !==false){
+        if($result !== false && $updatesize !== false){
             if($_REQUEST['type'] == 1){
                 if($_REQUEST['filepath'] != $vo['video']){
                     @unlink(FILE_UPLOAD_ROOTPATH.$vo['video']);
@@ -592,12 +497,8 @@ class TopicCategoryController extends ComController {
             }
             $model->commit();
             //生成资源xml文件
-            if(!empty($allresourceHidList)){
-                $allresourceHidList = array_unique($allresourceHidList);
-                foreach ($allresourceHidList as $key => $value) {
-                    $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$value.'.txt';
-                    $this->fileputXml(D("hotel_allresource"),$value,$xmlFilepath);
-                }
+            if(!empty($hidlist)){
+                $this->updatejson_resource($hidlist);
             }
             $this->success("修改成功",U('resource').'?ids='.$_REQUEST['cid']);
         }else{
@@ -757,5 +658,60 @@ class TopicCategoryController extends ComController {
             $callback['info']='缺少文件';
         }
         echo json_encode($callback);
+    }
+
+    private function updatejson_two($hid_arr){
+        $list = D("topic_category")->where('status=1')->field('id,groupid,sort,name,modeldefineid,icon')->select();
+        if (!empty($list)) {
+            foreach ($list as $key => $value) {
+                $value['nexttype'] = 'topicresource';
+                $plist[$value['groupid']][] = $value;
+            }
+            $jsondata = json_encode($plist);
+        }else{
+            $jsondata = '';
+        }
+        foreach ($hid_arr as $key => $value) {
+            if (!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$value['hid'])) {
+                mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$value['hid']);
+            }
+            $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$value['hid'].'/topic_second.json';
+            file_put_contents($filename, $jsondata);
+        }
+    }
+
+    /**
+     * [通用栏目资源json更新]
+     * @param  [array] $hid_arr [酒店hid对应栏目topic_id组合的集合]
+     */
+    private function updatejson_resource($hid_arr){
+        $hid_topic_id = array();//存储hid对应的topic
+        foreach ($hid_arr as $key => $value) {
+            $hid_topic_id[$value['hid']][] = $value['topic_id'];
+        }
+        foreach ($hid_topic_id as $key => $value) {
+            $thehid = $key;//当前hid
+            $map['gid'] = array('in',$value);
+            $map['status'] = 1;
+            $map['audit_status'] = 4;
+            $list = D("topic_resource")->where($map)->field('cid,gid,title,type,video,image,video_image,intro,sort')->order('sort')->select();
+            dump($thehid);
+            dump($list);
+            if(!empty($list)){
+                foreach ($list as $key => $value) {
+                    $plist[$value['cid']][] = $value;
+                }
+                $jsondata = json_encode($plist);
+            }else{
+                $jsondata = '';
+            }
+            dump($jsondata);
+            // if (!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$thehid)) {
+            //     mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$thehid);
+            // }
+            // $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$thehid.'/topicresource.json';
+            // file_put_contents($filename, $jsondata);
+        }
+        die();
     }
 }

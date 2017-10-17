@@ -19,7 +19,10 @@ class TopicGroupController extends ComController {
         }
         return $map;
     }
-    //保存
+    
+    /**
+     * [保存通用一级栏目]
+     */
     public function update(){
         $model = M(CONTROLLER_NAME);
         $data['id'] = I('post.id','','intval');
@@ -33,47 +36,10 @@ class TopicGroupController extends ComController {
         $model->startTrans();
         $allresourceResult = true;
         $hotelvolumeResult = true;
-        $allresourceHidList = array();
+        $searchHidList = array();
         if($data['id']){
             $vo = $model->getById($data['id']);
-
-            if($vo['icon'] != $data['icon']){
-                //allresource删除
-                $delAllresourceResult = true;
-                $lastName_arr = explode("/", $vo['icon']);
-                $lastName = $lastName_arr[count($lastName_arr)-1];
-                $delAllresourceResult = D('hotel_allresource')->where('name="'.$lastName.'"')->delete();
-
-                //allresource新增
-                $addAllresourceResult = true;
-                $searchHidList = D("hotel_topic")->where('topic_id="'.$data['id'].'"')->field('hid')->select();
-                if($searchHidList){
-                    $getName_arr = explode("/", $data['icon']);
-                    $getName = $getName_arr[count($getName_arr)-1];
-                    $i = 0;
-                    foreach ($searchHidList as $key => $value) {
-                        $allresourceHidList[] = $value['hid'];
-                        $addlist[$i]['hid'] = $value['hid'];
-                        $addlist[$i]['name'] = $getName;
-                        $addlist[$i]['type'] = 2;
-                        $addlist[$i]['timeunix'] = time();
-                        $addlist[$i]['time'] = date("Y-m-d H:i:s");
-                        $addlist[$i]['web_upload_file'] = $data['icon'];
-                        $i++;
-                    }
-                    $addAllresourceResult = D("hotel_allresource")->addAll($addlist);
-
-                    //修改hotel_volume表
-                    $vo['size'] = empty($vo['size'])?0:$vo['size'];
-                    $changeSize = $data['size'] - $vo['size'];
-                    $hotelVolumeMap['hid'] = array('in',$allresourceHidList);
-                    $hotelvolumeResult = D("hotel_volume")->where($hotelVolumeMap)->setInc('topic_size',$changeSize);
-                }
-                if($addAllresourceResult===false || $delAllresourceResult===false){
-                    $allresourceResult = false;
-                }
-            }
-            
+            $searchHidList = D("hotel_topic")->where('topic_id="'.$data['id'].'"')->field('hid')->select();
             $result = $model->data($data)->where('id='.$data['id'])->save();
             addlog('修改专题分组，ID：'.$data['id']);
         }else{
@@ -82,12 +48,9 @@ class TopicGroupController extends ComController {
         }
         if($result!==false && $allresourceResult!==false && $hotelvolumeResult!==false){
             $model->commit();
-            //生成资源xml文件
-            if(!empty($allresourceHidList)){
-                foreach ($allresourceHidList as $key => $value) {
-                    $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$value.'.txt';
-                    $this->fileputXml(D("hotel_allresource"),$value,$xmlFilepath);
-                }
+            //生成json文件
+            if(!empty($searchHidList)){
+                $this->updatejson_one($searchHidList);
             }
             if($data['id']){
                 if($vo['icon'] != $data['icon']){
@@ -99,9 +62,47 @@ class TopicGroupController extends ComController {
             $model->rollback();
             $this->error('操作失败',U('index'));
         }
-        
     }
 
+    /**
+     * [启用通用一级栏目]
+     */
+    public function unlock(){
+        if (count($_POST['ids'])<1) {
+            $this->error('系统提示：参数错误');
+        }
+        $map['id'] = $htMap['topic_id'] = array('in',$_POST['ids']);
+        $result = D("topic_group")->where($map)->setField('status',1);
+        if ($result === false) {
+            $this->error('系统提示：启用失败');
+        }else{
+            $hidlist = D("hotel_topic")->where($htMap)->field('hid')->group('hid')->select();
+            $this->updatejson_one($hidlist);
+            $this->success('系统提示：启用成功');
+        }
+    }
+
+    /**
+     * [禁用通用一级栏目]
+     */
+    public function lock(){
+        if (count($_POST['ids'])<1) {
+            $this->error('系统提示：参数错误');
+        }
+        $map['id'] = $htMap['topic_id'] = array('in',$_POST['ids']);
+        $result = D("topic_group")->where($map)->setField('status',0);
+        if ($result === false) {
+            $this->error('系统提示：禁用失败');
+        }else{
+            $hidlist = D("hotel_topic")->where($htMap)->field('hid')->group('hid')->select();
+            $this->updatejson_one($hidlist);
+            $this->success('系统提示：禁用成功');
+        }
+    }
+
+    /**
+     * [删除通用一级栏目]
+     */
     public function delete(){
         $ids = $_POST['ids'];
         if(count($ids)!=1){
@@ -118,9 +119,9 @@ class TopicGroupController extends ComController {
         }
         $model->startTrans();
         //操作volume表
+        $searchHidList = D("hotel_topic")->where('topic_id="'.$ids[0].'"')->field('hid')->select();//hid集合
         $delvolumeResult = true;
         if(!empty($list['size'])){
-            $searchHidList = D("hotel_topic")->where('topic_id="'.$ids[0].'"')->field('hid')->select();
             if (!empty($searchHidList)) {
                 foreach ($searchHidList as $key => $value) {
                     $volumeHidList[] = $value['hid'];
@@ -129,27 +130,13 @@ class TopicGroupController extends ComController {
                 $delvolumeResult = D("hotel_volume")->where($vMap)->setDec('topic_size',$list['size']);
             }
         }
-        //操作allresource表
-        $allresourceResult = true;
-        if(!empty($list['icon'])){
-            $delName_arr = explode("/",$list['icon']);
-            $delName = $delName_arr[count($delName_arr)-1];
-            if(!empty($delName)){
-                $delAllresourceResult = D("hotel_allresource")->where('name="'.$delName.'"')->delete();
-            }
-        }
         //删除资源
         $result = $model->where($map)->delete();
-        // var_dump($result,$delAllresourceResult,$allresourceResult);die();
-        if($result!==false && $delAllresourceResult!==false & $allresourceResult!==false){
-            addlog('删除通用一级栏目');
+        if($result!==false && $delvolumeResult!==false){
             $model->commit();
-            //生成资源xml文件
-            if(!empty($volumeHidList)){
-                foreach ($volumeHidList as $key => $value) {
-                    $xmlFilepath = FILE_UPLOAD_ROOTPATH.'/upload/resourceXml/'.$value.'.txt';
-                    $this->fileputXml(D("hotel_allresource"),$value,$xmlFilepath);
-                }
+            //生成json文件
+            if(!empty($searchHidList)){
+                $this->updatejson_one($searchHidList);
             }
             $this->success('恭喜，删除成功！');
         }else{
@@ -157,6 +144,7 @@ class TopicGroupController extends ComController {
             $this->error('删除失败，参数错误！');
         }
     }
+
     public function upload_icon(){
         $callback = array();
         if (!empty($_FILES[$_REQUEST["name"]]["name"])) {
@@ -180,5 +168,28 @@ class TopicGroupController extends ComController {
             $callback['info']='缺少文件';
         }
         echo json_encode($callback);
+    }
+
+    /**
+     * [更新通用一级栏目json]
+     * @param  [array] $hid_arr [酒店集合 array('hid'=>4008)]
+     */
+    private function updatejson_one($hid_arr){
+        $list = D("topic_group")->where('status=1')->field('id,title,name,en_name,intro,icon')->select();
+        if (!empty($list)) {
+            foreach ($list as $key => $value) {
+                $list[$key]['nexttype'] = 'topic_second';
+            }
+            $jsondata = json_encode($list);
+        }else{
+            $jsondata = '';
+        }
+        foreach ($hid_arr as $key => $value) {
+            if (!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$value['hid'])) {
+                mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$value['hid']);
+            }
+            $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$value['hid'].'/topic_first.json';
+            file_put_contents($filename, $jsondata);
+        }
     }
 }
