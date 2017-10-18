@@ -88,4 +88,16 @@ class TestController extends comController {
         $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/hotelcategory_first.json';
 		var_dump($filename);
 	}
+
+	public function get_sql_temp(){
+		$sql = "SHOW VARIABLES LIKE 'tmpdir'";
+		$result = M()->query($sql);
+		dump($result);
+	}
+
+	public function get_qcache(){
+		$sql = "SHOW STATUS LIKE 'Qcache%'";
+		$result = M()->query($sql);
+		dump($result);
+	}
 }

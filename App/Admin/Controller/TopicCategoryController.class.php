@@ -72,15 +72,20 @@ class TopicCategoryController extends ComController {
         $data['icon'] = I('post.icon','','strip_tags');
         $size = I('post.size','','intval');
         $data['size'] = round($size/1024,3);
+
         $model->startTrans();
         $hotelvolumeResult = true;
-        $searchHidList = D("hotel_topic")->where('topic_id="'.$data["groupid"].'"')->field('hid')->select();
+
+        $sql = "SELECT hid,topic_id FROM zxt_hotel_topic WHERE hid IN(SELECT hid FROM zxt_hotel_topic WHERE topic_id = ".$data["groupid"].")";
+        $searchHidList = D("hotel_topic")->query($sql);
+
         if($data['id']){
             $vo = $model->getById($data['id']);
             if($searchHidList){
                 foreach ($searchHidList as $key => $value) {
                     $allresourceHidList[] = $value['hid'];
                 }
+                $allresourceHidList = array_unique($allresourceHidList);
                 //修改hotel_volume表
                 $vo['size'] = empty($vo['size'])?0:$vo['size'];
                 $changeSize = $data['size'] - $vo['size'];
@@ -93,6 +98,7 @@ class TopicCategoryController extends ComController {
                 foreach ($searchHidList as $key => $value) {
                     $allresourceHidList[] = $value['hid'];
                 }
+                $allresourceHidList = array_unique($allresourceHidList);
                 //修改hotel_volume表
                 $hotelVolumeMap['hid'] = array('in',$allresourceHidList);
                 $hotelvolumeResult = D("hotel_volume")->where($hotelVolumeMap)->setInc('topic_size',$data['size']);
@@ -139,7 +145,8 @@ class TopicCategoryController extends ComController {
                     $tempsort=$list[$i-1]['sort'];
                     $model-> where('id='.$list[$i-1]['id'].'')->setField('sort',$currentsort);
                     $model-> where('id='.$currentid.'')->setField('sort',$tempsort);
-                    $hid_arr = D("hotel_topic")->where('topic_id='.$currentgroup)->field('hid')->select();
+                    $sql = "SELECT hid,topic_id FROM zxt_hotel_topic WHERE hid IN(SELECT hid FROM zxt_hotel_topic WHERE topic_id = ".$currentgroup.")";
+                    $hid_arr = D("hotel_topic")->query($sql);
                     $this->updatejson_two($hid_arr);
                     $this->success("操作成功");
                     die();
@@ -171,7 +178,8 @@ class TopicCategoryController extends ComController {
                     $tempsort=$list[$i+1]['sort'];
                     $model-> where('id='.$list[$i+1]['id'].'')->setField('sort',$currentsort);
                     $model-> where('id='.$currentid['0'].'')->setField('sort',$tempsort);
-                    $hid_arr = D("hotel_topic")->where('topic_id='.$currentgroup)->field('hid')->select();
+                    $sql = "SELECT hid,topic_id FROM zxt_hotel_topic WHERE hid IN(SELECT hid FROM zxt_hotel_topic WHERE topic_id = ".$currentgroup.")";
+                    $hid_arr = D("hotel_topic")->query($sql);
                     $this->updatejson_two($hid_arr);
                     $this->success("操作成功");
                     die();
@@ -200,7 +208,8 @@ class TopicCategoryController extends ComController {
             $this->error('该栏目下含有资源，请先删除该栏目下的资源');
             die();
         }
-        $searchHidList = D("hotel_topic")->where('topic_id="'.$list['groupid'].'"')->field('hid')->select();
+        $sql = "SELECT hid,topic_id FROM zxt_hotel_topic WHERE hid IN(SELECT hid FROM zxt_hotel_topic WHERE topic_id = ".$list['groupid'].")";
+        $searchHidList = D("hotel_topic")->query($sql);
         //删除volueme表
         $delvolumeResult = true;
         if(!empty($list['size'])){
@@ -247,9 +256,10 @@ class TopicCategoryController extends ComController {
             foreach ($grouplist as $key => $value) {
                 $groupid_arr[] = $value['groupid'];
             }
-            $htMap['topic_id'] = array('in',$groupid_arr);
-            $hidlist = D("hotel_topic")->where($htMap)->field('hid')->group('hid')->select();
-            $this->updatejson_two($hidlist);
+            $groupid_str = implode(",", $groupid_arr);
+            $sql = "SELECT hid,topic_id FROM zxt_hotel_topic WHERE hid IN(SELECT hid FROM zxt_hotel_topic WHERE topic_id in (".$groupid_str."))";
+            $hid_arr = D("hotel_topic")->query($sql);
+            $this->updatejson_two($hid_arr);
             $this->success('系统提示：启用成功');
         } 
     }
@@ -270,9 +280,10 @@ class TopicCategoryController extends ComController {
             foreach ($grouplist as $key => $value) {
                 $groupid_arr[] = $value['groupid'];
             }
-            $htMap['topic_id'] = array('in',$groupid_arr);
-            $hidlist = D("hotel_topic")->where($htMap)->field('hid')->group('hid')->select();
-            $this->updatejson_two($hidlist);
+            $groupid_str = implode(",", $groupid_arr);
+            $sql = "SELECT hid,topic_id FROM zxt_hotel_topic WHERE hid IN(SELECT hid FROM zxt_hotel_topic WHERE topic_id in (".$groupid_str."))";
+            $hid_arr = D("hotel_topic")->query($sql);
+            $this->updatejson_two($hid_arr);
             $this->success('系统提示：禁用成功');
         } 
     }
@@ -506,6 +517,10 @@ class TopicCategoryController extends ComController {
             $this->error("修改失败");
         }
     }
+
+    /**
+     * [删除通用栏目资源]
+     */
     public function resourcedelete(){
         $model = M('topic_resource');
         $HotelTopic = D("hotel_topic");
@@ -518,8 +533,10 @@ class TopicCategoryController extends ComController {
         $list = $model->field('cid,gid,video,image,size,type,video_image')->where($map)->find();
         $cid = $list['cid'];
         $gid = $list['gid'];
-        $tmap['topic_id'] = $gid;//一个二级栏目下的资源gid相同
-        $hidlist = $HotelTopic->where($tmap)->field('hid')->select();
+       
+        $sql = "SELECT hid,topic_id FROM zxt_hotel_topic WHERE hid IN(SELECT hid FROM zxt_hotel_topic WHERE topic_id = ".$gid.")";
+        $hidlist = D("hotel_topic")->query($sql);
+
         if(!empty($cid)){
             $url = U('resource').'?ids='.$cid;
         }else{
@@ -533,29 +550,9 @@ class TopicCategoryController extends ComController {
             foreach ($hidlist as $key => $value) {
                 $hidlist_arr[] = $value['hid'];
             }
+            $hidlist_arr = array_unique($hidlist_arr);
             $vMap['hid'] = array('in',$hidlist_arr);
             $vresult = D("hotel_volume")->where($vMap)->setDec('topic_size',$list['size']);
-        }
-        //更改allresource表
-        if($list['type'] == 2){
-            $filepath = $list['image'];
-            
-        }elseif ($list['type'] == 1) {
-            $filepath = $list['video'];
-        }
-        $getName_arr = explode("/", $filepath);
-        $getName = $getName_arr[count($getName_arr)-1];
-
-        if(!empty($list['video_image'])){
-            $getVideoName_arr = explode("/", $list['video_image']);
-            $getVideoName = $getVideoName_arr[count($getVideoName_arr)-1];
-        }
-        $allresourceResult = true;
-        if($getName){
-            $allresourceResult = D("hotel_allresource")->where('name="'.$getName.'"')->delete();
-        }
-        if($getVideoName){
-            $allresourceResult = D("hotel_allresource")->where('name="'.$getVideoName.'"')->delete();
         }
 
         //删除资源表
@@ -567,26 +564,31 @@ class TopicCategoryController extends ComController {
             if (!empty($list['video_image'])) {
                 @unlink(FILE_UPLOAD_ROOTPATH.$list['video_image']);
             }
-            addlog('删除topic_resource表数据');
+            if (!empty($hidlist)) {
+                $this->updatejson_resource($hidlist);
+            }
             $this->success('恭喜，删除成功！',$url);
         }else{
             $model->rollback();
             $this->error('删除失败，参数错误！',$url);
         }
     }
+
     public function resourceshow(){
         $model = M('topic_resource');
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
         if($ids){
             if(is_array($ids)){
-                $ids = implode(',',$ids);
                 $map['id']  = array('in',$ids);
             }else{
                 $map = 'id='.$ids;
             }
             $result = $model->where($map)->setField("status",1);
-            if($result){
-                addlog('启用topic_resource表数据，数据ID：'.$ids);
+            if($result !== false){
+                $groupid = D("topic_resource")->where('id='.$ids['0'])->field('gid')->find();
+                $sql = "SELECT hid,topic_id FROM zxt_hotel_topic WHERE hid IN(SELECT hid FROM zxt_hotel_topic WHERE topic_id = ".$groupid['gid'].")";
+                $hidlist = D("hotel_topic")->query($sql);
+                $this->updatejson_resource($hidlist);
                 $this->success('恭喜，显示成功！');
             }else{
                 $this->error('显示失败，参数错误！');
@@ -600,14 +602,16 @@ class TopicCategoryController extends ComController {
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
         if($ids){
             if(is_array($ids)){
-                $ids = implode(',',$ids);
                 $map['id']  = array('in',$ids);
             }else{
                 $map = 'id='.$ids;
             }
             $result = $model->where($map)->setField("status",0);
-            if($result){
-                addlog('隐藏topic_resource表数据，数据ID：'.$ids);
+            if($result !== false){
+                $groupid = D("topic_resource")->where('id='.$ids['0'])->field('gid')->find();
+                $sql = "SELECT hid,topic_id FROM zxt_hotel_topic WHERE hid IN(SELECT hid FROM zxt_hotel_topic WHERE topic_id = ".$groupid['gid'].")";
+                $hidlist = D("hotel_topic")->query($sql);
+                $this->updatejson_resource($hidlist);
                 $this->success('恭喜，隐藏成功！');
             }else{
                 $this->error('隐藏失败，参数错误！');
@@ -617,22 +621,33 @@ class TopicCategoryController extends ComController {
         }
     }
     public function setsort(){
-        $model = D('topic_resource');
-        $menuid = I('post.menuid','','intval');
+        $menuid = I('post.menuid','','intval'); //cid
         $sort_now = I('post.sort','','intval');
         $ids = $_REQUEST['sortid'];
+
         if(!$ids){
             $this->error("请勾选需要更改排序的栏目资源");
         }
-        foreach ($ids as $key => $value) {
-            $result = $model->where('id='.$value)->setField('sort',$sort_now[$key]);
-            if($result === false){
-                $model->rollback();
+        $count = count($ids);
+        if ($count) {
+            $sql = "UPDATE zxt_topic_resource SET sort = CASE id";
+            for ($i=0; $i < $count; $i++) { 
+                $sql .= sprintf(" WHEN %d THEN '%s'",$ids[$i],$sort_now[$i]);
+            }
+            $ids_str = implode(",", $ids);
+            $sql .= "END WHERE id IN($ids_str)";
+            $result = D("topic_resource")->execute($sql);
+            if ($result !== false) {
+                $gid = D("topic_resource")->where('id='.$menuid)->field('gid')->find();
+                $sql = "SELECT hid,topic_id FROM zxt_hotel_topic WHERE hid IN(SELECT hid FROM zxt_hotel_topic WHERE topic_id = ".$gid['gid'].")";
+                $hidlist = D("hotel_topic")->query($sql);
+                $this->success("更新成功",U("resource?ids=".$menuid));
+            }else{
                 $this->error("更新失败",U("resource?ids=".$menuid));
             }
+        }else{
+            $this->error("参数错误",U("resource?ids=".$menuid));
         }
-        $model->commit();
-        $this->success("更新成功",U("resource?ids=".$menuid));
     }
 
     public function upload_icon(){
@@ -661,21 +676,27 @@ class TopicCategoryController extends ComController {
     }
 
     private function updatejson_two($hid_arr){
-        $list = D("topic_category")->where('status=1')->field('id,groupid,sort,name,modeldefineid,icon')->select();
-        if (!empty($list)) {
-            foreach ($list as $key => $value) {
-                $value['nexttype'] = 'topicresource';
-                $plist[$value['groupid']][] = $value;
-            }
-            $jsondata = json_encode($plist);
-        }else{
-            $jsondata = '';
-        }
         foreach ($hid_arr as $key => $value) {
-            if (!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$value['hid'])) {
-                mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$value['hid']);
+            $hid_topic_id[$value['hid']][] = $value['topic_id'];
+        }
+        foreach ($hid_topic_id as $key => $value) {
+            $thehid = $key;
+            $map['groupid'] = array('in',$value);
+            $map['status'] = 1;
+            $list = D("topic_category")->where($map)->field('id,groupid,sort,name,modeldefineid,icon')->order('sort')->select();
+            $plist = array();
+            if (!empty($list)) {
+                foreach ($list as $key => $value) {
+                    $plist[$value['groupid']][] = $value;
+                }
+                $jsondata = json_encode($plist);
+            }else{
+                $jsondata = '';
             }
-            $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$value['hid'].'/topic_second.json';
+            if (!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$thehid)) {
+                mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$thehid);
+            }
+            $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$thehid.'/topic_second.json';
             file_put_contents($filename, $jsondata);
         }
     }
@@ -695,8 +716,7 @@ class TopicCategoryController extends ComController {
             $map['status'] = 1;
             $map['audit_status'] = 4;
             $list = D("topic_resource")->where($map)->field('cid,gid,title,type,video,image,video_image,intro,sort')->order('sort')->select();
-            dump($thehid);
-            dump($list);
+            $plist = array();
             if(!empty($list)){
                 foreach ($list as $key => $value) {
                     $plist[$value['cid']][] = $value;
@@ -705,13 +725,11 @@ class TopicCategoryController extends ComController {
             }else{
                 $jsondata = '';
             }
-            dump($jsondata);
-            // if (!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$thehid)) {
-            //     mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$thehid);
-            // }
-            // $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$thehid.'/topicresource.json';
-            // file_put_contents($filename, $jsondata);
+            if (!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$thehid)) {
+                mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$thehid);
+            }
+            $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$thehid.'/topicresource.json';
+            file_put_contents($filename, $jsondata);
         }
-        die();
     }
 }
