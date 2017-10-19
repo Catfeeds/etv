@@ -924,8 +924,8 @@ class ApiController extends Controller{
         $result['status'] = 200;
         $result['info'] = "Successed!";
         if (!empty($versionList[0]) || $versionList[0] != '') {
-            asort($versionList,SORT_NUMERIC);//每一项作为数字 升序
-            $maxVersion=$versionList[0];//$maxVersion为最小
+            rsort($versionList);//降序排序
+            $maxVersion=$versionList[0];//$maxVersion为最大
             $vomax = $upgrade->where('status = 1 and (maclist = "all" or maclist like "'."%".$Mac."%".'") and utc="'.$maxVersion.'"')->select();
             if (empty($vomax)) {
                 $result['upgrade'] = array();

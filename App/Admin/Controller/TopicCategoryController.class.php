@@ -687,6 +687,7 @@ class TopicCategoryController extends ComController {
             $plist = array();
             if (!empty($list)) {
                 foreach ($list as $key => $value) {
+                    $value['nexttype'] = 'topicresource';
                     $plist[$value['groupid']][] = $value;
                 }
                 $jsondata = json_encode($plist);

@@ -1,0 +1,29 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+
+		<i class="icon-ok green"></i>
+
+		欢迎使用
+		<strong class="green" style="font-size: 1.5em">
+			广东中信通
+		</strong>
+		云媒体中心 酒店json数据更新系统.	
+	</div>
+	<div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal" id="form" method="post" action="{:U('update')}">
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-0">酒店编号 </label>
+                    <div class="col-sm-9">
+                        <input type="text" name="hid" id="hid" placeholder="" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><button class="btn btn-info submit" type="button">更新</button></span>
+                        </span>
+                     </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+</block>

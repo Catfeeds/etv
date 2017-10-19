@@ -89,7 +89,7 @@ class UpgradeAppController extends ComController {
         }
         $data['description'] = I('post.description','','strip_tags');
         $data['status'] = I('post.status',0,'intval');
-        $data['maclist'] = I('post.maclist','all','strip_tags');
+        $data['maclist'] = I('post.maclist',' ','strip_tags');
         $data['audit_status'] = 0;
         if($data['id']){
             $vo = $model->getById($data['id']);

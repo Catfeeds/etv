@@ -112,8 +112,8 @@
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-7">房间号：</label>
                     <div class="col-sm-9">
-                        <input type="hidden" name="maclist" value="all" />
-                        <textarea name="room" id="intro" readonly="true" class="col-xs-10 col-sm-5" rows="5">不选择则默认全部房间的设备</textarea>
+                        <input type="hidden" name="maclist" value="" />
+                        <textarea name="room" id="intro" readonly="true" class="col-xs-10 col-sm-5" rows="5">不选择则不进行推送</textarea>
                     </div>
                 </div>
                 <div class="space-4"></div>
@@ -324,12 +324,12 @@
             }
         });
         if(roomNames.join()=="" || roomNames.join()=="NULL" || allischecked){
-            $("textarea[name=room]").val("全部房间");
+            $("textarea[name=room]").val("不选择则不进行推送");
         }else{
             $("textarea[name=room]").val(roomNames.join());
         }
         if(roomNames.join()=="" || roomNames.join()=="NULL" || allischecked){
-            $("input[name=maclist]").val("all");
+            $("input[name=maclist]").val(" ");
         }else{
             $("input[name=maclist]").val(roomIDs.join());
         }
