@@ -912,7 +912,8 @@ class ApiController extends Controller{
         $k=0;
         $versionList = array();
         for ($i = 0; $i < count($normal_list); $i++) {
-            if ($normal_list[$i]['utc']>$currentVersion) {//大于当前版本号
+            // if ($normal_list[$i]['utc']>$currentVersion) {//大于当前版本号
+            if ($normal_list[$i]['utc']!=$currentVersion) {//不等于当前版本号
                 $versionList[$k] = $normal_list[$i]['utc'];
                 $k++;
             }

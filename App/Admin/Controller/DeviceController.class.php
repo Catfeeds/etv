@@ -1421,4 +1421,60 @@ class DeviceController extends ComController {
         D("device_mac_image")->where($map)->setField('image_default',1);
         $this->success('操作成功');
     }
+
+    public function out_excel(){
+        ini_set('memory_limit','2048M');
+        set_time_limit(0);
+        //导入PHPExcel类库，因为PHPExcel没有用命名空间，只能inport导入
+        import("Org.Util.PHPExcel");
+
+        //创建PHPExcel对象
+        $excel=new \PHPExcel();
+
+        //Excel表格式,这里简略写了8列
+        $letter = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N','O');
+        //表头数组
+        $tableheader = array('序号', '酒店编号', '酒店名称', '房间号', 'Mac', '房间备注', '软件版本', '型号', '是否在线', '是否休眠', '休眠时间', 'pppoe账号', 'pppoe密码', 'WIFI账号', 'WIFI密码');
+        //填充表头信息
+        for ($h = 0; $h < count($tableheader); $h++)
+        {
+            $excel->getActiveSheet()->setCellValue("$letter[$h]1", "$tableheader[$h]");
+        }
+
+        //调用导出的数据
+        $count_one = 15000;//每次插入数据量
+        $field= "zxt_device.id,zxt_device.hid,zxt_hotel.name as hotelname,zxt_device.room,zxt_device.mac,zxt_device.room_remark,zxt_device.firmware_version,zxt_device.dev_desc,zxt_device.online,zxt_device.sleep_status,zxt_device.sleep_time,zxt_device.wan_pppoe_user,zxt_device.wan_pppoe_pwd,zxt_device.wifi_ssid,zxt_device.wifi_passwd";
+        $datacount = D("device")->count();
+        $count_num = ceil($datacount/$count_one);
+
+        for ($searchcount=1; $searchcount <$count_num+1 ; $searchcount++) {//分多少次查表
+            $limit_first = ($searchcount-1)*$count_one;//第一条数据
+            $limit_second = $count_one;//多少条数据
+            $list = D("device")->field($field)->join('zxt_hotel on zxt_device.hid=zxt_hotel.hid')->limit($limit_first,$limit_second)->select();
+            // var_dump($list[0]);
+            // var_dump(end($list));
+            // var_dump(count($list));
+            $one_seacher_count = count($list); //一次的数量
+            for ($i=2+$limit_first; $i<$limit_first+$one_seacher_count+2; $i++) {//
+                $j = 0;
+                foreach ($list[$i-$limit_first-2] as $key => $value) { //一行记录循环
+                    $excel->getActiveSheet()->setCellValue("$letter[$j]$i",$value);
+                    $j++;
+                }
+            }
+            unset($list);
+            //创建Excel输入对象
+            $write = new \PHPExcel_Writer_Excel5($excel);
+            header("Pragma: public");
+            header("Expires: 0");
+            header("Cache-Control:must-revalidate, post-check=0, pre-check=0");
+            header("Content-Type:application/force-download");
+            header("Content-Type:application/vnd.ms-execl");
+            header("Content-Type:application/octet-stream");
+            header("Content-Type:application/download");
+            header('Content-Disposition:attachment;filename="deviceinfo.xls"');
+            header("Content-Transfer-Encoding:binary");
+        }
+        $write->save('php://output');
+    }
 }

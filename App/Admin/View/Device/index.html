@@ -55,7 +55,8 @@
                 <a class="label label-xlg label-yellow" href="javascript:;" id="detail" val="{:U('detail')}" ><i class="ace-icon fa fa-leaf bigger-100"></i>&nbsp;设备详情</a>
                 <a class="label label-xlg label-pink" href="javascript:;" id="updateroomremarks" val="{:U('updateroomremarks')}"><i class="ace-icon fa fa-sort bigger-100"></i>&nbsp;更新详细地址备注</a>
                 <a class="label label-xlg label-purple" href="javascript:;" id="apklist" val="{:U('getapklist_d')}" ><i class="ace-icon fa fa-list bigger-100"></i>&nbsp;APK列表信息</a>
-                <a class="label label-xlg label-yellow" href="javascript:;" id="xmlpush"><i class="ace-icon fa fa-leaf bigger-100"></i>&nbsp;导入XML</a>
+                <!-- <a class="label label-xlg label-yellow" href="javascript:;" id="xmlpush"><i class="ace-icon fa fa-leaf bigger-100"></i>&nbsp;导入XML</a> -->
+                <a class="label label-xlg label-yellow" href="javascript:;" id="outexcel" val="{:U('out_excel')}"><i class="ace-icon fa fa-leaf bigger-100"></i>&nbsp;导出Excel</a>
             </div>
             <div class="space-8"></div>
             <div class="row">
@@ -905,6 +906,33 @@
             })
             .always(function() {
                 console.log("complete");
+            });
+        });
+
+        //导出excel
+        $("#outexcel").click(function(event) {
+            var $hid = $("#hid").val();
+            var $room = $("input[name='room']").val();
+            var $mac = $("input[name='mac']").val();
+            // console.log("----------hid="+$hid);
+            // console.log("----------room="+$room);
+            // console.log("----------mac="+$mac);
+            bootbox.confirm({
+                title: "系统提示",
+                message: "是否要导出Excel表格（根据所选条件导出Excel,未选条件时全表导出）？", 
+                callback:function(result){
+                    if(result){
+                        $("#form").attr("action",$("#outexcel").attr("val"));
+                        $("#form").submit();
+                    }
+                },
+                buttons: {
+                    "cancel" : {"label" : "取消"},
+                    "confirm" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                }
             });
         });
 	})
