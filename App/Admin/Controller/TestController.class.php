@@ -186,4 +186,15 @@ class TestController extends comController {
 		$result = M()->execute($sql);
 		dump($result);
 	}
+
+	public function select_hotel_topic(){
+		$list = array();
+		$hotel_topic = D("hotel_topic")->field('hid,topic_list')->select();
+		foreach ($hotel_topic as $key => $value) {
+			$map['id'] = array('in',$value['topic_list']);
+			$topic_group = D("topic_group")->where($map)->field('title')->select();
+			$list[$value['hid']] = $topic_group['title'];
+		}
+		dump($list);
+	}
 }

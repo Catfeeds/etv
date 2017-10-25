@@ -539,9 +539,12 @@ class ApiController extends Controller{
         }
         //专题菜单
         $topicMenu=array();
-        $config=$HotelConfig->getByHid($hid);
+        $config = $HotelConfig->where('hid="'.$hid.'"')->field('topic_id')->select();
         if (!empty($config)) {
-            $map['id'] = array("in",$config['topic_id']);
+            foreach ($config as $key => $value) {
+                $topic_id_arr[] = $value['topic_id']; 
+            }
+            $map['id'] = array("in",$topic_id_arr);
             $topicMenu=$TopicGroup->where($map)->select();
             if (!empty($topicMenu)) {
                 foreach ($topicMenu as $valueT) {
@@ -1648,7 +1651,6 @@ class ApiController extends Controller{
         }
     }
 
-
     /**
      * [获取一级栏目  酒店+集团+通用]
      * @return [json] $list [一级栏目集合]
@@ -1983,6 +1985,9 @@ class ApiController extends Controller{
         }        
     }
 
+    /**
+     * [获取酒店launcher_json资源]
+     */
     public function hotelresource_json(){
         $hid = I('post.hid','','strtoupper');
         if (empty($hid)) {
@@ -2060,7 +2065,6 @@ class ApiController extends Controller{
         }else{
             $this->Callback(404,'the resource is empty');
         }
-        
     }
 
     /**
@@ -2105,6 +2109,32 @@ class ApiController extends Controller{
             $this->Callback(200,$vo);
         }else{
             $this->Callback(404,'the mac is wrong!');
+        }
+    }
+
+    /**
+     * [根据HID和ROOM获取MAC]
+     * @param  [string] $hid [酒店编号]
+     * @param  [string] $room [房间号]
+     * @return [json] $vo [结果集 状态码+data]
+     */
+    public function mac_by_hotelandroom(){
+        $hid = I('post.hid','','strtoupper');
+        $room = I('post.room','','strip_tags');
+        if (empty($hid)) {
+            $this->Callback(10000,'the hid is empty');
+        }
+        if (empty($room)) {
+            $this->Callback(10000,'the room is empty');
+        }
+
+        $map['hid'] = $hid;
+        $map['room'] = $room;
+        $vo = D("device")->where($map)->field('mac')->select();
+        if (!empty($vo)) {
+            $this->Callback(200,$vo);
+        }else{
+            $this->Callback(404,'the mac is Non-existent');
         }
     }
 

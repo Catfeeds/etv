@@ -8,18 +8,6 @@ ALTER TABLE `zxt_topic_category` ADD COLUMN `size`  float(5,3) NULL DEFAULT 0.00
 ALTER TABLE `zxt_topic_group` MODIFY COLUMN `status`  tinyint(1) NOT NULL DEFAULT 0 AFTER `id`;
 ALTER TABLE `zxt_topic_group` ADD COLUMN `icon`  varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '图标地址' AFTER `intro`;
 ALTER TABLE `zxt_topic_group` ADD COLUMN `size`  float(5,3) NULL DEFAULT 0.000 COMMENT '图标大小' AFTER `icon`;
-ALTER TABLE `zxt_hotel` ADD COLUMN `launcher_skinid`  int(6) NULL DEFAULT NULL COMMENT 'launcher网页版皮肤' AFTER `skinid`;
 ALTER TABLE `zxt_hotel_topic` DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci;
-CREATE TABLE `zxt_hotel_launcher_web` (
-`id`  int(11) NOT NULL AUTO_INCREMENT ,
-`name`  varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
-`web_name`  varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
-`filename`  varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
-`version`  varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
-`md5_file`  varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
-`status`  int(2) NOT NULL ,
-PRIMARY KEY (`id`)
-)
-ENGINE=InnoDB
-DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci;
+
 ALTER TABLE `zxt_device` ADD COLUMN `wifi_order`  tinyint(2) NULL DEFAULT 1 COMMENT '平台设置wifi状态   0关闭  1开启' AFTER `wifi_status`;
