@@ -1412,6 +1412,7 @@ class DeviceController extends ComController {
      * [设定默认休眠背景图]
      */
     public function sleep_image_default(){
+
         if(count($_POST['ids'])!=1){
             $this->error('系统提示：参数错误');
         }
@@ -1422,7 +1423,11 @@ class DeviceController extends ComController {
         $this->success('操作成功');
     }
 
+    /**
+     * [导出excel表格]
+     */
     public function out_excel(){
+
         ini_set('memory_limit','2048M');
         set_time_limit(0);
         //导入PHPExcel类库，因为PHPExcel没有用命名空间，只能inport导入
@@ -1441,16 +1446,31 @@ class DeviceController extends ComController {
             $excel->getActiveSheet()->setCellValue("$letter[$h]1", "$tableheader[$h]");
         }
 
+        //查询条件筛选
+        $map = array();
+        $hid = I('request.hid','','strtoupper');
+        $room = I('request.room','','strip_tags');
+        $mac = I('request.mac','','strtoupper');
+        if (!empty(trim($hid))) {
+            $map['zxt_device.hid'] = trim($hid);
+        }
+        if (!empty(trim($room))) {
+            $map['zxt_device.room'] = trim($room);
+        }
+        if (!empty($mac)) {
+            $map['zxt_device.mac'] = trim($mac);
+        }
+
         //调用导出的数据
         $count_one = 15000;//每次插入数据量
         $field= "zxt_device.id,zxt_device.hid,zxt_hotel.name as hotelname,zxt_device.room,zxt_device.mac,zxt_device.room_remark,zxt_device.firmware_version,zxt_device.dev_desc,zxt_device.online,zxt_device.sleep_status,zxt_device.sleep_time,zxt_device.wan_pppoe_user,zxt_device.wan_pppoe_pwd,zxt_device.wifi_ssid,zxt_device.wifi_passwd";
-        $datacount = D("device")->count();
+        $datacount = D("device")->where($map)->count();
         $count_num = ceil($datacount/$count_one);
 
         for ($searchcount=1; $searchcount <$count_num+1 ; $searchcount++) {//分多少次查表
             $limit_first = ($searchcount-1)*$count_one;//第一条数据
             $limit_second = $count_one;//多少条数据
-            $list = D("device")->field($field)->join('zxt_hotel on zxt_device.hid=zxt_hotel.hid')->limit($limit_first,$limit_second)->select();
+            $list = D("device")->where($map)->field($field)->join('zxt_hotel on zxt_device.hid=zxt_hotel.hid')->limit($limit_first,$limit_second)->select();
             // var_dump($list[0]);
             // var_dump(end($list));
             // var_dump(count($list));

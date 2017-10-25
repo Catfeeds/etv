@@ -2086,5 +2086,27 @@ class ApiController extends Controller{
         }
     }
 
+    /**
+     * [验证设备Mac是否存在]
+     */
+    public function verify_device(){
+        $mac = I('post.mac','','strtoupper');
+        $token = I('post.token','','strip_tags');
+        if (empty($mac)) {
+            $this->Callback(10000,'the mac is needed');
+        }
+        if(trim($token) != "zxt_check_hotelinfo" ){
+            $this->Callback(10002,'wrong token!');
+        }
+        
+        $field = "id,hid,room,mac,room_remark";
+        $vo = D("device")->where('mac="'.$mac.'"')->field($field)->find();
+        if (!empty($vo)) {
+            $this->Callback(200,$vo);
+        }else{
+            $this->Callback(404,'the mac is wrong!');
+        }
+    }
+
 }
 ?>

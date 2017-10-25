@@ -20,3 +20,12 @@ DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
 ;
 
 DROP TABLE `zxt_device_apk`;
+
+-- 休眠背景图
+ALTER TABLE `zxt_device_mac_image` ADD COLUMN `image_default`  tinyint(1) NOT NULL DEFAULT 0 AFTER `image_size`;
+CREATE INDEX `sleep_image` ON `zxt_device`(`sleep_imageid`) USING BTREE ;
+
+-- 修改字符大小
+-- 权限添加索引
+ALTER TABLE `zxt_auth_rule` MODIFY COLUMN `icon`  varchar(40) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL AFTER `title`;
+CREATE INDEX `islink` ON `zxt_auth_rule`(`islink`, `o`, `id`, `pid`, `title`, `name`, `icon`) USING BTREE ;

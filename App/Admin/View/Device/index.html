@@ -922,7 +922,9 @@
                 message: "是否要导出Excel表格（根据所选条件导出Excel,未选条件时全表导出）？", 
                 callback:function(result){
                     if(result){
-                        $("#form").attr("action",$("#outexcel").attr("val"));
+                        var $baseurl = $("#outexcel").attr("val");
+                        var $url = $baseurl+'?hid='+$hid+'&room='+$room+'&mac='+$mac;
+                        $("#form").attr("action",$url);
                         $("#form").submit();
                     }
                 },

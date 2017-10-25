@@ -13,7 +13,14 @@ class HoteljsonController extends comController {
 	public function update_hotel_json(){
 		$hid = I('post.hid','','strtoupper');
 		$hid = "4008";//测试
-		// 更新酒店一级栏目              
+		if (!empty($hid)) {
+            $this->error('参数错误');
+        }
+        $check_hid = D("hotel")->where('hid="'.$hid.'"')->count();
+        if ($check_hid<0) {
+            $this->error('系统提示：酒店编号错误');
+        }
+        // 更新酒店一级栏目              
 		// $this->updatehotel_one($hid);
 		// 更新酒店二级栏目
 		// $this->updatehotel_two($hid);

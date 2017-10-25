@@ -167,4 +167,23 @@ class TestController extends comController {
 		$write->save('php://output');
 	}
 
+	public function search_device_log(){
+		$map['id'] = 9772757;
+		$vo = D("device_log")->where($map)->find();
+		var_dump($vo);
+	}
+
+	public function show_tableinfo(){
+		$table = I('request.table','','strip_tags');
+		$sql = "desc ".$table;
+		$result = M()->query($sql);
+		var_dump($result);
+	}
+
+	public function repair_table(){
+		$table = I('request.table','','strip_tags');
+		$sql = "repair table ".$table;
+		$result = M()->execute($sql);
+		dump($result);
+	}
 }
