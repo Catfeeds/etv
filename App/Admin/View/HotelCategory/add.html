@@ -1,4 +1,5 @@
 <extend name="Public:layout"/>
+<link rel="stylesheet" href="__PUBLIC__/hyadmin/css/bootstrap-switch.css">
 <block name="page-content-row">
     <div class="page-header">
         <a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a>
@@ -104,6 +105,16 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-5">标题显示</label>
+                    <div class="col-sm-9">
+                        <div class="col-xs-10 col-sm-5">
+                            <input type="checkbox" name="show_title" data-size="small" value="1" checked>
+                            <span class="middle">（栏目标题是否在资源页进行显示）</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-4">栏目图标</label>
                     <div class="col-sm-9">
                         <img id="image" class="img-polaroid" src="" style="width:80px;height:80px;background:#ccc;" />
@@ -155,6 +166,7 @@
     </div>
 </block>
 <block name="currentPageJS">
+    <script src="__PUBLIC__/hyadmin/js/bootstrap-switch.js"></script>
 	<script type="text/javascript">
 	$('#hid').select2({ placeholder : '--请选择--' });
 
@@ -290,5 +302,21 @@
         }
         $("#form").submit();
     });
+
+    // 开关按钮
+    $('[name="show_title"]').bootstrapSwitch({    //初始化按钮
+       onText:"显示",  
+       offText:"关闭",  
+       onColor:"success",  
+       offColor:"info",  
+       size:"small",  
+       onSwitchChange:function(event,state){  
+           if(state==true){  
+               $(this).attr("value","1");
+           }else{  
+               $(this).attr("value","2");
+           }  
+       }  
+   });
 	</script>
 </block>

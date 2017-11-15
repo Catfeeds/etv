@@ -183,13 +183,18 @@ class ApiController extends Controller{
         if (empty($hid)) {
             $this->errorCallback(404, "Error: hid param is needed!");
         }
-        $cityName=$this->getCityName($hid);
-        $gb_cityName =  urlencode(mb_convert_encoding($cityName,'gb2312','utf-8'));
-        $url = "http://php.weather.sina.com.cn/xml.php?city=".$gb_cityName.'&password=DJOYnieT8234jlsK&day=0';
+
+        $regioninfo=D("Hotel")->where('zxt_hotel.hid="'.$hid.'"')->field('zxt_region.name,zxt_region.code')->join('zxt_region on zxt_hotel.cityid = zxt_region.id')->find();
+        if (empty($regioninfo)) {
+            $this->errorCallback(404, "Error: the regioninfo is error!");
+        }
+        // $url = "http://php.weather.sina.com.cn/xml.php?city=".$gb_cityName.'&password=DJOYnieT8234jlsK&day=0';
+        $url1 = "http://www.sojson.com/open/api/weather/json.shtml?city=".$regioninfo['name'];
+        $url2 = "http://www.weather.com.cn/data/cityinfo/".$regioninfo['code'].".html";
         $curl = curl_init();
 
         //设置抓取的url
-        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_URL, $url1);
         //设置头文件的信息作为数据流输出
         curl_setopt($curl, CURLOPT_HEADER, 1);
         //设置获取的信息以文件流的形式返回，而不是直接输出。
@@ -200,40 +205,52 @@ class ApiController extends Controller{
         curl_close($curl);
 
         list($header, $body) = explode("\r\n\r\n", $curl_return, 2);
-        $info = simplexml_load_string($body);
-        $weatherInfo = json_encode($info->Weather);
-        $weatherInfo = json_decode($weatherInfo,true);
-        $nowH = strtotime(date("H:i"));
-        $beginH = strtotime(date("06:00"));
-        $endH = strtotime(date("18:00"));
-
-        if(!empty($weatherInfo)){
-            $data['city'] = $weatherInfo['city'];
-            $data['date'] = $weatherInfo['savedate_weather'];
-            $data['weekday'] = '';
-            $data['sign'] = '';
-            if($beginH <= $nowH || $nowH <= $endH){  //白天
-                $data['image'] = ' http://php.weather.sina.com.cn/images/yb3/78_78/'.$weatherInfo['figure1'].'_0.png';
-                $data['low'] = $weatherInfo['temperature1']-2;
-                $data['high'] = $weatherInfo['temperature1']+2;
-                $data['wind'] = $weatherInfo['direction1'];
-                $data['description'] = $weatherInfo['status1'];
-            }else{ //黑夜
-                $data['image'] = ' http://php.weather.sina.com.cn/images/yb3/78_78/'.$weatherInfo['figure1'].'_1.png';
-                $data['low'] = $weatherInfo['temperature2']-2;
-                $data['high'] = $weatherInfo['temperature2']+2;
-                $data['wind'] = $weatherInfo['direction2'];
-                $data['description'] = $weatherInfo['status2'];
-            }
-            
-            $json['status'] = 200;
-            $json['info'] = "Successed!";
-            $json['weatherInfo'] = $data;
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode($json);
+        $weatherinfo = json_decode($body, true);
+        if ($weatherinfo['status'] == 200) {
+            $data['city'] = $regioninfo['name'];
+            $data['date'] = date("Y-m-d");
+            $data['weekday'] = $weatherinfo['data']['forecast']['0']['date'];
+            $lowcinfo = substr($weatherinfo['data']['forecast']['0']['low'],6);
+            $lowcnum = strrpos($lowcinfo,"℃");
+            $data['low'] = substr($lowcinfo, 0, $lowcnum);
+            $highcinfo = substr($weatherinfo['data']['forecast']['0']['high'],6);
+            $highcnum = strrpos($highcinfo,"℃");
+            $data['high'] = substr($highcinfo, 0, $highcnum);
+            $data['wind'] = $weatherinfo['data']['forecast']['0']['fx'];
+            $data['description'] = $weatherinfo['data']['forecast']['0']['notice'];
         }else{
             $this->errorCallback(404, "Error: getWeather is error!");
         }
+
+        //中国天气网天气接口
+        $curl = curl_init();
+
+        //设置抓取的url
+        curl_setopt($curl, CURLOPT_URL, $url2);
+        //设置头文件的信息作为数据流输出
+        curl_setopt($curl, CURLOPT_HEADER, 1);
+        //设置获取的信息以文件流的形式返回，而不是直接输出。
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        //执行命令
+        $curl_return = curl_exec($curl);
+        //关闭URL请求
+        curl_close($curl);
+        list($header, $body) = explode("\r\n\r\n", $curl_return, 2);
+        $chinaweatherinfo = json_decode($body, true);
+        if (!empty($chinaweatherinfo)) {
+            $nowH = strtotime(date("H:i"));
+            $beginH = strtotime(date("06:00"));
+            $endH = strtotime(date("18:00"));
+            if($beginH <= $nowH || $nowH <= $endH){  //白天
+                $data['image'] = "http://www.weather.com.cn/m/i/weatherpic/29x20/".$chinaweatherinfo['weatherinfo']['img2'];                               
+            }else{
+                $data['image'] = "http://www.weather.com.cn/m/i/weatherpic/29x20/".$chinaweatherinfo['weatherinfo']['img1'];                               
+            }
+        }
+        $json['status'] = 200;
+        $json['info'] = "Successed!";
+        $json['weatherInfo'] = $data;
+        echo json_encode($json);
     }
      
     /**
@@ -1633,14 +1650,22 @@ class ApiController extends Controller{
      * [保持终端在线接口]
      */
     public function keepDeviceStatus(){
-        $hid = I('post.hid','','strtoupper,strip_tags');
+        $hid = I('post.hid','','strtoupper');
         $room = I('post.room');
         $mac = strtoupper(I('post.mac'));
         if(!empty($mac)){
             $map['mac'] = $mac;
+            $count = D("device")->where($map)->count();
             $data['online'] = 1;
             $data['last_login_time'] = time();
-            $result = D("device")->where($map)->setField($data);
+            if ($count>0) {
+                $result = D("device")->where($map)->setField($data);
+            }else{
+                $data['hid'] = $hid;
+                $data['room'] = $room;
+                $data['mac'] = $mac; 
+                $result = D("device")->data($data)->add();
+            }
             if($result !== false){
                 $this->Callback(200,'Success');
             }else{
@@ -2135,6 +2160,50 @@ class ApiController extends Controller{
             $this->Callback(200,$vo);
         }else{
             $this->Callback(404,'the mac is Non-existent');
+        }
+    }
+
+    /**
+     * [获取酒店列表]
+     * @param [string] token [登录token]
+     * @param [string] hid [查询条件hid]
+     * @param [string] hotelname [查询条件hotelname]
+     * @param [string] offset [查询开始条数 默认第一条数据]
+     * @param [string] rows [查询条数 默认10条]
+     */
+    public function hotellist(){
+        $token = I("post.token",'','strip_tags');
+        if ($token != "zxt_search_hotellist") {
+            $this->Callback(10002,'you have wrong token');
+        }
+        $hotelinfo = I('post.hotelinfo','','strtoupper');
+        $offset = I('post.offset','','intval');//分页偏移量
+        $rows = I('post.rows','','intval'); //条数
+        $field = "id,hid,hotelname,name,manager,mobile";
+        $list = array(); //
+        $map = array();
+        if (!empty($hotelinfo)) {
+            $where['hid'] = array('like',"%$hotelinfo%");
+            $where['hotelname'] = array('like',"%$hotelinfo%");
+            $where['_logic'] = 'or';
+            $map['_complex'] = $where;
+        }
+        if ($offset>0) {
+            $offset = $offset-1;
+        }else{
+            $offset = 0;
+        }
+        if (!$rows) {
+            $rows = 10;
+        }
+        $count = D("hotel")->where($map)->count();
+        $list = D("hotel")->where($map)->limit($offset.','.$rows)->field($field)->select();
+        $data['count'] = $count;
+        $data['list'] = $list;
+        if ($count>0) {
+            $this->Callback(200,$data);
+        }else{
+            $this->Callback(404,'the hotellist is empty');
         }
     }
 
