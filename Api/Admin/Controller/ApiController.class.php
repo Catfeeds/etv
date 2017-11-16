@@ -178,7 +178,6 @@ class ApiController extends Controller{
      * @return
     */
     public function getWeather(){
-        header("Content-type:text/html;charset=utf-8");
         $hid = strtoupper(I('request.hid'));
         if (empty($hid)) {
             $this->errorCallback(404, "Error: hid param is needed!");
@@ -188,43 +187,71 @@ class ApiController extends Controller{
         if (empty($regioninfo)) {
             $this->errorCallback(404, "Error: the regioninfo is error!");
         }
-        // $url = "http://php.weather.sina.com.cn/xml.php?city=".$gb_cityName.'&password=DJOYnieT8234jlsK&day=0';
-        $url1 = "http://www.sojson.com/open/api/weather/json.shtml?city=".$regioninfo['name'];
-        $url2 = "http://www.weather.com.cn/data/cityinfo/".$regioninfo['code'].".html";
-        $curl = curl_init();
 
-        //设置抓取的url
-        curl_setopt($curl, CURLOPT_URL, $url1);
-        //设置头文件的信息作为数据流输出
-        curl_setopt($curl, CURLOPT_HEADER, 1);
-        //设置获取的信息以文件流的形式返回，而不是直接输出。
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        //执行命令
-        $curl_return = curl_exec($curl);
-        //关闭URL请求
-        curl_close($curl);
+        //直接取数据库当日天气
+        $where_weather['code_id'] = $regioninfo['code'];
+        $where_weather['date'] = date("Y-m-d");
+        $hadweather = D('weatherinfo')->where($where_weather)->find();
+        if (!empty($hadweather)) {
+            $data['city'] = $hadweather['city'];
+            $data['image'] = $hadweather['image'];
+            $data['low'] = $hadweather['low'];
+            $data['high'] = $hadweather['high'];
+            $data['description'] = $hadweather['description'];
+            $json['status'] = 200;
+            $json['info'] = "Successed!";
+            $json['weatherInfo'] = $data;
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($json);
+            die();
+        }
 
-        list($header, $body) = explode("\r\n\r\n", $curl_return, 2);
-        $weatherinfo = json_decode($body, true);
-        if ($weatherinfo['status'] == 200) {
-            $data['city'] = $regioninfo['name'];
-            $data['date'] = date("Y-m-d");
-            $data['weekday'] = $weatherinfo['data']['forecast']['0']['date'];
-            $lowcinfo = substr($weatherinfo['data']['forecast']['0']['low'],6);
-            $lowcnum = strrpos($lowcinfo,"℃");
-            $data['low'] = substr($lowcinfo, 0, $lowcnum);
-            $highcinfo = substr($weatherinfo['data']['forecast']['0']['high'],6);
-            $highcnum = strrpos($highcinfo,"℃");
-            $data['high'] = substr($highcinfo, 0, $highcnum);
-            $data['wind'] = $weatherinfo['data']['forecast']['0']['fx'];
-            $data['description'] = $weatherinfo['data']['forecast']['0']['notice'];
+        // 心知天气接口调用凭据
+        $key = 'c9fhn149mbtychgh'; // 测试用 key，请更换成您自己的 Key
+        $uid = 'U810D587DB'; // 测试用 用户 ID，请更换成您自己的用户 ID
+        // 参数
+        $api = 'https://api.seniverse.com/v3/weather/daily.json'; // 接口地址
+        $location = $regioninfo['name']; // 城市名称。除拼音外，还可以使用 v3 id、汉语等形式
+        // 生成签名。文档：https://www.seniverse.com/doc#sign
+        $param = [
+            'ts' => time(),
+            'ttl' => 300,
+            'uid' => $uid,
+        ];
+        $sig_data = http_build_query($param); // http_build_query 会自动进行 url 编码
+        // 使用 HMAC-SHA1 方式，以 API 密钥（key）对上一步生成的参数字符串（raw）进行加密，然后 base64 编码
+        $sig = base64_encode(hash_hmac('sha1', $sig_data, $key, TRUE));
+        // 拼接 url 中的 get 参数。文档：https://www.seniverse.com/doc#daily
+        $param['sig'] = $sig; // 签名
+        $param['location'] = $location;
+        $param['start'] = 0; // 开始日期。0 = 今天天气
+        $param['days'] = 1; // 查询天数，1 = 只查一天
+        // 构造url
+        $url = $api . '?' . http_build_query($param);
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        // 终止从服务端进行验证
+        // 如需设置为 TRUE，建议参考如下解决方案：
+        // https://stackoverflow.com/questions/18971983/curl-requires-curlopt-ssl-verifypeer-false
+        // https://stackoverflow.com/questions/6324391/php-curl-setoptch-curlopt-ssl-verifypeer-false-too-slow
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        $output=curl_exec($ch);
+        curl_close($ch);
+        $return = json_decode($output,true);
+        if (!empty($return['results'])) {
+            $data['city'] = $return['results']['0']['location']['name'];
+            $data['low'] = $return['results']['0']['daily']['0']['low'];
+            $data['high'] = $return['results']['0']['daily']['0']['high'];
+            $data['description'] = $return['results']['0']['daily']['0']['wind_direction'];
         }else{
             $this->errorCallback(404, "Error: getWeather is error!");
         }
 
+        $url2 = "http://www.weather.com.cn/data/cityinfo/".$regioninfo['code'].".html";
         //中国天气网天气接口
         $curl = curl_init();
-
         //设置抓取的url
         curl_setopt($curl, CURLOPT_URL, $url2);
         //设置头文件的信息作为数据流输出
@@ -242,14 +269,21 @@ class ApiController extends Controller{
             $beginH = strtotime(date("06:00"));
             $endH = strtotime(date("18:00"));
             if($beginH <= $nowH || $nowH <= $endH){  //白天
-                $data['image'] = "http://www.weather.com.cn/m/i/weatherpic/29x20/".$chinaweatherinfo['weatherinfo']['img2'];                               
+                $data['image'] = "http://www.weather.com.cn/m/i/weatherpic/29x20/".$chinaweatherinfo['weatherinfo']['img2'];    
             }else{
-                $data['image'] = "http://www.weather.com.cn/m/i/weatherpic/29x20/".$chinaweatherinfo['weatherinfo']['img1'];                               
+                $data['image'] = "http://www.weather.com.cn/m/i/weatherpic/29x20/".$chinaweatherinfo['weatherinfo']['img1'];         
             }
         }
+
         $json['status'] = 200;
         $json['info'] = "Successed!";
         $json['weatherInfo'] = $data;
+        header('Content-Type: application/json; charset=utf-8');
+
+        //插入数据库
+        $data['date'] = date("Y-m-d");
+        $data['code_id'] = $regioninfo['code'];
+        D("weatherinfo")->data($data)->add();
         echo json_encode($json);
     }
      
