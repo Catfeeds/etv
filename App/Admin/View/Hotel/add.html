@@ -30,9 +30,9 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-2">酒店名称</label>
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-2">客户全称</label>
                     <div class="col-sm-9">
-                        <input type="text" name="hotelname" id="hotelname" placeholder="酒店名称" class="col-xs-10 col-sm-5" value="">
+                        <input type="text" name="hotelname" id="hotelname" placeholder="客户全称" class="col-xs-10 col-sm-5" value="">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"><span class="red"> * </span>必填</span>
                         </span>
@@ -40,11 +40,35 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-3">酒店编号</label>
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-3">编号</label>
                     <div class="col-sm-9">
-                        <input type="text" name="hid" id="hid" placeholder="酒店编号" class="col-xs-10 col-sm-5" value="">
+                        <input type="text" name="hid" id="hid" placeholder="编号" class="col-xs-10 col-sm-5" value="">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-3">账号类别</label>
+                    <div class="col-sm-9">
+                        <select id="main_type" name="main_type" class="col-xs-10 col-sm-5">
+                            <option value="1">酒店账号</option>
+                            <option value="2">医院账号</option>
+                        </select>
+                        <span class="help-inline col-xs-12 col-sm-7">
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                 <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-3">账号类型</label>
+                    <div class="col-sm-9">
+                        <select id="demo" name="demo" class="col-xs-10 col-sm-5">
+                            <option value="2">实用账号</option>
+                            <option value="1">演示账号</option>
+                        </select>
+                        <span class="help-inline col-xs-12 col-sm-7">
                         </span>
                     </div>
                 </div>
@@ -100,9 +124,9 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7">酒店电话</label>
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7">客户电话</label>
                     <div class="col-sm-9">
-                        <input type="text" name="tel" id="tel" placeholder="酒店电话" class="col-xs-10 col-sm-5" value="">
+                        <input type="text" name="tel" id="tel" placeholder="客户电话" class="col-xs-10 col-sm-5" value="">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"></span>
                         </span>
@@ -138,9 +162,9 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-9">酒店容量</label>
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-9">容量</label>
                     <div class="col-sm-9">
-                        <input type="text" name="space" id="space" placeholder="酒店设备容量" class="col-xs-10 col-sm-5" value="">
+                        <input type="text" name="space" id="space" placeholder="设备容量" class="col-xs-10 col-sm-5" value="">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle">(MB)</span>
                         </span>
@@ -158,7 +182,7 @@
                 </div>
                 
                 <div style="padding:3px 0px;border-bottom: 1px dotted #e2e2e2;"></div>
-                <h4>酒店管理员帐号</h4><hr>
+                <h4>客户管理员帐号</h4><hr>
                 <div class="space-4"></div>
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-1">用户名</label>

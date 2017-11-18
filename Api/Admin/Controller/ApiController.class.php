@@ -2211,6 +2211,8 @@ class ApiController extends Controller{
             $this->Callback(10002,'you have wrong token');
         }
         $hotelinfo = I('post.hotelinfo','','strtoupper');
+        $main_type = I('post.main_type','','intval');
+        $demo = I('post.demo','','intval');
         $offset = I('post.offset','','intval');//分页偏移量
         $rows = I('post.rows','','intval'); //条数
         $field = "id,hid,hotelname,name,manager,mobile";
@@ -2230,6 +2232,12 @@ class ApiController extends Controller{
         if (!$rows) {
             $rows = 10;
         }
+        if ($main_type) {
+            $map['main_type'] = $main_type;
+        }
+        if ($demo) {
+            $map['demo'] = $demo;
+        }
         $count = D("hotel")->where($map)->count();
         $list = D("hotel")->where($map)->limit($offset.','.$rows)->field($field)->select();
         $data['count'] = $count;
@@ -2240,6 +2248,5 @@ class ApiController extends Controller{
             $this->Callback(404,'the hotellist is empty');
         }
     }
-
 }
 ?>

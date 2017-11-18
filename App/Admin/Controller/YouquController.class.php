@@ -190,4 +190,120 @@ class YouquController extends ComController {
 		return $insertsql;
 	}
 
+
+	// 学习园地二级栏目列表获取
+	public function learning_category(){
+
+		$url1 = 'https://t.iyouqu.com.cn:8443/app/newsActivity/service.do?text={"index":0,"msgId":"APP150","categoryId":24,"userId":20488,"categoryType":1,"department":"02A39800"}';
+
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url1);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //跳过SSL证书检查
+
+		$output = curl_exec($ch);
+		curl_close($ch);
+
+		$data = json_decode($output,true);
+		$objectList = $data['resultMap']['objectList'];
+		if (!empty($objectList)) {
+			$insertsql_str = "INSERT INTO `zxt_youqu_learning_category`(`category_id`, `title`, `image`, `type`) VALUES "; //插入sql 
+			foreach ($objectList as $key => $value) {
+				$id_arr1[] = $value['id'];
+				$insertsql_str .= "(".$value['id'].",'".$value['title']."','".$value['titleImage']['0']."',".$value['type']."),"; 
+			}
+			$insertsql_str = rtrim($insertsql_str,",");
+			$insertsql_str .= " ON DUPLICATE KEY UPDATE `title`= VALUES(title),`image`=VALUES(image),`type`=VALUES(type)";
+
+			//查找数据库 查询已有的category_id
+			$grouplist = D("youqu_learning_category")->field('category_id')->select(); //学习园地category表含有记录
+			if (!empty($grouplist)) {
+				foreach ($grouplist as $key => $value) {
+					$ole_ids_arr[] = $value['category_id'];
+				}
+			}else{
+				$ole_ids_arr = [];
+			}
+			//查找现在没有的  做删除
+			$diff_id_arr_old = array_diff($ole_ids_arr,$id_arr1);
+			D("youqu_learning_category")->startTrans();
+			if (!empty($diff_id_arr_old)) {
+				$del_where['category_id'] = array('in',$diff_id_arr_old);
+				$del1 = D("youqu_learning_category")->where($del_where)->delete();
+				$del2 = D("youqu_learning_resource")->where($del_where)->delete();
+				if ($del1===false || $del2===false) {
+					D("youqu_partybuild_group")->rollback();
+					die('gg');
+				}
+			}
+
+			// 更新或新增记录
+			$insert_result_1 = D("youqu_learning_category")->execute($insertsql_str);
+			if ($insert_result_1 === false) {
+				D("youqu_partybuild_group")->rollback();
+				die('gg');
+			}
+
+			// 学习园地内容接口调用
+			$insertsql2_str = ''; //新增或更新数据集合
+			foreach ($id_arr1 as $key => $value) {
+				$result = $this->learning_load_resource($value);
+				if (!empty($result)) {
+					$insertsql2_str .= $result;
+				}
+			}
+			$insertsql2_str = rtrim($insertsql2_str,",");
+			$insertsql2_str = "INSERT INTO `zxt_youqu_learning_resource`(`category_id`, `title`, `titleimage`, `type`, `content`, `image`, `video`, `image_size`, `video_size`) VALUES ".$insertsql2_str." ON DUPLICATE KEY UPDATE `title`= VALUES(title),`titleimage`=VALUES(titleimage),`type`=VALUES(type),`content`=VALUES(content),`image`=VALUES(image),`video`=VALUES(video),`image_size`=VALUES(image_size),`video_size`=VALUES(video_size)";
+			$insert_result_2 = D("youqu_learning_resource")->execute($insertsql2_str); //内容插入
+			if ($insert_result_2 === false) {
+				D("youqu_partybuild_group")->rollback();
+				die('gg');
+			}
+
+			die('ok');
+		}else{
+			D("youqu_learning_category")->delete();
+			D("youqu_learning_resource")->delete();
+			die('delete ok');
+		}
+	}
+
+	// 学习园地内容资源
+	public function learning_load_resource($objectId){
+		$url = 'https://t.iyouqu.com.cn:8443/app/newsActivity/service.do?text={"msgId":"APP009","userId":20488,"objectId":'.$objectId.'}';
+
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //跳过SSL证书检查
+
+		$output = curl_exec($ch);
+		curl_close($ch);
+		$data = json_decode($output,true);
+		$result = $data['resultMap']; //党建园地的资讯列表
+		if (empty($data['resultMap'])) {
+			return;
+		}
+
+		$image_arr = array();
+		$video_arr = array();
+		$image_size = 0;
+		$video_size = 0;
+		if (!empty($result['attachList'])) {
+			foreach ($result['attachList'] as $key => $value) {
+				if ($value['type'] == 2) {  //视频
+					$video_arr[] = $value['url'];
+					$video_size += $value['size'];
+				}elseif($value['type'] == 1){ //图片
+					$image_arr[] = $value['url'];
+					$image_size += $value['size'];
+				} 
+			}
+		}
+
+		$insertsql = "(".$objectId.", '".$result['newsInfo']['title']."', '".$result['newsInfo']['titleimage']."',".$result['newsInfo']['type']." ,'".addslashes($result['newsInfo']['content'])."', '".json_encode($image_arr)."', '".json_encode($video_arr)."', ".$image_size.", ".$video_size."),";
+
+		return $insertsql;
+	}
+
 }
