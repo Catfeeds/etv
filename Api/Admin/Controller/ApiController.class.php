@@ -98,13 +98,21 @@ class ApiController extends Controller{
             $this->errorCallback(404, "Error: mac param is needed!");
         }
         $HotelLogo = D("HotelWelcome");
-        $HotelResource = D("HotelResource");
         $map['zxt_hotel_welcome.hid'] = $hid;
         $map['zxt_hotel_resource.status'] = 1;
         $map['zxt_hotel_resource.audit_status'] = 4;
         $foo = $HotelLogo->field('zxt_hotel_resource.audit_status,zxt_hotel_resource.status,zxt_hotel_resource.filepath')->where($map)->join('zxt_hotel_resource ON zxt_hotel_welcome.resourceid = zxt_hotel_resource.id')->select();
         if(empty($foo)){
-            $this->errorCallback(404, "Error: the welcome image info is not existed!");
+            $thepid = $this->getphid($hid);
+            if($thepid){
+                $map['zxt_hotel_welcome.hid'] = $thepid['hid'];
+                $foo = $HotelLogo->field('zxt_hotel_resource.audit_status,zxt_hotel_resource.status,zxt_hotel_resource.filepath')->where($map)->join('zxt_hotel_resource ON zxt_hotel_welcome.resourceid = zxt_hotel_resource.id')->select();
+                if(empty($foo)){
+                    $this->errorCallback(404, "Error: the welcome image info is not existed!");
+                }
+            }else{
+                $this->errorCallback(404, "Error: the welcome image info is not existed!");
+            }
         }
         $json['status'] = 200;
         $json['info'] = "Successed!";
@@ -149,7 +157,15 @@ class ApiController extends Controller{
         $Languagecode=D("langcode");
         $list=$Lang->where('hid="'.$hid.'" and status =1')->order("sort asc")->select();
         if (empty($list)) {
-            $this->errorCallback(404, "Error: the language list is empty!");
+            $thepid = $this->getphid($hid);
+            if ($thepid) {
+                $list=$Lang->where('hid="'.$thepid['hid'].'" and status =1')->order("sort asc")->select();
+                if (empty($list)) {
+                    $this->errorCallback(404, "Error: the language list is empty!");
+                }
+            }else{
+                $this->errorCallback(404, "Error: the language list is empty!");
+            }
         }
         $volist=array();
         foreach ($list as $key => $value) {
@@ -381,7 +397,15 @@ class ApiController extends Controller{
         $HotelJump = D("hotel_jump");
         $volist=$HotelJump->getByHid($hid);
         if (empty($volist)) {
-            $this->errorCallback(404, "Error: the hotel base setting is empty!");
+            $thepid = $this->getphid($hid);
+            if ($thepid) {
+                $volist = $HotelJump->getByHid($thepid['hid']);
+                if (empty($volist)) {
+                    $this->errorCallback(404, "Error: the hotel base setting is empty!");
+                }
+            }else{
+                $this->errorCallback(404, "Error: the hotel base setting is empty!");
+            }
         }
         $json['status'] = 200;
         $json['info'] = "Successed!";
@@ -434,8 +458,16 @@ class ApiController extends Controller{
         $map["zxt_hotel_resource.audit_status"] = 4;
         $list = $HotelSpread->field("zxt_hotel_resource.*")->join("zxt_hotel_resource ON zxt_hotel_spread.resourceid=zxt_hotel_resource.id")->where($map)->order('zxt_hotel_resource.sort')->find();
         if(empty($list)){
-            $this->errorCallback(404, "Error: the hotel base setting is empty!");
-            die();
+            $thepid = $this->getphid($hid);
+            if ($thepid) {
+                $map["zxt_hotel_spread.hid"] = $thepid['hid'];
+                $list = $HotelSpread->field("zxt_hotel_resource.*")->join("zxt_hotel_resource ON zxt_hotel_spread.resourceid=zxt_hotel_resource.id")->where($map)->order('zxt_hotel_resource.sort')->find();
+                if (empty($list)) {
+                    $this->errorCallback(404, "Error: the hotel base setting is empty!");
+                }
+            }else{
+                $this->errorCallback(404, "Error: the hotel base setting is empty!");
+            }
         }
         $json['status'] = 200;
         $json['info'] = "Successed!";
@@ -2247,6 +2279,16 @@ class ApiController extends Controller{
         }else{
             $this->Callback(404,'the hotellist is empty');
         }
+    }
+
+    // 获取父hid
+    public function getphid($hid){
+        $vo = D("hotel")->where("hid='".$hid."'")->field("hid,pid")->find();
+        if ($vo['pid'] == 0) {
+            return false;
+        }
+        $result = D("hotel")->where("id=".$vo['pid'])->field('hid')->find();
+        return $result;
     }
 }
 ?>
