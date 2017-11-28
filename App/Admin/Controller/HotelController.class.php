@@ -16,26 +16,26 @@ class HotelController extends ComController {
     //查询
     public function _map(){
         $map = array();
-        if (!empty($_POST['hotelname'])) {
-            $map['hotelname']=array("like","%".$_POST['hotelname']."%");
-            $this->assign('hotelname', $_POST['hotelname']);
+        if (!empty($_GET['hotelname'])) {
+            $map['hotelname']=array("like","%".$_GET['hotelname']."%");
+            $this->assign('hotelname', $_GET['hotelname']);
         }
-        if (!empty($_POST['name'])) {
-            $map['name']=array("like","%".$_POST['name']."%");
+        if (!empty($_GET['name'])) {
+            $map['name']=array("like","%".$_GET['name']."%");
         }
-        if (!empty($_POST['hid'])) {
-            $map['hid']=array("like","%".$_POST['hid']."%");
-            $this->assign('hid',$_POST['hid']);
+        if (!empty($_GET['hid'])) {
+            $map['hid']=array("like","%".$_GET['hid']."%");
+            $this->assign('hid',$_GET['hid']);
         }
-        if (!empty($_POST['provinceid'])) {
-            $map['provinceid'] = $_POST['provinceid'];
-            $this->assign("provinceid",$_POST['provinceid']);
+        if (!empty($_GET['provinceid'])) {
+            $map['provinceid'] = $_GET['provinceid'];
+            $this->assign("provinceid",$_GET['provinceid']);
         }else{
             $this->assign("provinceid",'');
         }
-        if (!empty($_POST['cityid'])) {
-            $map['cityid'] = $_POST['cityid'];
-            $this->assign("cityid",$_POST['cityid']);
+        if (!empty($_GET['cityid'])) {
+            $map['cityid'] = $_GET['cityid'];
+            $this->assign("cityid",$_GET['cityid']);
         }else{
             $this->assign("cityid",'');
         }
@@ -67,10 +67,6 @@ class HotelController extends ComController {
         $HotelSkin = D("HotelSkin");
         $list = $HotelSkin->where("status=1")->order("id asc")->field('id,name')->select();
         $this->assign("skinlist",$list);
-        //launcher皮肤
-        $launcherSkin = D("hotel_launcher_web");
-        $launcherList = $launcherSkin->where('status=1')->field('id,name')->select();
-        $this->assign('launcherSkin',$launcherList);
         //省份
         $Region = D ( 'Region' );
         $plist = $Region->where('pid=0')->order("sort asc")->field('id,name')->select();
@@ -105,10 +101,6 @@ class HotelController extends ComController {
         $HotelSkin = D("HotelSkin");
         $list = $HotelSkin->where("status=1")->order("id asc")->field('id,name')->select();
         $this->assign("skinlist",$list);
-        //launcher网页版皮肤
-        $launcherSkin = D("hotel_launcher_web");
-        $launcherList = $launcherSkin->where('status=1')->field('id,name')->select();
-        $this->assign('launcherSkin',$launcherList);
         $Region = D ( 'Region' );
         $plist = $Region->where('pid=0')->order("sort asc")->field('id,name')->select();
         $this->assign("plist",$plist);
@@ -124,7 +116,6 @@ class HotelController extends ComController {
         $data['hotelname'] = I('post.hotelname','','strip_tags');
         $data['hid'] =strtoupper(I('post.hid','','strip_tags'));
         $data['skinid'] = I('post.skinid','','intval');
-        $data['launcher_skinid'] = I('post.launcher_skinid','','intval');
         $data['provinceid'] = intval($_POST['provinceid']);
         $data['cityid'] = intval($_POST['cityid']);
         $data['manager'] = I('post.manager','','strip_tags');
@@ -133,6 +124,8 @@ class HotelController extends ComController {
         $data['address'] = I('post.address','','strip_tags');
         $data['space'] = I('post.space','500','strip_tags');
         $data['intro'] = I('post.intro','','strip_tags');
+        $data['main_type'] = I('post.main_type','','strip_tags');
+        $data['demo'] = I('post.demo','','strip_tags');
         $data['update_time'] = time();
         if(!$data['name'] or !$data['hotelname'] or !$data['hid'] ){
             $this->error('警告！酒店客户名称、酒店名称、酒店编号为必填项目。');
@@ -172,10 +165,10 @@ class HotelController extends ComController {
                     $this->error('修改失败',U('index'));
                     die();
                 }else{
+                    addlog('修改酒店信息，酒店ID：'.$data['id']);
                     $model->commit();
                 }
             }
-            addlog('修改酒店信息，酒店ID：'.$data['id']);
         }else{
             $rules = array(
                 array('hid','','酒店编号已经存在！',0,'unique',1),

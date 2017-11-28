@@ -1,0 +1,325 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+<style type="text/css">
+    input[name='xmlfile']{border: 1px solid #BCBCBC;padding: 2px 20px;background: #FFF;cursor: pointer;height:28px;}
+</style>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="row">
+                <form class="form-inline" action="{:U('index')}" method="post">
+                    <div class="col-xs-10">
+                    <label class="inline">酒店：</label>
+                    <if condition="$personhid neq ''">
+                    <select id="hid" name="hid" class="select2" style="width:300px;">
+                      <option value=""></option>
+                      <option value="hid-1gg">{查询所有}</option>
+                      <volist name="personhid" id="phid">
+                        <option value="{$phid}" <if condition="$hid eq $phid">selected</if> >{$phid|getHotelnameByHid}</option>
+                      </volist>
+                    </select>
+                     <else />
+                    <select id="hid" name="hid" class="select2" style="width:300px;">
+                        <option></option>
+                        <option value="hid-1gg">{查询所有}</option>
+                        {$pHotel}
+                    </select>
+                    </if>
+                    &nbsp;&nbsp;<label class="inline">MAC地址：</label>
+                    <input type="text" name="mac" class="form-control" placeholder="MAC地址" value="{$_REQUEST['mac']}">
+                    <button type="submit" class="btn btn-purple btn-sm">
+                        <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>查询
+                    </button>
+                    </div>
+                    <div class="col-xs-2">
+                        <label class="inline">
+                            <?php if(is_numeric($onlineNum)){ ?>
+                                <font size="2em;" color="red">设备总数:{$theAllcount}，在线数:{$onlineNum}</font>
+                            <?php } ?>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="space-8"></div>
+            <div class="row">
+                <a class="label label-xlg label-inverse" id="sleep_set" ><i class="ace-icon fa fa-wrench bigger-100"></i>&nbsp;休眠设置</a>
+                <a class="label label-xlg label-danger" href="javascript:;" id="delete" val="{:U('delete')}" ><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除</a>
+            </div>
+            <div class="space-8"></div>
+            <div class="row">
+                <form id="form" method="post" action="">
+                    <table class="table table-striped table-bordered">
+                      <thead>
+                        <tr>
+                          <th class="center"><input class="check-all" type="checkbox" value=""></th>
+                          <th>酒店</th>
+                          <th>房间号</th>
+                          <th>MAC地址</th>
+                          <th>软件版本</th>
+                          <th>型号</th>
+                          <th>休眠时间</th>
+                          <th>提示语</th>
+                          <th>倒计时(秒)</th>
+                          <th>休眠状态</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      <volist name="list" id="val">
+                        <tr>
+                          <td class="center"><input class="aids" type="checkbox" name="sleepid[]" value="<?php if (!empty($val['id'])) { echo $val['id']; }else{ echo 0; } ?>"></td>
+                          <td>{$val['name']}</td>
+                          <td>{$val['room']}</td>
+                          <td>{$val['mac']}</td>
+                          <td>{$val['firmware_version']}</td>
+                          <td>{$val['dev_desc']}</td>
+                          <td><?php if(!empty($val['sleep_time_start']))echo $val['sleep_time_start'].'~'. $val['sleep_time_end'] ?></td>
+                          <td title="{$val['sleep_marked_word']}">{$val['sleep_marked_word']|str_cut=4}</td>
+                          <td>{$val['sleep_countdown_time']}</td>
+                          <td>{$val['sleep_status']|get_status}</td>
+                        </tr>
+                      </volist>
+                      </tbody>
+                    </table>
+                </form>
+                {$page}
+            </div>
+        </div>
+    </div>
+    <!-- 显示模态框（Modal） -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <form class="form-horizontal ajaxForm2" name="sleep_set" method="post" action="{:U('sleep_set')}">
+            <input type="hidden" name="device_ids" value="" />
+            <input type="hidden" name="addmac" value="" />
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h4 class="modal-title" id="myModalLabel">休眠设置</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label no-padding-right" for="form-field-1">休眠状态： </label>
+                                    <div class="col-sm-10" style="padding-top:7px;">
+                                        <input type="radio" name="sleep_status" value="1" >开启
+                                        <input type="radio" name="sleep_status" value="0" >关闭
+                                    </div>
+                                </div>
+                                <div class="space-4"></div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label no-padding-right" for="form-field-1">开始时间：  </label>
+                                    <div class="col-sm-10">
+                                        <span style="padding-top:5px;" class="text-error">设备于</span>
+                                        <select name="starthour" style="width:80px;margin-right:5px;">
+                                            <volist name="hour" id="sh">
+                                                <option value="{$sh}">{$sh}</option>
+                                            </volist>
+                                        </select>
+                                        <span style="padding-top:5px;">:</span>
+                                        <select name="startminute" style="width:80px;margin-right:5px;">
+                                            <volist name="minute" id="sm">
+                                                <option value="{$sm}">{$sm}</option>
+                                            </volist>
+                                        </select>
+                                        <span style="padding-top:5px;" class="text-error">开始休眠</span>
+                                    </div>
+                                </div>
+                                <div class="space-4"></div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label no-padding-right" for="form-field-1">结束时间：  </label>
+                                    <div class="col-sm-10">
+                                        <span style="padding-top:5px;" class="text-error">休眠至</span>
+                                        <select name="endhour" style="width:80px;margin-right:5px;">
+                                            <volist name="hour" id="h">
+                                                <option value="{$h}">{$h}</option>
+                                            </volist>
+                                        </select>
+                                        <span style="padding-top:5px;">:</span>
+                                        <select name="endminute" style="width:80px;margin-right:5px;">
+                                            <volist name="minute" id="m">
+                                                <option value="{$m}">{$m}</option>
+                                            </volist>
+                                        </select>
+                                        <span style="padding-top:5px;" class="text-error">自动重启。</span>
+                                    </div>
+                                </div>
+                                <div class="space-4"></div>
+                                <div class="form-group">
+                                	<label class="col-sm-2 control-label no-padding-right" for="form-field-1">提示语：  </label>
+                                	<div class="col-sm-10">
+                                		<input type="text" name="sleep_marked_word">
+                                	</div>                    
+                                </div>
+                                <div class="space-4"></div>
+                                <div class="form-group">
+                                	<label class="col-sm-2 control-label no-padding-right" for="form-field-1">休眠倒计时：</label>
+                                	<div class="col-sm-10">
+                                		<span><input type="text" name="sleep_countdown_time"></span>
+                                		<span style="padding-top:5px;" class="text-error">(秒)</span>
+                                	</div>                    
+                                </div>
+                                <div class="space-4"></div>
+                                <div class="form-group">
+                                	<label class="col-sm-2 control-label no-padding-right" for="form-field-1">选择背景图：</label>
+                                	<div class="col-sm-10">
+                                		<select class="macimageselect" name="macimageid" style="width:80px;margin-right:5px;">
+                                			<volist name="imageinfo" id="i">  
+                        						<option value="{$i['id']}" name="{$i['image_path']}" <eq name="onemessage['sleep_imageid']" value="$i['id']">selected</eq>
+                        						>{$i['image_name']}</option>
+                   							</volist>
+                                		</select>
+                                	</div>
+                                </div>
+                                <div class="space-4"></div>
+                                <div class="form-group">
+                                	<label class="col-sm-2 control-label no-padding-right" for="form-field-4">图片：</label>
+				                    <div class="col-sm-10" >
+                                        <img id="selectimage" class="img-polaroid" src="{:C('UPLOADPATH')}{$imageinfo['0']['image_path']}" style="width:240px;height:135px;background:#ccc;" />
+				                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">提交</button>
+                        <button class="btn btn-info" type="reset">重置</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </form>
+    </div><!-- /.modal -->
+</block>
+<block name="currentPageJS">
+    <script type="text/javascript">
+    $('#hid').select2({ placeholder : '--请选择--' });
+    $(function(){
+		$(".check-all").click(function(){
+			$(".aids").prop("checked", this.checked);
+		});
+		$(".aids").click(function(){
+			var option = $(".aids");
+			option.each(function(i){
+				if(!this.checked){
+					$(".check-all").prop("checked", false);
+					return false;
+				}else{
+					$(".check-all").prop("checked", true);
+				}
+			});
+		});
+		$("#delete").click(function(){
+            var chk_value =[]; 
+            $('input[type="checkbox"]:checked').each(function(){ 
+                if($(this).val()){
+                    chk_value.push($(this).val());
+                }
+            });
+            if(chk_value.length!=1){
+                bootbox.confirm({
+                title: "系统提示",
+                message: "仅能对一条数据进行操作", 
+                callback:function(result){},
+                    buttons: {
+                        "cancel" : {"label" : "取消"},
+                        "confirm" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            if (chk_value['0'] == 0) {
+                bootbox.confirm({
+                title: "系统提示",
+                message: "该设备未进行休眠设置，不具有数据可进行删除", 
+                callback:function(result){},
+                    buttons: {
+                        "cancel" : {"label" : "取消"}
+                    }
+                });
+                return;
+            }
+			bootbox.confirm({
+				title: "系统提示",
+				message: "是否要删除所选设备？", 
+				callback:function(result){
+					if(result){
+						$("#form").attr("action",$("#delete").attr("val"));
+						$("#form").submit();
+					}
+				},
+				buttons: {
+					"cancel" : {"label" : "取消"},
+					"confirm" : {
+						"label" : "确定",
+						"className" : "btn-danger"
+					}
+				}
+			});
+		});
+        $(".macimageselect").on("change",function(event) {
+            var path = $(this).find('option:selected').attr("name");
+            $("#selectimage").attr('src', "{:C('UPLOADPATH')}"+path);
+        });
+		$("#sleep_set").click(function(){
+			$('div#myModal').modal('hide');
+			var chk_value =[]; 
+            $('input[type="checkbox"]:checked').each(function(){ 
+                if($(this).val()){
+                	chk_value.push($(this).val());
+                }
+            });
+            if(chk_value.length<1){
+                self.location = "{:U('sleepSetIndex')}";
+            }else if(chk_value.length==1){
+                var deviceid = chk_value[0];
+                var addmac = $('input[type="checkbox"]:checked').parent("td").parent("tr").children("td").eq(3).text();
+				$.ajax({
+					url: "{:U('toSetSleep')}",
+					type: 'POST',
+					data: {'deviceid': deviceid},
+				})
+				.done(function(data) {
+                    if(data){
+                        var result = JSON.parse(data);
+                        $("input[name='sleep_status']").each(function() {
+                            if($(this).val() == result['sleep_status']){
+                                $(this).attr('checked', 'checked');
+                            }
+                        });
+                        if(result['sleep_time_start']){
+                            $("select[name='starthour'] option[value='"+result['starttime_h']+"']").attr('selected', 'selected');
+                            $("select[name='startminute'] option[value='"+result['starttime_m']+"']").attr('selected', 'selected');
+                            $("select[name='endhour'] option[value='"+result['endtime_h']+"']").attr('selected', 'selected');
+                            $("select[name='endminute'] option[value='"+result['endtime_m']+"']").attr('selected', 'selected');
+                        }
+                        $("input[name='sleep_marked_word']").val(result['sleep_marked_word']);
+                        $("input[name='sleep_countdown_time']").val(result['sleep_countdown_time']);
+                        $("select[name='macimageid'] option[value='"+result['sleep_imageid']+"']").attr('selected', 'selected');
+                        $("#selectimage").attr('src', '{:C('UPLOADPATH')}'+result['image_path']);
+                    }
+                    
+				})
+				.fail(function(data) {
+					console.log('error');
+				});
+                $("input[name=device_ids]").val(chk_value.join());
+				$("input[name=addmac]").val(addmac);
+                $('div#myModal').modal('show');
+				
+			}else if(chk_value.length>1){
+                var chk_mac_value = [];
+                $('input[type="checkbox"]:checked').each(function(){
+                    chk_mac_value.push($(this).parent("td").parent("tr").children("td").eq(3).text());
+                });
+				$("input[name=device_ids]").val(chk_value.join());
+                $("input[name=addmac]").val(chk_mac_value.join());
+                $('div#myModal').modal('show');
+			}
+		});
+
+	})
+    </script>
+</block>

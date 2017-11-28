@@ -381,7 +381,6 @@ class ApiController extends Controller{
      *     修改  现已没有hotelset表  查询hotel_jump表 2017-3-23
      */
     public function getBaseSet(){
-        $json = array();
         $hid = strtoupper(I('request.hid'));
         $room = I('request.room');
         $mac = I('request.mac');
@@ -394,35 +393,33 @@ class ApiController extends Controller{
         if (empty($mac)) {
             $this->errorCallback(404, "Error: mac param is needed!");
         }
-        $HotelJump = D("hotel_jump");
-        $volist=$HotelJump->getByHid($hid);
-        if (empty($volist)) {
+        $field = "isjump,staytime,staytime,video_set as hasvideo,filepath";
+        $where['zxt_hotel_jump.hid'] = $hid;
+        $where['zxt_hotel_resource.status'] != 0;
+        $where['zxt_hotel_resource.audit_status'] = array('not in','0,1,2,3'); 
+        $json = D("hotel_jump")->where($where)->field($field)->join('zxt_hotel_resource on zxt_hotel_jump.resourceid=zxt_hotel_resource.id')->find();
+        if (empty($json)) {
             $thepid = $this->getphid($hid);
             if ($thepid) {
-                $volist = $HotelJump->getByHid($thepid['hid']);
-                if (empty($volist)) {
+                $where['zxt_hotel_jump.hid'] = $thepid['hid'];
+                $json = D("hotel_jump")->where($where)->field($field)->join('zxt_hotel_resource on zxt_hotel_jump.resourceid=zxt_hotel_resource.id')->find();
+                if (empty($json)) {
                     $this->errorCallback(404, "Error: the hotel base setting is empty!");
                 }
             }else{
                 $this->errorCallback(404, "Error: the hotel base setting is empty!");
             }
         }
+        if (!empty($json['filepath'])) {
+            $json['video'] = self::$serverUrl.$json['filepath'];
+            $json['getvideo'] = "/Public".$json['filepath'];
+        }else{
+            $json['video'] = '';
+            $json['getvideo'] = '';
+        }
+        unset($json['filepath']);
         $json['status'] = 200;
         $json['info'] = "Successed!";
-        $json['isjump'] = $volist['isjump'];
-        $json['staytime'] = $volist['staytime'];
-        $json['hasvideo'] = $volist['video_set'];//状态1时 播放视频进入主页(中途可退出)  状态3时 强制播放完视频方可退出
-        if ($volist['video_set']==1 || $volist['video_set']==3) {
-            $HotelResource = D("hotel_resource");
-            $hotelresourelist = $HotelResource->getById($volist['resourceid']);
-            if(!empty($hotelresourelist)){
-                $json['video'] = self::$serverUrl.$hotelresourelist['filepath'];
-                $json['getvideo'] = "/Public".$hotelresourelist['filepath'];
-            }else{
-                $json['video'] = '';
-                $json['getvideo'] = '';
-            }
-        }
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
     }
@@ -1593,6 +1590,29 @@ class ApiController extends Controller{
         echo json_encode($json);
     }
 
+    // 新休眠状态返回记录
+    public function device_sleepinfo(){
+        $hid = I('post.hid','','strtoupper');
+        $room = I('post.room','','strip_tags');
+        $mac = I('post.mac','','strtoupper');
+        if (empty($hid)) {
+            $this->errorCallback(404, "Error: hid param is needed");
+        }
+        if (empty($room)) {
+            $this->errorCallback(404, "Error: room param is needed");
+        }
+        if (empty($mac)) {
+            $this->errorCallback(404, "Error: mac param is needed");
+        }
+        $field = "zxt_device_sleep.*,zxt_device_mac_image.image_name,zxt_device_mac_image.image_path";
+        $list = D("device_sleep")->where('zxt_device_sleep.mac="'.$mac.'"')->join('zxt_device_mac_image on zxt_device_sleep.sleep_imageid=zxt_device_mac_image.id','left')->field($field)->select();
+        if (empty($list)) {
+            $this->errorCallback(404, "Error:stb sleep info is empty!");
+        }
+        header('Content-Type: application/json; charset=utf-8');
+        $this->Callback(200,$list);
+    }
+
     /**
      * [获取APK列表]
      * @return [array] $list [所有需要安装的最高版本的apk列表]
@@ -2264,10 +2284,10 @@ class ApiController extends Controller{
         if (!$rows) {
             $rows = 10;
         }
-        if ($main_type) {
+        if (is_numeric($main_type)) {
             $map['main_type'] = $main_type;
         }
-        if ($demo) {
+        if (is_numeric($demo)) {
             $map['demo'] = $demo;
         }
         $count = D("hotel")->where($map)->count();

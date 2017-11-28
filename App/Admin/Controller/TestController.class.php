@@ -197,4 +197,25 @@ class TestController extends comController {
 		}
 		dump($list);
 	}
+
+	public function changestatus(){
+		$phid = "4008";
+		$id = D("hotel")->where('hid="'.$phid.'"')->field('id')->find();
+		$hidlist = D("hotel")->where('pid='.$id['id'])->field('hid')->select();
+		foreach ($hidlist as $key => $value) {
+			$hid_arr[] = $value['hid'];
+		}
+		D("hotel_resource")->startTrans();
+		$where1['hid'] = $where2['hid'] = array('in',$hid_arr);
+		$where1['cat'] = array('in','welcome,jump,spread');
+		$result1 = D("hotel_resource")->where($where1)->setField('status','0');
+		$result2 = D('hotel_language')->where($where2)->setField('status','0');
+		if ($result1!==false && $result2!==false) {
+			D("hotel_resource")->commit();
+			echo "ok";
+		}else{
+			D("hotel_resource")->rollback();
+			echo "error";
+		}
+	}	
 }
