@@ -5,15 +5,26 @@
             <div class="row">
                 <form class="form-inline" action="{:U('index')}" method="get">
                     <label class="inline">酒店：</label>
-                      <select id="hid" name="hid" class="select2" style="width:300px;">
-                        <option></option>
-                        {$pHotel}
-                      </select>
+                      <if condition="$personhid neq ''">
+                        <select id="hid" name="hid" class="select2" style="width:300px;">
+                          <option value=""></option>
+                          <option value="hid-1gg">{查询所有酒店}</option>
+                          <volist name="personhid" id="phid">
+                            <option value="{$phid}" <if condition="$hid eq $phid">selected</if> >{$phid|getHotelnameByHid}</option>
+                          </volist>
+                        </select>
+                        <else />
+                        <select id="hid" name="hid" class="select2" style="width:300px;">
+                            <option></option>
+                            <option value="hid-1gg">{查询所有酒店}</option>
+                            {$pHotel}
+                        </select>
+                      </if>
                     <label class="inline" style="padding-left: 3%">标题：</label>
                       <input type="text" name="keyword" class="form-control" placeholder="标题" value="{$_REQUEST['keyword']}">
                     <label class="inline" style="padding-left: 3%">审核状态：</label>
                     <select name="status">
-                      <option value="">搜索状态</option>
+                      <option value="-1">搜索状态</option>
                       <option value="2" <if condition="$status eq 2">selected</if>>审核通过</option>
                       <option value="3" <if condition="$status eq 3">selected</if>>发布未通过</option>
                       <option value="4" <if condition="$status eq 4">selected</if>>发布通过</option>

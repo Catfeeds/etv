@@ -1,0 +1,124 @@
+<extend name="Public:layout"/>
+<link rel="stylesheet" href="__PUBLIC__/hyadmin/css/bootstrap-switch.css">
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " href="window.history.back();">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal" id="form" method="post" action="{:U('updateresource')}">
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-2">视频名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="title" data-rule="required" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red"> * </span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-5">视频排序</label>
+                    <div class="col-sm-9">
+                        <input type="number" name="sort" placeholder="" class="col-xs-10 col-sm-5">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                 <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-4">文件</label>
+                    <div class="col-sm-9">
+                        <a id="showfilename"  href="" target="_blank"></a>
+                        <input type="hidden" name="filepath" id="filepath" value="">
+                        <input type="hidden" name="size" id="size" value="">
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-5">文件上传</label>
+                    <div class="col-sm-9">
+                        <span class="btn btn-success fileinput-button" style="text-align:left;">
+                            <span>请选择文件&nbsp;&nbsp;<i class="icon-upload icon-white"></i></span>
+                            <input id="fileupload" name="fileupload"  type="file"/>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-6">&nbsp;</label>
+                    <div class="col-sm-9">
+                        <span class="col-xs-10 col-sm-12">
+                         目前支持'mp4'格式的视频
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7">上传进度</label>
+                    <div class="col-sm-9" style="width:40%;">
+                        <div class="progress progress-striped active" role="progressbar" aria-valuemin="10" aria-valuemax="100" aria-valuenow="0">
+                            <div id="weixin_progress" class="progress-bar progress-bar-success" style="width:0%;"></div>
+                        </div> 
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="space-4"></div>
+                <div class="col-md-offset-2 col-md-9">
+                    <button class="btn btn-info submit" type="button">
+                        <i class="icon-ok bigger-110"></i>提交
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="btn btn-primary" type="reset">
+                        <i class="icon-undo bigger-110"></i>重置
+                    </button>
+                </div>
+                <input type="hidden" id="hid" name="hid" value="{$hid}">
+                <input type="hidden" name="resourceid" value="{$resourceid}">
+            </form>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+    <script src="__PUBLIC__/hyadmin/js/bootstrap-switch.js"></script>
+	<script type="text/javascript">
+
+    $("#fileupload").click(function(event) {
+        var $hid = $("#hid").val();
+        $url =  "{:U('upload')}?name=fileupload&hid="+$hid;
+        $(this).fileupload({
+            url: $url,
+            dataType: 'json',
+            sequentialUploads: true  
+        }).bind('fileuploaddone', function (e, data) {  
+            var json = data.result;
+            if(json.status==1){
+                $("input[name=filepath]").val(json.storename);
+                $("#size").val(json.size);
+                $("a#showfilename").attr("href","{:C('UPLOADPATH')}"+json.storename);
+                $("a#showfilename").text(json.storename);
+            }else if(json.status == 0){
+                $("#weixin_progress").css('width','0');  
+                $("#weixin_progress").html('0');
+            }
+            mainAjaxMsg(json.status,json.info);
+        }).bind('fileuploadprogress', function (e, data) {  
+            var progress = parseInt(data.loaded / data.total * 100, 10);  
+            $("#weixin_progress").css('width',progress + '%');  
+            $("#weixin_progress").html(progress + '%');  
+        });
+    });
+
+    $(".btn-info.submit").click(function(){
+        
+        $("#form").submit();
+    });
+
+  
+	</script>
+</block>

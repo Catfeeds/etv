@@ -86,7 +86,7 @@ class HotelJumpController extends ComController {
         $category = $tree->get_tree(0,$str,$hotelid);
         $this->assign('pHotel',$category);
     }
-
+    
     //修改
     public function edit(){
         $model = M(CONTROLLER_NAME);
@@ -110,21 +110,90 @@ class HotelJumpController extends ComController {
         $resData = array();
         $data['id'] = I('post.id','','intval');
         $data['hid'] = $hmap['hid'] = I('post.hid','','strip_tags');
-        $data['isjump'] = I('post.isjump','','intval'); //是否跳转
-        $data['staytime'] = I('post.staytime','','intval');  //跳转时间
-        $data['video_set'] = I('post.video_set','','intval'); //跳转选项设置
-    
+        $data['isjump'] = I('post.isjump','','intval');
+        $data['staytime'] = I('post.staytime','','intval');
+        $data['video_set'] = I('post.video_set','','intval');
+        $size = I('post.size','','intval');
+        $resData['size'] = round($size/1024,3);
+        $resData['filepath'] = I('post.filepath','','strip_tags');
+
         if($data['isjump']==0){
             $data['staytime']=-1;
         }else if ($data['staytime']<=0) {
             $this->error('停留时间必须大于0！');
         }
+        if ($data['video_set']>0 && empty($resData['filepath'])) {
+            $this->error('请上传跳转视频！');
+        }
 
         $logText='';
         $model->startTrans();
         if($data['id']){//修改
-            if($model->data($data)->where('id='.$data['id'])->save()){
+            $vo = $model->getById($data['id']);
+            $resourceInfo=M('hotel_resource')->getById($vo['resourceid']);
+
+            if ($vo['resourceid']>0) {//含有跳转资源
+                if ($data['video_set']>0){//播放视频
+                    //查询容量
+                    $changesize = $resData['size'] - $resourceInfo['size']; // 新的减去旧的
+                    $volumeResult = $this->checkVolume($data['hid'],$changesize);//检查容量是否超标
+              
+                    if($volumeResult === false){
+                        @unlink(FILE_UPLOAD_ROOTPATH.$data['filepath']);
+                        $this->error("超过申请容量值，无法修改资源");
+                    }
+
+                    if ($resData['filepath'] != $resourceInfo['filepath']) {//修改视频
+                        $resData['upload_time'] = time();
+                        $resData['audit_status'] = 0;
+                        @unlink(FILE_UPLOAD_ROOTPATH.$resourceInfo['filepath']);
+                        $result = M('hotel_resource')->data($resData)->where('id='.$vo['resourceid'])->save();
+                        $logText=' 修改跳转视频,资源ID：'.$vo['resourceid'];
+                    }
+                }elseif($data['video_set'] == 0){ //从含有视频资源修改为不含有视频资源时候
+                    $result = D("hotel_resource")->where('id='.$vo['resourceid'])->delete();
+                    D("hotel_jump")->where('id='.$data['id'])->setField('resourceid',0);
+                    @unlink(FILE_UPLOAD_ROOTPATH.$resourceInfo['filepath']);
+                }
+                
+            }else{//本来没有含有跳转视频
+                if($data['video_set']>0){
+
+                    //查询容量
+                    $volumeResult = $this->checkVolume($data['hid'],$resData['size']);//检查容量是否超标
+                    if($volumeResult === false){
+                        @unlink(FILE_UPLOAD_ROOTPATH.$data['filepath']);
+                        $this->error("超过申请容量值，无法修改资源");
+                    }
+                    $resData['hid'] = $data['hid'];
+                    $resData['title'] = '跳转视频';
+                    $resData['type'] = 1;
+                    $resData['cat'] = 'jump';
+                    $resData['intro'] = '跳转视频';
+                    $resData['status'] = 1;
+                    $resData['audit_status'] = 0;
+                    $resData['upload_time'] = time();
+                    $result = M('hotel_resource')->data($resData)->add();
+                    $data['resourceid'] = $result;
+                    $logText=' 添加跳转视频,资源ID：'.$result;
+                }
+            }
+            $hjid = $model->data($data)->where('id='.$data['id'])->save();
+            $sizelist = M('hotel_resource')->field('SUM(size)')->where($hmap)->select();
+            $csizelist = M('hotel_category')->field('SUM(size)')->where($hmap)->select();
+            $rsize = $sizelist[0]['sum(size)']+$csizelist[0]['sum(size)'];
+            if(M("hotel_volume")->where($hmap)->count()){
+                $updatesize = D("hotel_volume")->where($hmap)->setField("content_size",$rsize);
+            }else{
+                $arrdata['hid'] = $data['hid'];
+                $arrdata['content_size'] = $rsize;
+                $arrdata['topic_size'] = 0.00;
+                $arrdata['ad_size'] = 0.00;
+                $updatesize = M("hotel_volume")->data($arrdata)->add();
+            }
+            if($hjid !== false && $result !== false && $updatesize !== false){
                 $model->commit();
+                addlog('修改跳转设置，ID：'.$data['id'].$logText);
                 $this->success("修改成功",U('index'));
                 die();
             }else{
@@ -132,13 +201,49 @@ class HotelJumpController extends ComController {
                 $this->error('修改失败!',U('index'));
             }
         }else{
-            $isExist=$model->field('id')->where('hid="'.$data['hid'].'"')->find();
+            $isExist=$model->field('id')->where('hid="'.$data['hid'].'"')->select();
             if (!empty($isExist)) {
                 @unlink(FILE_UPLOAD_ROOTPATH.$resData['filepath']);
                 $this->error('请不要为酒店重复添加跳转设置！',U('index'));
             }
-            if($model->data($data)->add()){
+            if ($data['video_set']>0) {
+                //查询容量
+                $volumeResult = $this->checkVolume($data['hid'],$resData['size']);//检查容量是否超标
+                if($volumeResult === false){
+                    @unlink(FILE_UPLOAD_ROOTPATH.$resData['filepath']);
+                    $this->error("超过申请容量值，无法添加资源");
+                }
+
+                $resData['hid'] = $data['hid'];
+                $resData['title'] = '跳转视频';
+                $resData['type'] = 1;
+                $resData['cat'] = 'jump';
+                $resData['intro'] = '跳转视频';
+                $resData['status'] = 1;
+                $resData['audit_status'] = 0;
+                $resData['upload_time'] = time();
+                $rid = M('hotel_resource')->data($resData)->add();
+                $data['resourceid'] = $rid;
+                $logText=' 添加跳转视频,资源ID：'.$rid;
+            }else{//不播放视频
+                $data['resourceid'] = 0;
+            }
+            $id = $model->data($data)->add();
+            $sizelist = M('hotel_resource')->field('SUM(size)')->where($hmap)->select();
+            $csizelist = M('hotel_category')->field('SUM(size)')->where($hmap)->select();
+            $rsize = $sizelist[0]['sum(size)']+$csizelist[0]['sum(size)'];
+            if(M("hotel_volume")->where($hmap)->count()){
+                $updatesize = D("hotel_volume")->where($hmap)->setField("content_size",$rsize);
+            }else{
+                $arrdata['hid'] = $data['hid'];
+                $arrdata['content_size'] = $rsize;
+                $arrdata['topic_size'] = 0.00;
+                $arrdata['ad_size'] = 0.00;
+                $updatesize = M("hotel_volume")->data($arrdata)->add();
+            }
+            if($id !== false && $rid !== false &&  $updatesize!==false){
                 $model->commit();
+                addlog('添加跳转设置，ID：'.$id.$logText);
                 $this->success('恭喜，操作成功！',U('index'));
             }else{
                 $model->rollback();
@@ -185,81 +290,6 @@ class HotelJumpController extends ComController {
             @unlink(FILE_UPLOAD_ROOTPATH.$_POST['filepath']);
         }
         echo true;
-    }
-
-    public function resource(){
-        $where['resourceid'] = $_REQUEST['resourceid'];
-        $list = D("hotel_jump_resource")->where($where)->select();
-        $this->assign('list', $list);
-        $this->assign('resourceid', $_REQUEST['resourceid']);
-        $this->assign('hid', $_REQUEST['resourcehid']);
-        $this->display();
-    }
-
-    public function addresource(){
-        $this->assign('hid',$_POST['hid']);
-        $this->assign('resourceid',$_POST['resourceid']);
-        $this->display();
-    }
-
-    public function updateresource(){
-        $id = I('post.id','','intval');
-        $data['title'] = I('post.title','','strip_tags');
-        $data['resourceid'] = I('post.resourceid','','strip_tags');
-        $data['hid'] = I('post.hid');
-        $data['sort'] = I('post.sort','','strip_tags');
-        $data['filepath'] = I('post.filepath','','strip_tags');
-        $size = I('post.size','','intval');
-        $data['size'] = round($size/1024,3);
-        if ($id) {
-            # code...
-        }else{
-            $volumeResult = $this->checkVolume($data['hid'],$data['size']);//检查容量是否超标
-            if($volumeResult === false){
-                @unlink(FILE_UPLOAD_ROOTPATH.$data['filepath']);
-                $this->error("超过申请容量值，无法添加资源");
-            }
-            $data['status'] = 0;
-            $data['audit_status'] = 0;
-            $data['audit_time'] = date("Y-m-d");
-            $data['upload_time'] = date("Y-m-d");
-            if(D("hotel_jump_resource")->data($data)->add()){
-                $this->success('操作成功', U('resource',array('resourceid'=>$data['resourceid'], 'resourcehid'=>$data['hid']) ) );
-            }else{
-
-            }
-        }
-    }
-
-    public function getjumptonew(){
-        $where['zxt_hotel_resource.cat'] = "jump";
-        $list = D("hotel_resource")
-                ->where($where)
-                ->join('zxt_hotel_jump ON zxt_hotel_resource.id=zxt_hotel_jump.resourceid')
-                ->field('zxt_hotel_resource.*,zxt_hotel_jump.id as myresourceid')
-                ->select();
-        if (!empty($list)) {
-            D("hotel_resource")->startTrans();
-            $insertdata = [];
-            foreach ($list as $key => $value) {
-                $insertdata[$key]['hid'] = $value['hid'];
-                $insertdata[$key]['resourceid'] = $value['myresourceid'];
-                $insertdata[$key]['status'] = $value['status'];
-                $insertdata[$key]['audit_status'] = $value['audit_status'];
-                $insertdata[$key]['audit_time'] = date("Y-m-d H:i:s",$value['audit_status']);
-                $insertdata[$key]['title'] = $value['title'];
-                $insertdata[$key]['filepath'] = $value['filepath'];
-                $insertdata[$key]['upload_time'] = date("Y-m-d H:i:s",$value['upload_time']);
-                $insertdata[$key]['sort'] = $value['sort']+1;
-                $insertdata[$key]['size'] = $value['size'];
-            }
-            if(D("hotel_jump_resource")->addAll($insertdata)){
-                D("hotel_jump_resource")->commit();
-                var_dump('ok');
-            }else{
-                var_dump('gg');
-            }
-        }
     }
 
     public function delete(){

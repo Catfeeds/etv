@@ -42,14 +42,6 @@
                         <span><label style="width:480px;">欢迎页前后都不播放视频。</label></span>
                     </div>
                 </div>
-                <!-- <div class="space-4"></div>
-                <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">&nbsp;&nbsp;</label>
-                    <div class="col-sm-9">
-                        <span><label style="width:50px;"><input type="radio" id="video_set_2" name="video_set" value="1" <eq name="vo.video_set" value="1">checked</eq> >（2）</label></span>
-                        <span><label style="width:480px;">欢迎页前插播视频。</label></span>
-                    </div>
-                </div> -->
                 <div class="space-4"></div>
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-1">&nbsp;&nbsp;</label>
@@ -59,53 +51,13 @@
                     </div>
                 </div>
                 <div class="space-4"></div>
-                <div class="space-4"></div>
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-1">&nbsp;&nbsp;</label>
                     <div class="col-sm-9">
                         <span><label style="width:50px;"><input type="radio" id="video_set_3" name="video_set" value="3" <eq name="vo.video_set" value="3">checked</eq> >（3）</label></span>
                         <span><label style="width:480px;">强制播放视频后再进入主页。</label></span>
                     </div>
-                </div>
-                <div class="space-4"></div>
-                <div id="upload_video_file" style="display:none;">
-                <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-4">视频文件</label>
-                    <div class="col-sm-9" >
-                        <a id="showfilename"  href="{:C('UPLOADPATH')}{$vo.filepath}" target="_blank">{$vo.filepath}</a>
-                    </div>
-                </div>
-                <div class="space-4"></div>
-                <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-5">文件上传</label>
-                    <div class="col-sm-9" >
-                        <span class="btn btn-success fileinput-button" style="text-align:left;">
-                            <span>请选择文件&nbsp;&nbsp;<i class="icon-upload icon-white"></i></span>
-                            <input id=fileupload name="fileupload"  type="file" name="fileupload" />
-                        </span>
-                    </div>
-                </div>
-                <div class="space-4"></div>
-                <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-8">&nbsp;</label>
-                    <div class="col-sm-9">
-                        <span class="col-xs-10 col-sm-12">目前视频支持mp4格式</span>
-                    </div>
-                </div>
-                <div class="space-4"></div>
-                <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-6">上传进度</label>
-                    <div class="col-sm-9" style="width:40%;">
-                        <div class="progress progress-striped active" role="progressbar" aria-valuemin="10" aria-valuemax="100" aria-valuenow="0">
-                            <div id="weixin_progress" class="progress-bar progress-bar-success" style="width:0%;"></div>
-                        </div> 
-                        <span class="help-inline col-xs-12 col-sm-7">
-                            <span class="middle"></span>
-                        </span>
-                    </div>
-                </div>
-                <div class="space-4"></div>
-                </div>
+                </div>             
                 <div class="space-4"></div>
                 <div class="col-md-offset-2 col-md-9">
                     <button class="btn btn-info submit" type="button">
@@ -123,47 +75,12 @@
 <block name="currentPageJS">
 <script type="text/javascript">
 	$('#hid').select2({ placeholder : '--请选择--' });
+    
 	$("#hid").prop("disabled", true);
+
 	$(function () {
-		if({$vo.video_set}==0){
-			$("#upload_video_file").hide();
-		}else{
-			$("#upload_video_file").show();
-		}
-		$("#video_set_1").click(function() {
-	        $("#upload_video_file").hide();
-	    });
-	    $("#video_set_2").click(function() {
-	        $("#upload_video_file").show();
-	    });
-	    $("#video_set_3").click(function() {
-	        $("#upload_video_file").show();
-	    });
-		$("#fileupload").fileupload({
-            url: "{:U('upload?name=fileupload')}",
-            dataType: 'json',
-            sequentialUploads: true  
-        }).bind('fileuploaddone', function (e, data) {  
-        	var json = data.result;
-        	if(json.status==1){
-    			$("input[name=filepath]").val(json.storename);
-                $("#size").val(json.size);
-    			$("a#showfilename").attr("href","{:C('UPLOADPATH')}"+json.storename);
-    			$("a#showfilename").text(json.storename);
-    		}else if(json.status == 0){
-                $("#weixin_progress").css('width','0');  
-                $("#weixin_progress").html('0');
-            }
-        	mainAjaxMsg(json.status,json.info);
-        }).bind('fileuploadprogress', function (e, data) {  
-            var progress = parseInt(data.loaded / data.total * 100, 10);  
-            $("#weixin_progress").css('width',progress + '%');  
-            $("#weixin_progress").html(progress + '%');  
-        });
-		
 		$(".btn-info.submit").click(function(){
-            var video_set = $("input[name='video_set']:checked").val();
-            var filepath = $("input[name=filepath]").val();
+
             var isjump = $("input[name='isjump']:checked").val();
             var staytime = $("input[name='staytime']").val();
             var re = /^[1-9]\d*|0$/;
@@ -180,19 +97,7 @@
                 });
                 return;
             }
-            if(video_set>0 && filepath == ''){
-                bootbox.dialog({
-                    title: '友情提示：',
-                    message: "请上传跳转资源", 
-                    buttons: {
-                        "success" : {
-                            "label" : "确定",
-                            "className" : "btn-danger"
-                        }
-                    }
-                });
-                return;
-            }
+            
             $("#form").submit();
         });
 	});

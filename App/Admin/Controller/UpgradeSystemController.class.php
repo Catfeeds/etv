@@ -186,9 +186,10 @@ class UpgradeSystemController extends ComController {
                     zip_entry_open($zip, $entry, "r");
                     $entry_content = zip_entry_read($entry, zip_entry_filesize($entry));
 
-                    $version_open_pos = strpos($entry_content, "ro.build.version.release=");
-                    $version_close_pos = strpos($entry_content, "ro.build.version.incremental", $version_open_pos);
-                    $version = substr($entry_content,$version_open_pos + strlen("ro.build.version.release="),$version_close_pos - ($version_open_pos + strlen("ro.build.version.release=")) );
+                    $version_release_last = strstr($entry_content, "ro.build.version.release=");
+                    $version_release_arr = explode("<br />", nl2br($version_release_last));
+                    $version_arr = explode("=", $version_release_arr['0']);
+                    $version = $version_arr['1'];
 
                     $utc_open_pos = strpos($entry_content, "ro.build.date.utc=");
                     $utc_close_pos = strpos($entry_content, "ro.build.type", $utc_open_pos);

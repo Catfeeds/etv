@@ -218,4 +218,28 @@ class TestController extends comController {
 			echo "error";
 		}
 	}	
+
+	public function zip(){
+		$filepath = dirname(__FILE__).'/a.zip';
+		$zip = zip_open($filepath);
+        if ($zip) {
+            do {
+                $entry = zip_read($zip);
+            }while ($entry && zip_entry_name($entry) != "system/build.prop");
+            zip_entry_open($zip, $entry, "r");
+            $entry_content = zip_entry_read($entry, zip_entry_filesize($entry));
+
+            $version_release_last = strstr($entry_content, "ro.build.version.release=");
+            $version_release_arr = explode("<br />", nl2br($version_release_last));
+            $version_arr = explode("=", $version_release_arr['0']);
+            $version = $version_arr['1'];
+
+            $utc_open_pos = strpos($entry_content, "ro.build.date.utc=");
+            $utc_close_pos = strpos($entry_content, "ro.build.type", $utc_open_pos);
+            $utc = substr($entry_content,$utc_open_pos + strlen("ro.build.date.utc="),$utc_close_pos - ($utc_open_pos + strlen("ro.build.date.utc=")) );
+
+            zip_entry_close($entry);
+            zip_close($zip);
+        }
+	}
 }

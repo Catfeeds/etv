@@ -135,8 +135,9 @@ class HotelController extends ComController {
                 $this->error('警告！客户上级不能选本身！');
             }
             $data['isinsert'] = I('post.isinsert');
-
-            
+            if ($data['pid'] != 0) {
+                $this->bindchgadmin($data['hid'], $data['id'], $data['pid']);
+            }
             if (empty($data['isinsert'])) {//判断是否需要新增中间表和member表 antu_group_access表
                 M('hotel')->data($data)->where('id='.$data['id'])->save();
             }else{
@@ -209,6 +210,10 @@ class HotelController extends ComController {
             $huDate['hid'] = $data['hid'];
             $hu = D('hotel_user')->data($huDate)->add();
             $access_id = M('auth_group_access')->data(array('group_id'=>3,'uid'=>$user_id))->add();
+            //子酒店关联上级酒店账号
+            if ($data['pid'] != 0) {
+                $this->bindchgadmin($data['hid'], $hotel_id, $data['pid']);
+            }
             //新增酒店的时候广告容量添加
             $allAdVolume = M("Ad")->field('SUM(size)')->where(array('hidlist'=>'all'))->find();
             $Volumedata['hid'] = $data['hid'];
@@ -229,6 +234,32 @@ class HotelController extends ComController {
 
         $this->success('恭喜，操作成功！',U('index'));
     }
+
+    //子酒店绑定集团账号方法
+    public function bindchgadmin($hid,$hotel_id,$pid){
+        $where['zxt_hotel.id'] = $_POST['lastpid'];
+        if (!empty($where['zxt_hotel.id'])) {
+            $deluserlist = D("hotel")->where($where)->join('zxt_hotel_user ON zxt_hotel.hid=zxt_hotel_user.hid')->field('zxt_hotel_user.user_id')->select();
+            if(!empty($deluserlist)){
+                foreach ($deluserlist as $key => $value) {
+                    $user_id_arr[] = $value['user_id'];
+                }
+                $delwhere['user_id'] = array('in', $user_id_arr);
+                $delwhere['hid'] = $hid;
+                D("hotel_user")->where($delwhere)->delete();
+            }
+        }
+        $adduserlist = D("hotel")->where('zxt_hotel.id='.$pid)->join('zxt_hotel_user ON zxt_hotel.hid=zxt_hotel_user.hid')->field('zxt_hotel_user.user_id')->select();
+        if (!empty($adduserlist)) {
+            foreach ($adduserlist as $key => $value) {
+                $adddata[$key]['user_id'] = $value['user_id'];
+                $adddata[$key]['hotel_id'] = $hotel_id;
+                $adddata[$key]['hid'] = $hid;
+            }
+            D("hotel_user")->addAll($adddata);
+        }
+    }
+
     //获取城市列表
     public function get_city(){
         $pid = $_REQUEST['pid'];

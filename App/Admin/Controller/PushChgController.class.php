@@ -14,23 +14,43 @@ use Vendor\Tree;
 class PushChgController extends ComController {
     public function _map(){
         $map = array();
+        $data = session(session_id());
+        $hotel = 0;
+        if(!empty($_REQUEST['hid'])) {
+            if($_REQUEST['hid'] != 'hid-1gg'){ //自定义查询所有酒店
+                $map['hid'] = $_REQUEST['hid'];
+                $vo=M('hotel')->getByHid($_REQUEST['hid']);
+                $hotelid=$vo['id'];
+                $data['content_hid'] = $_REQUEST['hid'];
+                session(session_id(),$data);
+            }else{
+                $map = array();
+                $data['content_hid'] = null;
+                session(session_id(),$data);
+            }
+        }else{
+            $data = session(session_id());
+            if(!empty($data['content_hid'])){
+                $map['hid'] = $data['content_hid'];
+                $vo=M('hotel')->getByHid($data['content_hid']);
+                $hotelid=$vo['id'];
+            }
+        }
+
         if (!empty($_REQUEST['keyword'])) { 
-            $title = trim(I('get.keyword','','strip_tags'));
+            $title = trim(I('request.keyword','','strip_tags'));
             $map['title']=array("like","%".$title."%");
         }
-        if (is_numeric($_REQUEST['status'])) { 
-            $status = I('get.status','','strip_tags');
+        if (is_numeric($_REQUEST['status']) && $_REQUEST['status'] != '-1') { 
+            $status = I('request.status','','strip_tags');
             $map['audit_status']= $status;
             $this->assign('status',$status);
         }else{
             $map['audit_status'] = array('in',array(2,3,4));
+            $this->assign('status','-1');
         }
-        $hotelid=0;
-        if(!empty($_GET['hid'])) {
-            $map['hid'] = $_GET['hid'];
-            $vo=M('hotel')->getByHid($_GET['hid']);
-            $hotelid=$vo['id'];
-        }
+
+        $this->assign('hid', $map['hid']);
         $category = M('hotel')->field('id,pid,hotelname,hid')->order('hid asc')->select();
         $tree = new Tree($category);
         $str = "<option value=\$hid \$selected>\$spacer\$hotelname</option>";
@@ -41,6 +61,16 @@ class PushChgController extends ComController {
     public function index(){
         $model = D('hotel_chg_resource');
         $map = $this->_map();
+        $hid_condition = $this->isHotelMenber();
+        if ($hid_condition) {            
+            if (empty($map['hid'])) {
+                $map['hid'] = $hid_condition;
+            }else{
+                if (!in_array($map['hid'], $hid_condition['1'])) {
+                    $map['hid'] = $hid_condition;
+                }
+            }
+        }
         $list = $this->_list($model, $map, 10 ,"audit_status asc,upload_time desc,sort asc");
         $this -> assign("list",$list);
         $this->display();

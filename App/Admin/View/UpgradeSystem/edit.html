@@ -190,6 +190,17 @@
         });      
     });
 	$(function () {
+        // 遍历获取房间已经选中的酒店进行勾选
+        $("input[type=checkbox].checkAccessAll").each(function(index, el) {
+           var $cid = $("input[cid='"+$(this).attr('id')+"']").attr('checked');
+           var that = $(this);
+           $("input[cid='"+$(this).attr('id')+"']").each(function(index, el) {
+               if($(this).attr('checked')== 'checked'){
+                    that.attr('checked', 'checked');
+               }
+           })
+        });
+
 		$("#fileupload").fileupload({
             url: "{:U('upload?name=fileupload')}", 
             dataType: 'json',

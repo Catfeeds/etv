@@ -1,0 +1,157 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="row">
+                <span><a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a></span>                
+            </div>
+            <div class="space-8"></div>
+            <div class="row">
+                <a class="label label-xlg label-primary" href="javascript:;" id="add" val="{:U('addresource')}" ><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;添加</a>
+                <a class="label label-xlg label-success" href="javascript:;" id="edit" val="{:U('editresource')}" ><i class="ace-icon fa fa-pencil bigger-100"></i>&nbsp;修改</a>
+                <a class="label label-xlg label-info" href="javascript:;" id="unlock" val="{:U('unlockresource')}" ><i class="ace-icon fa fa-unlock bigger-100"></i>&nbsp;启用</a>
+                <a class="label label-xlg label-warning" href="javascript:;" id="lock" val="{:U('lockresource')}" ><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;禁用</a>
+                <a class="label label-xlg label-danger" href="javascript:;" id="delete" val="{:U('deleteresource')}" ><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除</a>
+            </div>
+            <div class="space-8"></div>
+            <div class="row">
+                <form id="form" method="post" action="">
+                    <table class="table table-striped table-bordered">
+                      <thead>
+                        <tr>
+                          <th class="center"><input class="check-all" type="checkbox" value=""></th>
+                          <th class="col-xs-2">标题</th>
+                          <th class="col-xs-4">路径</th>
+                          <th class="col-xs-2">上传时间</th>
+                          <th class="col-xs-1">排序</th>
+                          <th class="col-xs-1">状态</th>
+                          <th class="col-xs-2">审核状态</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      <volist name="list" id="val">
+                        <tr>
+                            <td class="center"><input class="aids" type="checkbox" name="ids[]" value="{$val['id']}"></td>
+                            <td>{$val['title']}</td>
+                            <td>
+                                <a href="{:C('UPLOADPATH')}{$val['filepath']}" target="_blank">{$val['filepath']}
+                            </td>
+                            <td>{$val['upload_time']}</td>
+                            <td><input type="text" class="sort" rowid="{$val['id']}" value="{$val['sort']}" style="width:30px;"/></td>
+                            <td>{$val['status']|get_status}</td>
+                            <td>{$val['audit_status']|get_audit_status}</td>
+                        </tr>
+                      </volist>
+                      </tbody>
+                    </table>
+                    <input type="hidden" name="resourceid" value="{$resourceid}">
+                    <input type="hidden" name="hid" value="{$hid}">
+                </form>
+                {$page}
+            </div>
+        </div>
+    </div>
+</block>
+<block name="currentPageJS">
+    <script type="text/javascript">
+
+    $(function(){
+        $(".check-all").click(function(){
+            $(".aids").prop("checked", this.checked);
+        });
+        $(".aids").click(function(){
+            var option = $(".aids");
+            option.each(function(i){
+                if(!this.checked){
+                    $(".check-all").prop("checked", false);
+                    return false;
+                }else{
+                    $(".check-all").prop("checked", true);
+                }
+            });
+        });
+        $("#add").click(function(){
+            $("#form").attr("action",$("#add").attr("val"));
+            $("#form").submit();
+        });
+        $("#edit").click(function(){
+            var len = $("input[name='ids[]']:checked").length;
+            if(len!=1){
+                bootbox.confirm({
+                title: "系统提示",
+                message: "仅能对一条数据进行操作", 
+                callback:function(result){},
+                    buttons: {
+                        "cancel" : {"label" : "取消"},
+                        "confirm" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            $("#form").attr("action",$("#edit").attr("val"));
+            $("#form").submit();
+        });
+
+        $("#unlock").click(function(){
+            bootbox.confirm({
+                title: "系统提示",
+                message: "是否要启用跳转视频？", 
+                callback:function(result){
+                    if(result){
+                        $("#form").attr("action",$("#unlock").attr("val"));
+                        $("#form").submit();
+                    }
+                },
+                buttons: {
+                    "cancel" : {"label" : "取消"},
+                    "confirm" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                }
+            });
+        });
+        $("#lock").click(function(){
+            bootbox.confirm({
+                title: "系统提示",
+                message: "是否要禁用跳转视频？", 
+                callback:function(result){
+                    if(result){
+                        $("#form").attr("action",$("#lock").attr("val"));
+                        $("#form").submit();
+                    }
+                },
+                buttons: {
+                    "cancel" : {"label" : "取消"},
+                    "confirm" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                }
+            });
+        });
+        $("#delete").click(function(){
+            bootbox.confirm({
+                title: "系统提示",
+                message: "是否要删除跳转视频？", 
+                callback:function(result){
+                    if(result){
+                        $("#form").attr("action",$("#delete").attr("val"));
+                        $("#form").submit();
+                    }
+                },
+                buttons: {
+                    "cancel" : {"label" : "取消"},
+                    "confirm" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                }
+            });
+        });
+    })
+    </script>
+</block>

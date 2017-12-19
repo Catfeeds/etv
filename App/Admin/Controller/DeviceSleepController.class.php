@@ -18,12 +18,12 @@ class DeviceSleepController extends ComController {
 		$map = array();
         $data = session(session_id());
         $hotelid=0;
-        if(!empty($_POST['hid'])) {
-            if ($_POST['hid'] != 'hid-1gg') { //自定义查询所有酒店
-                $map['zxt_device.hid'] = $_POST['hid'];
-                $this->assign('hid',$_POST['hid']);
-                $vo=M('hotel')->getByHid($_POST['hid']);
-                $data['content_hid'] = $_POST['hid'];
+        if(!empty($_GET['hid'])) {
+            if ($_GET['hid'] != 'hid-1gg') { //自定义查询所有酒店
+                $map['zxt_device.hid'] = $_GET['hid'];
+                $this->assign('hid',$_GET['hid']);
+                $vo=M('hotel')->getByHid($_GET['hid']);
+                $data['content_hid'] = $_GET['hid'];
                 session(session_id(),$data);
             }else{
                 $map = array();
@@ -31,8 +31,8 @@ class DeviceSleepController extends ComController {
                 session(session_id(),$data);
             }
         }
-        if(!empty($_POST['mac'])){
-            $map['zxt_device.mac'] = array("LIKE","%{$_POST['mac']}%");;
+        if(!empty($_GET['mac'])){
+            $map['zxt_device.mac'] = array("LIKE","%{$_GET['mac']}%");;
         }
         $hotelid = empty($vo)?0:$vo['id'];
         $category = M('hotel')->field('id,pid,hotelname,hid')->order('hid asc')->select();
@@ -46,12 +46,12 @@ class DeviceSleepController extends ComController {
 	public function index(){
 		$field = "zxt_device.hid,zxt_device.room,zxt_device.mac,zxt_device.dev_desc,zxt_device.firmware_version,zxt_hotel.name,sleep_time_start,sleep_time_end,zxt_device_sleep.sleep_status,zxt_device_sleep.sleep_marked_word,zxt_device_sleep.sleep_countdown_time,zxt_device_sleep.id";
 		$where = $this->_map();
-		$count = D("device")->where($map)->count();
+		$count = D("device")->where($where)->field($field)->join('zxt_hotel on zxt_device.hid=zxt_hotel.hid','left')->join('zxt_device_sleep on zxt_device.mac=zxt_device_sleep.mac','left')->count();
 		$Page = new\Think\Page($count,10,$_GET);//实例化分页类 
         $pageshow = $Page -> show();//分页显示输出
         $this -> assign("page",$pageshow);//赋值分页输出
 
-		$list = D("device")->where($where)->field($field)->join('zxt_hotel on zxt_device.hid=zxt_hotel.hid')->join('zxt_device_sleep on zxt_device.mac=zxt_device_sleep.mac','left')->limit($Page ->firstRow.','.$Page -> listRows)->select();
+		$list = D("device")->where($where)->field($field)->join('zxt_hotel on zxt_device.hid=zxt_hotel.hid','left')->join('zxt_device_sleep on zxt_device.mac=zxt_device_sleep.mac','left')->limit($Page ->firstRow.','.$Page -> listRows)->select();
 		$this->assign('list',$list);
 
 		$imagemodel = D('DeviceMacImage');

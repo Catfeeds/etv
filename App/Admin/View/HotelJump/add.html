@@ -70,48 +70,6 @@
                     </div>
                 </div>
                 <div class="space-4"></div>
-                
-                <div id="upload_video_file" style="display:none;">
-                <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-4">视频文件</label>
-                    <div class="col-sm-9" >
-                        <a id="showfilename"  href="" target="_blank"></a>
-                        <input type="hidden" name="filepath" value="">
-                        <input type="hidden" name="size" id="size" value="">
-                    </div>
-                </div>
-                <div class="space-4"></div>
-                <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-5">文件上传</label>
-                    <div class="col-sm-9">
-                        <span class="btn btn-success fileinput-button" style="text-align:left;">
-                            <span>请选择文件&nbsp;&nbsp;<i class="icon-upload icon-white"></i></span>
-                            <input id=fileupload name="fileupload"  type="file" name="fileupload" />
-                        </span>
-                    </div>
-                </div>
-                <div class="space-4"></div>
-                <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-8">&nbsp;</label>
-                    <div class="col-sm-9">
-                        <span class="col-xs-10 col-sm-12">目前视频支持mp4格式</span>
-                    </div>
-                </div>
-                <div class="space-4"></div>
-                <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-6">上传进度</label>
-                    <div class="col-sm-9" style="width:40%;">
-                        <div class="progress progress-striped active" role="progressbar" aria-valuemin="10" aria-valuemax="100" aria-valuenow="0">
-                            <div id="weixin_progress" class="progress-bar progress-bar-success" style="width:0%;"></div>
-                        </div> 
-                        <span class="help-inline col-xs-12 col-sm-7">
-                            <span class="middle"></span>
-                        </span>
-                    </div>
-                </div>
-                <div class="space-4"></div>
-                </div>
-                
                
                 <div class="col-md-offset-2 col-md-9">
                     <button class="btn btn-info submit" type="button">
@@ -130,74 +88,8 @@
 <script type="text/javascript">
 	$('#hid').select2({ placeholder : '--请选择--' });
 
-	$("#video_set_1").click(function() {
-        $("input[name=filepath]").val("");
-        $("#upload_video_file").hide();
-    });
-    $("#video_set_2").click(function() {
-        $("#upload_video_file").show();
-    });
-    $("#video_set_3").click(function() {
-        $("#upload_video_file").show();
-    });
-
-    $("#fileupload").click(function(event) {
-        var $hid = $("#hid").val();
-        $url =  "{:U('upload')}?name=fileupload&hid="+$hid;
-		$(this).fileupload({
-            url: $url,
-            dataType: 'json',
-            sequentialUploads: true  
-        }).bind('fileuploaddone', function (e, data) {  
-        	var json = data.result;
-        	if(json.status==1){
-    			$("input[name=filepath]").val(json.storename);
-                $("#size").val(json.size);
-    			$("a#showfilename").attr("href","{:C('UPLOADPATH')}"+json.storename);
-    			$("a#showfilename").text(json.storename);
-    		}else if(json.status == 0){
-                $("#weixin_progress").css('width','0');  
-                $("#weixin_progress").html('0');
-            }
-        	mainAjaxMsg(json.status,json.info);
-        }).bind('fileuploadprogress', function (e, data) {  
-            var progress = parseInt(data.loaded / data.total * 100, 10);  
-            $("#weixin_progress").css('width',progress + '%');  
-            $("#weixin_progress").html(progress + '%');  
-        });
-    });
-
-    $("#hid").change(function() {
-        var $filepath = $("input[name=filepath]").val();
-        $("input[name=filepath]").attr('value', '');
-        $("#weixin_progress").css('width',0 + '%');  
-        $("#weixin_progress").html(0 + '%');  
-        $("a#showfilename").attr('value', '');
-        $("a#showfilename").text('');
-        $(".alert-success").remove();
-        if($.trim($filepath) != ""){
-            $.ajax({
-                url: "{:U('delfilepath')}",
-                type: 'POST',
-                dataType: 'json',
-                data: {"filepath": $filepath},
-            })
-            .done(function(data) {
-                console.log('success');
-            })
-            .fail(function() {
-                console.log("error");
-            })
-            .always(function() {
-                console.log("complete");
-            });
-        }
-    });
-
 	$(".btn-info.submit").click(function(){
         var hid = $("#hid").val();
-        var video_set = $("input[name='video_set']:checked").val();
-        var filepath = $("input[name=filepath]").val();
         var isjump = $("input[name='isjump']:checked").val();
         var staytime = $("input[name='staytime']").val();
         var re = /^[1-9]\d*|0$/;
@@ -218,19 +110,6 @@
             bootbox.dialog({
                 title: '友情提示：',
                 message: "停留时间需为正整数或0", 
-                buttons: {
-                    "success" : {
-                        "label" : "确定",
-                        "className" : "btn-danger"
-                    }
-                }
-            });
-            return;
-        }
-        if(video_set>0 && filepath == ''){
-            bootbox.dialog({
-                title: '友情提示：',
-                message: "请上传跳转资源", 
                 buttons: {
                     "success" : {
                         "label" : "确定",

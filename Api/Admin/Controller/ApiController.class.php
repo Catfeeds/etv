@@ -281,14 +281,16 @@ class ApiController extends Controller{
         list($header, $body) = explode("\r\n\r\n", $curl_return, 2);
         $chinaweatherinfo = json_decode($body, true);
         if (!empty($chinaweatherinfo)) {
-            $nowH = strtotime(date("H:i"));
-            $beginH = strtotime(date("06:00"));
-            $endH = strtotime(date("18:00"));
-            if($beginH <= $nowH || $nowH <= $endH){  //白天
-                $data['image'] = "http://www.weather.com.cn/m/i/weatherpic/29x20/".$chinaweatherinfo['weatherinfo']['img2'];    
-            }else{
-                $data['image'] = "http://www.weather.com.cn/m/i/weatherpic/29x20/".$chinaweatherinfo['weatherinfo']['img1'];         
-            }
+            // $nowH = strtotime(date("H:i"));
+            // $beginH = strtotime(date("06:00"));
+            // $endH = strtotime(date("18:00"));
+            // if($beginH <= $nowH || $nowH <= $endH){  //白天
+            //     $data['image'] = "http://www.weather.com.cn/m/i/weatherpic/29x20/".$chinaweatherinfo['weatherinfo']['img2']; 
+            // }else{
+            //     $data['image'] = "http://www.weather.com.cn/m/i/weatherpic/29x20/".$chinaweatherinfo['weatherinfo']['img1'];         
+            // }
+            $imagename_arr = explode(".", $chinaweatherinfo['weatherinfo']['img2']);
+            $data['image'] = '/weather/weather_image/'.$imagename_arr['0'].'png';
         }
 
         $json['status'] = 200;
@@ -395,7 +397,7 @@ class ApiController extends Controller{
         }
         $field = "isjump,staytime,staytime,video_set as hasvideo,filepath";
         $where['zxt_hotel_jump.hid'] = $hid;
-        $where['zxt_hotel_resource.status'] != 0;
+        $where['zxt_hotel_resource.status'] = array('not in','0');
         $where['zxt_hotel_resource.audit_status'] = array('not in','0,1,2,3'); 
         $json = D("hotel_jump")->where($where)->field($field)->join('zxt_hotel_resource on zxt_hotel_jump.resourceid=zxt_hotel_resource.id')->find();
         if (empty($json)) {
