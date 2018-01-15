@@ -3,12 +3,12 @@
     <div class="row">
         <div class="col-xs-12">
             <div class="row">
-                <form class="form-inline" action="{:U('index')}" method="post">
+                <form class="form-inline" action="{:U('index')}" method="get">
                     <input type="hidden" name="currentpage" value="1"/>
                     <span><label style="width:auto;">开始日期：</label> </span>
-                    <input placeholder=" 年 / 月 / 日 " class="date" name="begindate" value="{$_POST['begindate']}" type="text" data-date-format="yyyy-mm-dd" style="width: 150px;" /><span style="padding-right: 10px;"></span>
+                    <input placeholder=" 年 / 月 / 日 " class="date" name="begindate" value="{$_GET['begindate']}" type="text" data-date-format="yyyy-mm-dd" style="width: 150px;" /><span style="padding-right: 10px;"></span>
                     <span><label style="width:auto;">结束日期：</label> </span>
-                    <input placeholder=" 年 / 月 / 日 " class="date" name="enddate" value="{$_POST['enddate']}" type="text" data-date-format="yyyy-mm-dd" style="width: 150px;" /><span style="padding-right: 10px;"></span>
+                    <input placeholder=" 年 / 月 / 日 " class="date" name="enddate" value="{$_GET['enddate']}" type="text" data-date-format="yyyy-mm-dd" style="width: 150px;" /><span style="padding-right: 10px;"></span>
                     <span><label style="width:auto;">状态:</label> </span>
                     <select  name="status" style="width:120px;">
                         <option value="-1" selected  >请选择</option>

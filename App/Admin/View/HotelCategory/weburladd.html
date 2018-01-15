@@ -1,0 +1,98 @@
+<extend name="Public:layout"/>
+<block name="page-content-row">
+    <div class="page-header">
+        <a class="label label-xlg label-primary arrowed " href="{:U('weburlindex')}?myhid={$hid}">返回列表</a>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal" id="form" method="post" action="{:U('weburlupdate')}" enctype="multipart/form-data">
+                <input type="hidden" name="hid" value="{$hid}">
+                <input type="hidden" name="category_type" value="1">
+                <input type="hidden" name="category_id" value="0">
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">标题</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="name" id="name" placeholder="标题" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red">*</span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">URL</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="weburl" id="weburl" placeholder="URL地址" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"><span class="red">*</span>必填</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">弹窗时间</label>
+                    <div class="col-sm-9">
+                        <span style="padding-top:5px;" class="text-error"></span>
+                        <select name="hour" style="width:80px;">
+                            <volist name="hour" id="sh">
+                                <option value="{$sh}">{$sh}</option>
+                            </volist>
+                        </select>
+                        <span style="padding-top:5px;">： </span>
+                        <select name="minute" style="width:80px;margin-right:5px;">
+                            <volist name="minute" id="sm">
+                                <option value="{$sm}">{$sm}</option>
+                            </volist>
+                        </select>
+                    </div>
+                </div>
+             
+                <div class="col-md-offset-2 col-md-9">
+                    <button class="btn btn-info submit" type="button">
+                        <i class="icon-ok bigger-110"></i>提交
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="btn btn-primary" type="reset">
+                        <i class="icon-undo bigger-110"></i>重置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</block>
+<block name="currentPageJS">
+    <script type="text/javascript">
+        $(".btn-info.submit").click(function(){
+            var title = $("#title").val();
+            if(title==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "标题必须填写！", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            var weburl = $("#weburl").val();
+            if(weburl==''){
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "标题必须填写！", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+            $("#form").submit();
+        });
+	</script>
+</block>

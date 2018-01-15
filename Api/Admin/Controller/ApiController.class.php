@@ -22,6 +22,11 @@ class ApiController extends Controller{
     static protected $serverUrl = 'http://61.143.52.102:9090/etv/Public';
     // static protected $serverUrl = 'http://125.88.254.149/etv/Public';
     // static protected $serverUrl = 'http://localhost/etv/Public';
+     
+    public function _empty(){
+        $data = ['code'=>10002, 'message'=>'请检查请求地址是否正确'];
+        echo json_encode($data);
+    } 
     
     /**
      * @interfaceName getSkinPath
@@ -210,7 +215,8 @@ class ApiController extends Controller{
         $hadweather = D('weatherinfo')->where($where_weather)->find();
         if (!empty($hadweather)) {
             $data['city'] = $hadweather['city'];
-            $data['image'] = $hadweather['image'];
+            $data['image'] = '/Public'.$hadweather['image'];
+            $data['get_image'] = self::$serverUrl.$hadweather['image'];
             $data['low'] = $hadweather['low'];
             $data['high'] = $hadweather['high'];
             $data['description'] = $hadweather['description'];
@@ -281,16 +287,9 @@ class ApiController extends Controller{
         list($header, $body) = explode("\r\n\r\n", $curl_return, 2);
         $chinaweatherinfo = json_decode($body, true);
         if (!empty($chinaweatherinfo)) {
-            // $nowH = strtotime(date("H:i"));
-            // $beginH = strtotime(date("06:00"));
-            // $endH = strtotime(date("18:00"));
-            // if($beginH <= $nowH || $nowH <= $endH){  //白天
-            //     $data['image'] = "http://www.weather.com.cn/m/i/weatherpic/29x20/".$chinaweatherinfo['weatherinfo']['img2']; 
-            // }else{
-            //     $data['image'] = "http://www.weather.com.cn/m/i/weatherpic/29x20/".$chinaweatherinfo['weatherinfo']['img1'];         
-            // }
             $imagename_arr = explode(".", $chinaweatherinfo['weatherinfo']['img2']);
-            $data['image'] = '/weather/weather_image/'.$imagename_arr['0'].'png';
+            $data['image'] = '/Public/weather/weather_image/'.$imagename_arr['0'].'.png';
+            $data['get_image'] = self::$serverUrl.'/weather/weather_image/'.$imagename_arr['0'].'.png';
         }
 
         $json['status'] = 200;
@@ -301,6 +300,12 @@ class ApiController extends Controller{
         //插入数据库
         $data['date'] = date("Y-m-d");
         $data['code_id'] = $regioninfo['code'];
+        unset($data['get_image']);
+        if (!empty($chinaweatherinfo)) {
+            $data['image'] = '/weather/weather_image/'.$imagename_arr['0'].'.png';
+        }else{
+            $data['image'] = '';
+        }
         D("weatherinfo")->data($data)->add();
         echo json_encode($json);
     }
@@ -395,35 +400,69 @@ class ApiController extends Controller{
         if (empty($mac)) {
             $this->errorCallback(404, "Error: mac param is needed!");
         }
-        $field = "isjump,staytime,staytime,video_set as hasvideo,filepath";
-        $where['zxt_hotel_jump.hid'] = $hid;
-        $where['zxt_hotel_resource.status'] = array('not in','0');
-        $where['zxt_hotel_resource.audit_status'] = array('not in','0,1,2,3'); 
-        $json = D("hotel_jump")->where($where)->field($field)->join('zxt_hotel_resource on zxt_hotel_jump.resourceid=zxt_hotel_resource.id')->find();
-        if (empty($json)) {
-            $thepid = $this->getphid($hid);
-            if ($thepid) {
-                $where['zxt_hotel_jump.hid'] = $thepid['hid'];
-                $json = D("hotel_jump")->where($where)->field($field)->join('zxt_hotel_resource on zxt_hotel_jump.resourceid=zxt_hotel_resource.id')->find();
-                if (empty($json)) {
-                    $this->errorCallback(404, "Error: the hotel base setting is empty!");
+        $field = "isjump,staytime,video_set as hasvideo";
+        $setvo = D("hotel_jump")->where(array('hid'=>$hid))->field($field)->find();
+        if (!empty($setvo)) {
+            if($setvo['hasvideo']>0){
+                $whereresource['hid'] = $hid;
+                $whereresource['status'] = 1;
+                $whereresource['audit_status'] = 4;
+                $resourcefield = "filepath";
+                $filepathvo = D("hotel_jump_resource")->where($whereresource)->order('sort')->field($resourcefield)->find();
+                $json = $setvo;
+                if (!empty($filepathvo)) {
+                    $json['video'] = self::$serverUrl.$filepathvo['filepath'];
+                    $json['getvideo'] = "/Public".$filepathvo['filepath'];
+                }else{
+                    $json['video'] = '';
+                    $json['getvideo'] = '';
                 }
+
             }else{
-                $this->errorCallback(404, "Error: the hotel base setting is empty!");
+                $json['video'] = '';
+                $json['getvideo'] = '';
             }
         }
-        if (!empty($json['filepath'])) {
-            $json['video'] = self::$serverUrl.$json['filepath'];
-            $json['getvideo'] = "/Public".$json['filepath'];
-        }else{
-            $json['video'] = '';
-            $json['getvideo'] = '';
-        }
-        unset($json['filepath']);
         $json['status'] = 200;
         $json['info'] = "Successed!";
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
+    }
+
+    /**
+     * 酒店视频跳转设置 
+     * 可含有多个视频
+     * 视频资源存在hotel_jump_resource表中
+     */
+    public function hoteljumpset(){
+        $hid = I('request.hid','','strip_tags');
+        if (empty($hid)) {
+            $this->errorCallback(404, "Error: hid param is needed!");
+        }
+        $wherehid['hid'] = $whereresource['hid'] = $hid;
+        $setvo = D("hotel_jump")->where($wherehid)->find();
+        $whereresource['status'] = 1;
+        $whereresource['audit_status'] = 4;
+        $resourcelist = D('hotel_jump_resource')->where($whereresource)->field('filepath')->order('sort')->select();
+        if (!empty($setvo)) {
+            $data['set'] = $setvo;
+            if (!empty($resourcelist)) {
+                foreach ($resourcelist as $key => $value) {
+                    $data['filepath'][] = '/Public'.$value['filepath'];
+                    $data['get_filepath'][] = self::$serverUrl.$value['filepath'];
+                }
+            }else{
+                $data['filepath'] = [];
+                $data['get_filepath'] = [];
+            }
+            $json['status'] = 200;
+            $json['msg'] = "Successed!";
+            $json['data'] = $data;
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($json);
+        }else{
+            $this->errorCallback(404, "the hoteljump set is empty"); 
+        }
     }
 
     /**
@@ -603,6 +642,9 @@ class ApiController extends Controller{
                     $vosub[$kk]['className']=$submd['classname'];
                     if($submd['codevalue'] == '501'){
                         $vosub[$kk]['type'] = 'videohotel';
+                    }elseif($submd['codevalue'] == '505'){
+                        $vosub[$kk]['type']="weburl";
+                        $vosub[$kk]['weburl'] = $valH['weburl'];
                     }else{
                         $vosub[$kk]['type']="hotelmenu";
                     }
@@ -619,6 +661,7 @@ class ApiController extends Controller{
                 $i++;
             }
         }
+
         //专题菜单
         $topicMenu=array();
         $config = $HotelConfig->where('hid="'.$hid.'"')->field('topic_id')->select();
@@ -705,11 +748,11 @@ class ApiController extends Controller{
                 if(!empty($categorylist)){
                     foreach ($categorylist as $key2 => $value2) { //一级栏目
                         $mdGroup=$Modeldefine->where('id="'.$value2["modeldefineid"].'"')->field('packagename,classname')->find();
-                        $categorylist_second = D("hotel_chg_category")->where('pid='.$value2['id'].' and status=1')->field('id,name,modeldefineid')->select();
+                        $categorylist_second = D("hotel_chg_category")->where('pid='.$value2['id'].' and status=1')->field('id,name,modeldefineid,weburl')->select();
                         $vosubGroup = array();
                         if(!empty($categorylist_second)){
                             foreach ($categorylist_second as $k=>$val) {
-                                $submdGroup=$Modeldefine->where('id="'.$val["modeldefineid"].'"')->field('packagename,classname')->find();
+                                $submdGroup=$Modeldefine->where('id="'.$val["modeldefineid"].'"')->field('codevalue,packagename,classname')->find();
                                 $vosubGroup[$k]['subMenuId']=$val['id'];
                                 $vosubGroup[$k]['modelDefineId']=$val['modeldefineid'];
                                 $vosubGroup[$k]['name']=$val['name'];
@@ -717,6 +760,9 @@ class ApiController extends Controller{
                                 $vosubGroup[$k]['className']=$submdGroup['classname'];
                                 if($submdGroup['codevalue']=='501'){
                                     $vosubGroup[$k]['type'] = "videochg";
+                                }elseif($submdGroup['codevalue']=='505'){
+                                    $vosubGroup[$k]['type']="weburl";
+                                    $vosubGroup[$k]['weburl'] = $val['weburl'];
                                 }else{
                                     $vosubGroup[$k]['type']="chgmenu";
                                 }
@@ -913,6 +959,11 @@ class ApiController extends Controller{
         }elseif($menutype=="videohotel" || $menutype =="videochg"){
             $type = 'video';
             $carouselMap['hid'] = $hid;
+            if ($menutype == "videochg") {
+                $hotelinfo = D("hotel")->where('hid="'.$hid.'"')->field('pid')->find();
+                $photelinfo = D("hotel")->where('id='.$hotelinfo['pid'])->field('hid')->find();
+                $carouselMap['hid'] = $photelinfo['hid'];    
+            }
             $carouselMap['cid'] = $subMenuId;
             $carouselMap['ctype'] = $menutype;
             $carouselMap['audit_status'] = 4;
@@ -943,6 +994,34 @@ class ApiController extends Controller{
         $json['resourceList']=$resourceList;
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($json);
+    }
+
+    /**
+     * [startup_weburl 获取定时 浏览器url弹窗]
+     * @return [type] [description]
+     */
+    public function weburllist(){
+        $hid =I('request.hid');
+        if (empty($hid)) {
+            $this->errorCallback(10000, "Error: hid param is needed!");
+        }
+        $hotelinfo = D("hotel")->where('hid="'.$hid.'"')->field('pid')->find();
+        if ($hotelinfo['pid']>0) {
+            $photelinfo = D("hotel")->where('id='.$hotelinfo['pid'])->field('hid')->find();
+            $where['hid'] = array('in', array($hid, $photelinfo['hid']));
+        }else{
+            $where['hid'] = $hid;
+        }
+        $where['status'] = 1;
+        $list = D("weburl")->where($where)->field("id,name,weburl,time")->select();
+        if (!empty($list)) {
+            $json['status'] = 200;
+            $json['data'] = $list;
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($json);
+        }else{
+            $this->errorCallback(404, "thd list is empty");
+        }
     }
 
     /**
@@ -1062,9 +1141,16 @@ class ApiController extends Controller{
         $Mac = strtoupper(I('request.mac'));
         $Cversion = I('request.cversion');
         $Uversion = I('request.uversion');
-        $Status = I('request.status')?I('request.status'):0;
+        $Status = I('request.status');
         $Ip = $this->get_client_ip();
-        $this->stbLog($Hid,$Roomno,$Mac,$Cversion,$Uversion,$Status,$Ip);
+        if (empty($Hid) || empty($Mac)) {
+            $this->errorCallback(404, "Error: hid and mac param is needed!");
+        }
+        if (is_numeric($Status) && $Status == 4) {
+            $this->stbLog($Hid,$Roomno,$Mac,$Cversion,$Uversion,$Status,$Ip);
+        }else{
+            $this->upgradeLog($Hid,$Roomno,$Mac,$Cversion,$Uversion,$Status,$Ip);
+        }
 
         $json['status'] = 200;
         $json['info'] = "Successed!";
@@ -1086,6 +1172,22 @@ class ApiController extends Controller{
         $data['runtime'] = time();
         $data['status'] = $status;
         $result = $stblogs->add($data);
+    }
+
+    private function upgradeLog($hid="NULL",$roomno='NULL',$mac='NULL', $cversion='NULL',$uversion='NULL',$status=4,$ip=''){
+        date_default_timezone_set('Asia/Shanghai');
+        $upgradelogmodel = D('UpgradeLog');
+        $data = array();
+        $data['hid'] = $hid;
+        $data['room'] = $roomno;
+        $data['mac'] = strtoupper($mac);
+        $data['cversion'] = $cversion;
+        $data['uversion'] = $uversion;
+        $data['msg'] = '系统升级';
+        $data['login_ip'] = $ip;
+        $data['runtime'] = time();
+        $data['status'] = $status;
+        $result = $upgradelogmodel->add($data);
     }
 
     /**
@@ -1741,7 +1843,7 @@ class ApiController extends Controller{
         $hid = I('post.hid','','strtoupper');
         $room = I('post.room');
         $mac = strtoupper(I('post.mac'));
-        if(!empty($mac)){
+        if(!empty($mac) || !empty($room) || !empty($hid)){
             $map['mac'] = $mac;
             $count = D("device")->where($map)->count();
             $data['online'] = 1;
@@ -1785,7 +1887,7 @@ class ApiController extends Controller{
         $map['pid'] = 0;
         $map['status'] = 1;
         $hotelField = "id,hid,name,modeldefineid,sort,intro,icon as filepath";
-        $listHotel = D("hotel_category")->where($map)->order('sort asc')->select();
+        $listHotel = D("hotel_category")->where($map)->field($hotelField)->order('sort asc')->select();
 
         //集团通用栏目
         $listChg = array();
@@ -2076,8 +2178,14 @@ class ApiController extends Controller{
         if(empty($hid)){
             $this->Callback(10000,'the hid is empty');
         }
+        $hotelinfo = D("hotel")->where('hid="'.$hid.'"')->field('pid')->find();
+        if ($hotelinfo['pid'] > 0) {
+            $photelinfo = D("hotel")->where('id='.$hotelinfo['pid'])->field('hid')->find();
+            $map['hid'] = array('in', array($hid,$photelinfo['hid']));
+        }else{
+            $map['hid'] = strtoupper($hid);
+        }
         $list = array();
-        $map['hid'] = strtoupper($hid);
         $map['audit_status'] = 4;
         $map['status'] = 1;
         $field = "id,hid,cid,ctype,title,sort,filepath,video_image,size";
@@ -2136,6 +2244,7 @@ class ApiController extends Controller{
                 $list[substr($value, 0,-5)] = self::$serverUrl.DIRECTORY_SEPARATOR.'hotel_json'.DIRECTORY_SEPARATOR.$hid.DIRECTORY_SEPARATOR.$value;
             }
         }
+
         if ($hoteldata['pid']>0 && !empty($hoteldata['phid'])) {
             $pfilelist = scandir($dir_pre.DIRECTORY_SEPARATOR.$hoteldata['phid']);
             if (count($pfilelist)>2) {
@@ -2146,6 +2255,11 @@ class ApiController extends Controller{
                         $list[substr($value,0,-5)] = self::$serverUrl.DIRECTORY_SEPARATOR.'hotel_json'.DIRECTORY_SEPARATOR.$hoteldata['phid'].DIRECTORY_SEPARATOR.$value;
                     }
                 }
+            }
+            //生成chgcategory_first
+            $chgbind = D("hotel_chglist")->where('hid="'.$hid.'"')->field('chg_cid')->select();
+            if (!empty($chgbind)) {
+                
             }
         }
         if (!empty($list)) {

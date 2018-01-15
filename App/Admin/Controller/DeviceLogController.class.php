@@ -14,33 +14,33 @@ class DeviceLogController extends ComController {
     //查询
     public function _map(){
         $map = array();
-        if (!empty($_POST['begindate'])&& !empty($_POST['enddate'])) {
-            $begindate = strtotime($_POST['begindate'].' 00:00:00');
-            $enddate = strtotime($_POST['enddate'].' 23:59:59');
+        if (!empty($_GET['begindate'])&& !empty($_GET['enddate'])) {
+            $begindate = strtotime($_GET['begindate'].' 00:00:00');
+            $enddate = strtotime($_GET['enddate'].' 23:59:59');
             $map['runtime'] = array("BETWEEN",array($begindate,$enddate));
-        }elseif (empty($_POST['begindate'])&& !empty($_POST['enddate'])) {
-            $begindate = strtotime($_POST['enddate'].' 00:00:00');
-            $enddate = strtotime($_POST['enddate'].' 23:59:59');
+        }elseif (empty($_GET['begindate'])&& !empty($_GET['enddate'])) {
+            $begindate = strtotime($_GET['enddate'].' 00:00:00');
+            $enddate = strtotime($_GET['enddate'].' 23:59:59');
             $map['runtime'] = array("BETWEEN",array($begindate,$enddate));
-        }elseif (!empty($_POST['begindate'])&& empty($_POST['enddate'])) {
-            $begindate = strtotime($_POST['begindate'].' 00:00:00');
-            $enddate = strtotime($_POST['begindate'].' 23:59:59');
+        }elseif (!empty($_GET['begindate'])&& empty($_GET['enddate'])) {
+            $begindate = strtotime($_GET['begindate'].' 00:00:00');
+            $enddate = strtotime($_GET['begindate'].' 23:59:59');
             $map['runtime'] = array("BETWEEN",array($begindate,$enddate));
         }
-        if ($_POST['status']>=0 && $_POST['status']!=null ) {
+        if ($_GET['status']>=0 && $_GET['status']!=null ) {
            $map['status'] = array("like","%".$_REQUEST['status']."%");
         }
-        if (!empty($_POST['search_type']) ) {
-            if($_POST['search_type'] == 'hid'){
-                $hotelname = I('post.keyword','','strip_tags');
+        if (!empty($_GET['search_type']) ) {
+            if($_GET['search_type'] == 'hid'){
+                $hotelname = I('get.keyword','','strip_tags');
                 $hid = $this->getHidByHotelname($hotelname);
                 if(!empty($hid)){
                     $map['hid'] = array('in',$hid);
                 }else{
                     $map = false;
                 }       
-            }elseif($_POST['search_type'] == 'cityname'){
-                $cityname = I('post.keyword','','strip_tags');
+            }elseif($_GET['search_type'] == 'cityname'){
+                $cityname = I('get.keyword','','strip_tags');
                 $hid = $this->getHidByCityName($cityname);
                 if(!empty($hid)){
                     $map['hid'] = array('in',$hid);
@@ -48,7 +48,7 @@ class DeviceLogController extends ComController {
                     $map = false;
                 } 
             }else{
-                $map[$_POST['search_type']] = array("like","%".trim(I('post.keyword','','strip_tags'))."%");
+                $map[$_GET['search_type']] = array("like","%".trim(I('get.keyword','','strip_tags'))."%");
             }
         }
         return $map;

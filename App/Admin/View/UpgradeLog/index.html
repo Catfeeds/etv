@@ -16,11 +16,10 @@
                     &nbsp;&nbsp;<label class="inline">状态：</label>
                     <select name="status" style="height: 34px;">
                         <option value=""></option>
-                        <option value="1">开始下载</option>
-                        <option value="2">下载成功</option>
-                        <option value="3">校验失败</option>
-                        <option value="4">升级失败</option>
-                        <option value="5">升级成功</option>
+                        <option value="0">升级成功</option>
+                        <option value="1">校验失败</option>
+                        <option value="2">安装失败</option>
+                        <option value="3">下载安装包</option>
                     </select>
                     &nbsp;&nbsp;
                     <button type="submit" class="btn btn-purple btn-sm">
@@ -61,7 +60,7 @@
                         <td>{$val.msg}</td>
                         <td>{$val.cversion}</td>
                         <td>{$val.uversion}</td>
-                        <td>{$val.status|get_upgrade_status}</td>
+                        <td>{$val.status|getNameByDeviceLogStatus}</td>
                         <td>{$val.runtime|format_timestamp}</td>
                         <td>{$val.login_ip}</td>
                         </tr>

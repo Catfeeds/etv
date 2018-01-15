@@ -287,7 +287,7 @@ class ComController extends BaseController{
         foreach($hotelList  as $key=>$value){
             $subList=array();
             $stbMap['hid'] = $value['hid'];
-            $subList = $Device->where($stbMap)->field ('id,mac,room,firmware_version,room_remark')->select();
+            $subList = $Device->where($stbMap)->field ('id,mac,room,firmware_version,room_remark')->order('room')->select();
             if(!empty($macArr)){
                if (!empty($subList)) {
                     foreach ($subList as $k => $v) {
@@ -371,6 +371,25 @@ class ComController extends BaseController{
             }
         }
     }
+
+    //更新content_size字段容量
+    public function updatecontentsize($where){
+        $hotelresourcesize = M('hotel_resource')->field('SUM(size)')->where($where)->select();
+        $hoteljumpseize = M('hotel_jump_resource')->field('SUM(size)')->where($where)->select();
+        $categorysize = M('hotel_category')->field('SUM(size)')->where($where)->select();
+        $rsize = $hotelresourcesize[0]['sum(size)'] + $hoteljumpseize[0]['sum(size)'] + $categorysize[0]['sum(size)'];
+        if(M("hotel_volume")->where($where)->count()){
+            $updatesize = D("hotel_volume")->where($where)->setField("content_size",$rsize);
+        }else{
+            $arrdata['hid'] = $where['hid'];
+            $arrdata['content_size'] = $rsize;
+            $arrdata['topic_size'] = 0.00;
+            $arrdata['ad_size'] = 0.00;
+            $updatesize = M("hotel_volume")->data($arrdata)->add();
+        }
+        return $updatesize;
+    }
+
     //allresource表  删除,修改资源时操作
     public function allresource_del($map=false){
         if($map){

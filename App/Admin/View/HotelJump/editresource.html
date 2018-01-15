@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="__PUBLIC__/hyadmin/css/bootstrap-switch.css">
 <block name="page-content-row">
     <div class="page-header">
-        <a class="label label-xlg label-primary arrowed " href="window.history.back();">返回列表</a>
+        <a class="label label-xlg label-primary arrowed " href="javascript:history.back();">返回列表</a>
     </div>
     <div class="row">
         <div class="col-xs-12">
@@ -11,7 +11,7 @@
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-2">视频名称</label>
                     <div class="col-sm-9">
-                        <input type="text" name="title" data-rule="required" class="col-xs-10 col-sm-5" value="">
+                        <input type="text" name="title" data-rule="required" class="col-xs-10 col-sm-5" value="{$vo['title']}">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"><span class="red"> * </span>必填</span>
                         </span>
@@ -21,7 +21,7 @@
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-5">视频排序</label>
                     <div class="col-sm-9">
-                        <input type="number" name="sort" placeholder="" class="col-xs-10 col-sm-5">
+                        <input type="number" name="sort" placeholder="" class="col-xs-10 col-sm-5" value="{$vo['sort']}">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"></span>
                         </span>
@@ -31,9 +31,10 @@
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-4">文件</label>
                     <div class="col-sm-9">
-                        <a id="showfilename"  href="" target="_blank"></a>
-                        <input type="hidden" name="filepath" id="filepath" value="">
-                        <input type="hidden" name="size" id="size" value="">
+                        <a id="showfilename"  href="{:C('UPLOADPATH')}{$vo.filepath}" target="_blank">{$vo.filepath}</a>
+                        <input type="hidden" name="filepath" id="filepath" value="{$vo['filepath']}">
+                        <input type="hidden" name="size" id="size" value="{$vo['size']|mbToKb}">
+                        <input type="hidden" name="oldsize" value="{$vo['size']|mbToKb}">
                     </div>
                 </div>
                 <div class="space-4"></div>
@@ -78,8 +79,9 @@
                         <i class="icon-undo bigger-110"></i>重置
                     </button>
                 </div>
-                <input type="hidden" id="hid" name="hid" value="{$hid}">
-                <input type="hidden" name="resourceid" value="{$resourceid}">
+                <input type="hidden" name="id" value="{$vo['id']}">
+                <input type="hidden" id="hid" name="hid" value="{$vo['hid']}">
+                <input type="hidden" name="resourceid" value="{$vo['resourceid']}">
             </form>
         </div>
     </div>

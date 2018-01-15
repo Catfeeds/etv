@@ -20,15 +20,13 @@
                             {$pHotel}
                         </select>
                       </if>
-                    <label class="inline" style="padding-left: 3%">标题：</label>
-                      <input type="text" name="keyword" class="form-control" placeholder="标题" value="{$_REQUEST['keyword']}">
-                      &nbsp;
-                    <label class="inline" style="padding-left: 3%">审核状态：</label>
+
+                    <label class="inline" style="padding-left: 3%">发布状态：</label>
                     <select name="status">
                       <option value="-1">搜索状态</option>
-                      <option value="0" <if condition="$status eq 0">selected</if>>待审核</option>
-                      <option value="1" <if condition="$status eq 1">selected</if>>审核未通过</option>
                       <option value="2" <if condition="$status eq 2">selected</if>>审核通过</option>
+                      <option value="3" <if condition="$status eq 3">selected</if>>发布未通过</option>
+                      <option value="4" <if condition="$status eq 4">selected</if>>发布通过</option>
                     </select>
                     <button type="submit" class="btn btn-purple btn-sm">
                         <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>查询
@@ -37,10 +35,8 @@
             </div>
             <div class="space-8"></div>
             <div class="row">
-                <a class="label label-xlg label-primary" href="javascript:;" id="audit" val="{:U('audit')}" ><i class="ace-icon fa fa-unlock bigger-100"></i>&nbsp;通过审核</a>
-                <a class="label label-xlg label-warning" href="javascript:;" id="unaudit" val="{:U('unaudit')}" ><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;审核不通过</a>
-                <!-- <a class="label label-xlg label-success" href="javascript:;" id="push" val="{:U('push')}" ><i class="ace-icon fa fa-unlock bigger-100"></i>&nbsp;通过发布</a>
-                <a class="label label-xlg label-danger" href="javascript:;" id="unpush" val="{:U('unpush')}" ><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;发布不通过</a> -->
+                <a class="label label-xlg label-primary" href="javascript:;" id="push" val="{:U('push')}" ><i class="ace-icon fa fa-unlock bigger-100"></i>&nbsp;通过发布</a>
+                <a class="label label-xlg label-warning" href="javascript:;" id="unpush" val="{:U('unpush')}" ><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;发布不通过</a>
             </div>
             <div class="space-8"></div>
             <div class="row">
@@ -51,10 +47,7 @@
                           <th class="center"><input class="check-all" type="checkbox" value=""></th>
                           <th>酒店</th>
                           <th>标题</th>
-                          <th>所属模块</th>
-                          <th>简介</th>
                           <th>资源</th>
-                          <th>上传时间</th>
                           <th>状态</th>
                         </tr>
                       </thead>
@@ -64,16 +57,9 @@
                           <td class="center"><input class="aids" type="checkbox" name="ids[]" value="{$val['id']}"></td>
                           <td>{$val['hid']|getHotelnameByHid}</td>
                           <td>{$val['title']}</td>
-                          <td><?php if($val['ctype'] == "videohotel"){echo "酒店栏目管理模块";}elseif($val['ctype']=="videochg"){echo "集团通用管理模块";} ?></td>
-                          <td width="25%" title="{$val['intro']}">{$val['intro']|shorter_title}</td>
-                          <td width="20%">
-                          <if condition="$val['file_type'] eq 2">
-                            <img src="{:C('UPLOADPATH')}{$val['filepath']}" style="width:120px;height:60px;"/>
-                          <else/>
+                          <td>
                             <a href="{:C('UPLOADPATH')}{$val['filepath']}" target="_blank">{$val['filepath']}</a>
-                          </if>
                           </td>
-                          <td>{$val['upload_time']}</td>
                           <td>{$val['audit_status']|get_audit_status}</td>
                         </tr>
                       </volist>
@@ -104,45 +90,45 @@
         });
     });
 
-		$("#audit").click(function(){
-			bootbox.confirm({
-				title: "系统提示",
-				message: "所选内容是否通过审核？", 
-				callback:function(result){
-					if(result){
-						$("#form").attr("action",$("#audit").attr("val"));
-						$("#form").submit();
-					}
-				},
-				buttons: {
-					"cancel" : {"label" : "取消"},
-					"confirm" : {
-							"label" : "确定",
-							"className" : "btn-danger"
-						}
-				}
-			});
-		});
+		$("#push").click(function(){
+      bootbox.confirm({
+        title: "系统提示",
+        message: "所选内容是否通过发布？", 
+        callback:function(result){
+          if(result){
+            $("#form").attr("action",$("#push").attr("val"));
+            $("#form").submit();
+          }
+        },
+        buttons: {
+          "cancel" : {"label" : "取消"},
+          "confirm" : {
+              "label" : "确定",
+              "className" : "btn-danger"
+            }
+        }
+      });
+    });
 
-		$("#unaudit").click(function(){
-			bootbox.confirm({
-				title: "系统提示",
-				message: "所选内容是否不通过审核？", 
-				callback:function(result){
-					if(result){
-						$("#form").attr("action",$("#unaudit").attr("val"));
-						$("#form").submit();
-					}
-				},
-				buttons: {
-					"cancel" : {"label" : "取消"},
-					"confirm" : {
-							"label" : "确定",
-							"className" : "btn-danger"
-						}
-				}
-			});
-		});
+    $("#unpush").click(function(){
+      bootbox.confirm({
+        title: "系统提示",
+        message: "所选内容是否不通过发布？", 
+        callback:function(result){
+          if(result){
+            $("#form").attr("action",$("#unpush").attr("val"));
+            $("#form").submit();
+          }
+        },
+        buttons: {
+          "cancel" : {"label" : "取消"},
+          "confirm" : {
+              "label" : "确定",
+              "className" : "btn-danger"
+            }
+        }
+      });
+    });
   })
     </script>
 </block>

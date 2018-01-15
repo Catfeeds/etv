@@ -44,7 +44,9 @@ class LoginController extends BaseController {
             $hotel_user = D("hotel_user")->field('hid')->where(array('user_id'=>$user['uid']))->select();
             if (!empty($hotel_user)) {
                 foreach ($hotel_user as $key => $value) {
-                    $hids[] = $value['hid'];
+                    if (!empty($value['hid'])) {
+                        $hids[] = $value['hid'];
+                    }
                 }
                 $user['hid'] = implode(',', $hids);
             }else{

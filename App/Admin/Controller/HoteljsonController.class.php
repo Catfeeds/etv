@@ -13,7 +13,7 @@ class HoteljsonController extends comController {
 	public function update_hotel_json(){
 		$hid = I('post.hid','','strtoupper');
 		$hid = "4008";//测试
-		if (!empty($hid)) {
+		if (empty($hid)) {
             $this->error('参数错误');
         }
         $check_hid = D("hotel")->where('hid="'.$hid.'"')->count();
@@ -21,23 +21,23 @@ class HoteljsonController extends comController {
             $this->error('系统提示：酒店编号错误');
         }
         // 更新酒店一级栏目              
-		// $this->updatehotel_one($hid);
+		$this->updatehotel_one($hid);
 		// 更新酒店二级栏目
-		// $this->updatehotel_two($hid);
+		$this->updatehotel_two($hid);
 		// 更新酒店栏目资源
-		// $this->updatehotel_resource($hid);
+		$this->updatehotel_resource($hid);
 		// 更新集团一级栏目
-		// $this->updatechg_one($hid);
+		$this->updatechg_one($hid);
 		// 更新集团二级栏目
-		// $this->updatechg_two($hid);
+		$this->updatechg_two($hid);
 		// 更新集团栏目资源
-		// $this->updatechg_resource($hid);
+		$this->updatechg_resource($hid);
 		// 更新通用一级栏目
-		// $this->updatetopic_one($hid);
+		$this->updatetopic_one($hid);
 		// 更新通用二级栏目
-		// $this->updatetopic_two($hid);
+		$this->updatetopic_two($hid);
 		// 更新通用栏目资源
-		// $this->updatetopic_resource($hid);
+		$this->updatetopic_resource($hid);
 		// 更新视频轮播资源
 		$this->updatecarousel_resource($hid);
 		die('ok');

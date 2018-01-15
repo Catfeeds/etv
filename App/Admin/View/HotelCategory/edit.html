@@ -57,6 +57,19 @@
                         <input type="hidden" name="modeldefineid" value="{$vo.modeldefineid}" />
                     </div>
                 </div>
+                <if condition="$vo.modeldefinename eq '弹窗网址'">
+                    <div class="space-4"></div>
+                    <div class="form-group" id="weburldiv">
+                        <label class="col-sm-1 control-label no-padding-right" for="form-field-5">网址</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="weburlvalue" name="weburl" class="col-xs-10 col-sm-5" value="{$vo.weburl}">
+                            <span class="help-inline col-xs-12 col-sm-7">
+                                <span class="middle"></span>
+                            </span>
+                        </div>
+                    </div>
+                </if>
+                
                 <div class="space-4"></div>
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-5">栏目描述</label>
@@ -125,6 +138,7 @@
 	$("#hid").prop("disabled", true);
 	$("#langcodeid").prop("disabled", true);
 	$("#modeldefineid").prop("disabled", true);
+
     $(function() {
     	$("#fileupload").fileupload({
             url: "{:U('upload_icon')}?name=fileupload&hid={$vo['hid']}",

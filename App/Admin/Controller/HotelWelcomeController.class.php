@@ -139,18 +139,7 @@ class HotelwelcomeController extends ComController {
             }
 
             $result = M('hotel_resource')->data($data)->where('id='.$vo['resourceid'])->save();
-            $sizelist = M('hotel_resource')->field('SUM(size)')->where($hmap)->select();
-            $csizelist = M('hotel_category')->field('SUM(size)')->where($hmap)->select();
-            $rsize = $sizelist[0]['sum(size)']+$csizelist[0]['sum(size)'];
-            if(M("hotel_volume")->where($hmap)->count()){
-                $updatesize = D("hotel_volume")->where($hmap)->setField("content_size",$rsize);
-            }else{
-                $arrdata['hid'] = $data['hid'];
-                $arrdata['content_size'] = $rsize;
-                $arrdata['topic_size'] = 0.00;
-                $arrdata['ad_size'] = 0.00;
-                $updatesize = M("hotel_volume")->data($arrdata)->add();
-            }
+            $updatesize = $this->updatecontentsize($hmap);
             if ($result !== false && $updatesize !== false) {
                 $model->commit();
                 if ($data['filepath'] != $resourceInfo['filepath']) {
@@ -178,18 +167,7 @@ class HotelwelcomeController extends ComController {
             $HWdata['hid'] = $data['hid'];
             $HWdata['resourceid']=$rid;
             $hwid = $model->data($HWdata)->add();
-            $sizelist = M('hotel_resource')->field('SUM(size)')->where($hmap)->select();
-            $csizelist = M('hotel_category')->field('SUM(size)')->where($hmap)->select();
-            $rsize = $sizelist[0]['sum(size)']+$csizelist[0]['sum(size)'];
-            if(M("hotel_volume")->where($hmap)->count()){
-                $updatesize = D("hotel_volume")->where($hmap)->setField("content_size",$rsize);
-            }else{
-                $arrdata['hid'] = $data['hid'];
-                $arrdata['content_size'] = $rsize;
-                $arrdata['topic_size'] = 0.00;
-                $arrdata['ad_size'] = 0.00;
-                $updatesize = M("hotel_volume")->data($arrdata)->add();
-            }
+            $updatesize = $this->updatecontentsize($hmap);
             if($rid !== false && $hwid !== false && $updatesize !== false){
                 $model->commit();
                 addlog('添加欢迎图片，ID：'.$hwid.'，资源ID：'.$rid);

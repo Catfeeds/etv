@@ -83,6 +83,16 @@
                     </div>
                 </div>
                 <div class="space-4"></div>
+                <div class="form-group hidden" id="weburldiv">
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-5">网址</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="weburlvalue" name="weburl" class="col-xs-10 col-sm-5" value="">
+                        <span class="help-inline col-xs-12 col-sm-7">
+                            <span class="middle"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-5">栏目描述</label>
                     <div class="col-sm-9">
@@ -172,6 +182,18 @@
         });
     });
 
+    // 模型更换
+    $("#modeldefineid").change(function(){
+        var $modelname = $(this).find("option:selected").text();
+        if ($modelname == "弹窗网址") {
+            $("#weburldiv").attr('class', 'form-group');
+        }else{
+            $("#weburlvalue").attr('value', '');
+            $("#weburldiv").attr('class', 'form-group hidden');
+        }
+    });
+
+
     $("#hid").change(function() {
         var $filepath = $("input[name=icon]").val();
         $("input[name=icon]").attr('value', '');
@@ -226,6 +248,22 @@
         var langcodeid = $("#langcodeid").val();
         var modeldefineid = $("#modeldefineid").val();
         var icon = $(".icon").val();
+        var postmodelname = $("#modeldefineid").find("option:selected").text();
+        if (postmodelname == "弹窗网址") {
+            if ($.trim($("#weburlvalue").val()) == "") {
+                bootbox.dialog({
+                    title: '友情提示：',
+                    message: "网址内容必须填写", 
+                    buttons: {
+                        "success" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
+        }
         if(hid==''){
             bootbox.dialog({
                 title: '友情提示：',

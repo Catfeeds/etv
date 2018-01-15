@@ -206,6 +206,7 @@ class ChgController extends ComController {
         $data['langcodeid'] = I('post.langcodeid','','intval');
         $data['modeldefineid'] = I('post.modeldefineid','','intval');
         $data['intro'] = I('post.intro','','strip_tags');
+        $data['weburl'] = I('post.weburl','','strip_tags');
         $data['filepath'] = I('post.icon','','strip_tags');
         $size = I('post.size','','intval');
         $data['size'] = round($size/1024,3);
@@ -384,6 +385,7 @@ class ChgController extends ComController {
         $this->assign("modeldefinelist",$modeldefinelist);
 
         $currentMenuType=$Modeldefine->getById($var['modeldefineid']);
+        $this->assign('currentMenuType', $currentMenuType);
         if ($currentMenuType['codevalue']=="100" || $currentMenuType['codevalue']=="101") {
             $catlist=array();
         }else{

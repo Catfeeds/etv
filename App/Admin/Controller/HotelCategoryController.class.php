@@ -85,6 +85,7 @@ class HotelCategoryController extends ComController {
         //生成树状图
         $volist = $this->list_to_tree($list, 'id', 'pid', '_child', 0);
         $this -> assign("list",$volist);
+        $this -> assign("myhid",$map['hid']);
         $this -> display();
     }
 
@@ -98,6 +99,7 @@ class HotelCategoryController extends ComController {
         $data = session(session_id());
         if(!empty($data['content_hid'])){
             $vo=M('hotel')->where('hid="'.$data['content_hid'].'"')->field('id')->find();
+            $hotelid = $vo['id'];
             //初始化栏目上级
             $Modeldefine = D("Modeldefine");
             $modelList=$Modeldefine->where('codevalue="100" or codevalue="101"')->field('id')->select();
@@ -123,10 +125,10 @@ class HotelCategoryController extends ComController {
         $this->assign("modeldefinelist",$modeldefinelist);
 
         $hid_condition = $this->isHotelMenber();
-        if($hid_condition === false){
+        if($hid_condition === false){ 
             $this->newTree($hotelid);
         }
-            
+
         $this->display();
     }
 
@@ -140,7 +142,7 @@ class HotelCategoryController extends ComController {
         }
         $model = M(CONTROLLER_NAME);
         $var = $model->getById($ids[0]);
-        $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.langcodeid,zxt_hotel_category.modeldefineid,zxt_hotel_category.pid,zxt_hotel_category.name,zxt_hotel_category.icon,zxt_hotel_category.size,zxt_hotel.hotelname,zxt_modeldefine.name as modeldefinename,zxt_langcode.name as langcodename";
+        $field = "zxt_hotel_category.id,zxt_hotel_category.hid,zxt_hotel_category.langcodeid,zxt_hotel_category.modeldefineid,zxt_hotel_category.pid,zxt_hotel_category.name,zxt_hotel_category.icon,zxt_hotel_category.size,zxt_hotel_category.weburl,zxt_hotel.hotelname,zxt_modeldefine.name as modeldefinename,zxt_langcode.name as langcodename";
         $vo = D("hotel_category")->where('zxt_hotel_category.id='.$ids['0'])->join('zxt_hotel ON zxt_hotel_category.hid=zxt_hotel.hid','left')->join('zxt_modeldefine ON zxt_hotel_category.modeldefineid=zxt_modeldefine.id')->join('zxt_langcode on zxt_hotel_category.langcodeid=zxt_langcode.id')->field($field)->find();
 
         //判断栏目是否可选上级栏目
@@ -228,7 +230,7 @@ class HotelCategoryController extends ComController {
 
         // 更新容量表
         $hmap['hid'] = $data['hid'];
-        $this->updatevolume($hmap);
+        $this->updatecontentsize($hmap);
 
         // 更新资源json文件
         if($data['pid'] == 0){
@@ -261,6 +263,7 @@ class HotelCategoryController extends ComController {
         $data['intro'] = I('post.intro','','strip_tags');
         $sort = I('post.sort','','intval');
         $data['icon'] = I('post.icon','','strip_tags');
+        $data['weburl'] = I('post.weburl','','strip_tags');
         $size = I('post.size','','intval');
         $data['size'] = round($size/1024,3);
         $data['status'] = 0;
@@ -673,10 +676,11 @@ class HotelCategoryController extends ComController {
         }
 
         $list = $model->where($map)->field('id,hid,filepath,video_image,size')->select();
+
         $model->startTrans();
 
         //更新容量
-        $vresult = $this->updatevolume($list['0']['hid']);
+        $vresult = $this->updatecontentsize(array('hid'=>$list['0']['hid']));
         if ($vresult === false) {
             $model->rollback();
             $this->error('删除失败，参数错误！',U('resource').'?ids='.$_REQUEST['category_id']);
@@ -833,6 +837,7 @@ class HotelCategoryController extends ComController {
         $data = $this->resourceInputProcess();
 
         D("hotel_resource")->startTrans();
+        $model = D("hotel_resource");
 
         if($data['id']){//修改
             $vo = $model->getById($data['id']);
@@ -876,7 +881,7 @@ class HotelCategoryController extends ComController {
 
         $hmap['hid'] = I('post.hid');
         //更新容量表
-        $this->updatevolume($hmap);
+        $this->updatecontentsize($hmap);
         //更新资源json
         $this->updatejson_hotelresource(I('post.hid'));
 
@@ -970,6 +975,172 @@ class HotelCategoryController extends ComController {
             $callback['info']='缺少文件';
         }
         echo json_encode($callback);
+    }
+
+    // 弹窗weburl 主页方法
+    public function weburlindex(){
+        $categoryid_arr = [];
+        $myhid = I('get.myhid','','strip_tags');
+        $weburl_where['hid'] = $myhid;
+        // 自建
+        $weburlinfo = D("weburl")->where($weburl_where)->order('status desc')->select();
+        foreach ($weburlinfo as $key => $value) {
+            if ($value['category_type'] == '2') {
+                $categoryid_arr[] = $value['catetory_id'];
+            }
+        }
+        if (!empty($categoryid_arr)) {
+            $category_where['id'] = array('not in', $categoryid_arr);
+        }
+        // 酒店
+        $modelinfo = M('modeldefine')->where('codevalue=505')->field('id')->find();
+        $category_where['modeldefineid'] = $modelinfo['id'];
+        $category_where['hid'] = $myhid;
+        $categorylist = D("hotel_category")->where($category_where)->field('"0" as id, hid, name, weburl, "2" as category_type, id as category_id, "" as time, "0" as status')->select();
+        $hotelinfo = M("hotel")->where('hid="'.$myhid.'"')->field('pid')->find();
+        // 集团
+        $plist = [];
+        if ($hotelinfo['pid']>0) {
+            $photelinfo = M('hotel')->where('id='.$hotelinfo['pid'])->field('hid')->find();
+            $pweburl_where['hid'] = $photelinfo['hid'];
+            $pweburl_where['status'] = 1;
+            $plist = D("weburl")->where($pweburl_where)->field('name,weburl,time,status')->select();
+        }
+        $list = array_merge($weburlinfo, $categorylist);
+        $this->assign('list', $list);
+        $this->assign('plist', $plist);
+        $this->assign('myhid', $myhid);
+        $this->display();
+    }
+
+    public function weburladd(){
+        $this->assign('hid',$_GET['hid']);
+        $this->_assign_hour_minute();
+        $this->display();
+    }
+
+    public function weburledit(){
+        $hid = I('post.hid');
+        $ids_arr = explode("_", $_POST['ids']['0']);
+        if ($ids_arr['0'] != 0) {
+            $vo = D("weburl")->where('id='.$ids_arr['0'])->find();
+        }else{
+            $vo = D("hotel_category")->where('id='.$ids_arr['1'])->field('"0" as id, hid, name, weburl, "2" as category_type, id as category_id, "" as time, "0" as status')->find();
+        }
+        if ($vo['time']) {
+            $time = explode(":", $vo['time']);
+            $vo['hour'] = $time['0'];
+            $vo['minute'] = $time['1'];
+            unset($vo['time']);
+            unset($time);
+        }else{
+            $vo['hour'] = '';
+            $vo['minute'] = '';
+        }
+        $this->assign('vo',$vo);
+        $this->_assign_hour_minute();
+        $this->display();
+    }
+
+    public function weburlupdate(){
+        $param = $_POST;
+        $param['time'] = $param['hour'].":".$param['minute'];
+        unset($param['hour']);
+        unset($param['minute']);
+        if (empty($param['id']) || $param['id'] == 0) { //新增
+            $result = M('weburl')->data($param)->add();
+        }else{  //修改
+            $result = D("weburl")->where('id='.$param['id'])->data($param)->save();
+        }
+        if ($result) {
+            $this->success('操作成功',U('weburlindex')."?myhid=".$param['hid']);
+        }else{
+            $this->error('操作失败',U('weburlindex')."?myhid=".$param['hid']);
+        }
+    }
+
+    public function weburldelete(){
+        $hid = I('post.hid');
+        $ids_arr = explode("_", $_POST['ids']['0']);
+        if ($ids_arr['0'] != 0) {
+            $result = D("weburl")->where('id='.$ids_arr['0'])->delete();
+            if ($result) {
+                $this->success('操作成功',U('weburlindex')."?myhid=".$hid);
+            }else{
+                $this->error('操作失败',U('weburlindex')."?myhid=".$hid);
+            }
+        }else{
+            $this->success('此数据未经编辑  无需删除',U('weburlindex')."?myhid=".$hid);
+        }
+    }
+
+    public function weburlunlock(){
+        $ids_all = $_POST['ids'];
+        $ids = [];
+        if (!empty($ids_all)) {
+            foreach ($ids_all as $key => $value) {
+                $ids_arr = explode("_", $value);
+                if ($ids_arr['0'] != 0) {
+                    $ids[] = $ids_arr['0'];
+                }
+            }
+        }
+        if (empty($ids)) {
+            $this->error('参数错误',U('weburlindex')."?myhid=".$param['hid']);
+        }
+        $where['id'] = array('in', $ids);
+        $data['status'] = 1;
+        $result = D("weburl")->where($where)->data($data)->save();
+        if ($result !== false) {
+            $this->success('操作成功',U('weburlindex')."?myhid=".$_POST['hid']);
+        }else{
+            $this->error('操作失败',U('weburlindex')."?myhid=".$_POST['hid']);
+        }
+    }
+
+    public function weburllock(){
+        $ids_all = $_POST['ids'];
+        $ids = [];
+        if (!empty($ids_all)) {
+            foreach ($ids_all as $key => $value) {
+                $ids_arr = explode("_", $value);
+                if ($ids_arr['0'] != 0) {
+                    $ids[] = $ids_arr['0'];
+                }
+            }
+        }
+        if (empty($ids)) {
+            $this->error('参数错误',U('weburlindex')."?myhid=".$param['hid']);
+        }
+        $where['id'] = array('in', $ids);
+        $data['status'] = 0;
+        $result = D("weburl")->where($where)->data($data)->save();
+        if ($result !== false) {
+            $this->success('操作成功',U('weburlindex')."?myhid=".$_POST['hid']);
+        }else{
+            $this->error('操作失败',U('weburlindex')."?myhid=".$_POST['hid']);
+        }
+    }
+
+    private function _assign_hour_minute(){
+        $hour = array();
+        for ($i = 0; $i < 24; $i++) {
+            if ($i<10) {
+                $hour[] = "0".$i;
+            }else{
+                $hour[] = $i;
+            }
+        }
+        $minute = array();
+        for ($j = 0; $j < 60; $j++) {
+            if ($j<10) {
+                $minute[] = "0".$j;
+            }else{
+                $minute[] = $j;
+            }
+        }
+        $this->assign("hour",$hour);
+        $this->assign("minute",$minute);
     }
 
     /**

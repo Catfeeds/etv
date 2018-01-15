@@ -62,11 +62,11 @@ class HotelJumpController extends ComController {
                 $list[$key]['jumpinfo']='开机后，欢迎页停留'.$list[$key]['staytime'].'秒后，自动跳过欢迎页。';
             }
             if($value['video_set']==1){
-                $list[$key]['jumpinfo'] .= '欢迎页前插播视频。';
-            }else if($value['video_set']==2){
-                $list[$key]['jumpinfo'] .= '跳过欢迎页后，插播视频，再进入主页。';
-            }else{
-                $list[$key]['jumpinfo'] .= '欢迎页前后都不播放视频。';
+                $list[$key]['jumpinfo'] .= ' 跳过欢迎页后，插播视频，再进入主页。';
+            }else if($value['video_set']==3){
+                $list[$key]['jumpinfo'] .= '强制播放视频后再进入主页。';
+            }else if($value['video_set']==0){
+                $list[$key]['jumpinfo'] .= ' 欢迎页前后都不播放视频。';
             }
         }
         $this -> assign("list",$list);
@@ -202,6 +202,17 @@ class HotelJumpController extends ComController {
         $this->display();
     }
 
+    public function editresource(){
+        if (count($_POST['ids'])==1) {
+            $where['id'] = $_POST['ids']['0'];
+            $vo = D("hotel_jump_resource")->where($where)->find();
+            $this->assign('vo', $vo);
+        }else{
+            $this->error('参数错误');
+        }
+        $this->display();
+    }
+
     public function updateresource(){
         $id = I('post.id','','intval');
         $data['title'] = I('post.title','','strip_tags');
@@ -209,10 +220,40 @@ class HotelJumpController extends ComController {
         $data['hid'] = I('post.hid');
         $data['sort'] = I('post.sort','','strip_tags');
         $data['filepath'] = I('post.filepath','','strip_tags');
+        $whereupdatesize['hid'] = $data['hid']; 
         $size = I('post.size','','intval');
-        $data['size'] = round($size/1024,3);
+        $data['size'] = round($size/1024, 3); 
+
         if ($id) {
-            # code...
+
+            $where['id'] = $id;
+            $vo = M('hotel_jump_resource')->where($where)->field('filepath,size')->find();
+
+            if (($data['size']-$vo['size'])>1) {  //查过1m进行容量查询
+                 $volumeResult = $this->checkVolume($data['hid'],$data['size']-$vo['size']);//检查容量是否超标
+                if($volumeResult === false){
+                    @unlink(FILE_UPLOAD_ROOTPATH.$data['filepath']);
+                    $this->error("超过申请容量值，无法修改资源");
+                }
+            }
+
+            if ($data['filepath'] != $vo['filepath']) {
+                $data['upload_time'] = date("Y-m-d H:i:s");
+                $data['audit_status'] = 0;
+                $data['status'] = 0;
+            }
+
+            $result = D('hotel_jump_resource')->where($where)->data($data)->save();
+            $updatesize = $this->updatecontentsize($whereupdatesize);
+            if($result !== false && $updatesize !== false){
+                $this->success('操作成功', U('resource',array('resourceid'=>$data['resourceid'], 'resourcehid'=>$data['hid']) ) );
+                if ($data['filepath'] != $vo['filepath']) {
+                    @unlink(FILE_UPLOAD_ROOTPATH.$vo['filepath']);
+                }
+            }else{
+                $this->error('操作成功', U('resource',array('resourceid'=>$data['resourceid'], 'resourcehid'=>$data['hid']) ) );
+            }
+
         }else{
             $volumeResult = $this->checkVolume($data['hid'],$data['size']);//检查容量是否超标
             if($volumeResult === false){
@@ -221,12 +262,15 @@ class HotelJumpController extends ComController {
             }
             $data['status'] = 0;
             $data['audit_status'] = 0;
-            $data['audit_time'] = date("Y-m-d");
-            $data['upload_time'] = date("Y-m-d");
-            if(D("hotel_jump_resource")->data($data)->add()){
+            $data['audit_time'] = date("Y-m-d H:i:s");
+            $data['upload_time'] = date("Y-m-d H:i:s");
+
+            $result = D("hotel_jump_resource")->data($data)->add();
+            $updatesize = $this->updatecontentsize($whereupdatesize);
+            if($result!==false && $updatesize !==false){
                 $this->success('操作成功', U('resource',array('resourceid'=>$data['resourceid'], 'resourcehid'=>$data['hid']) ) );
             }else{
-
+                $this->error('操作失败', U('resource',array('resourceid'=>$data['resourceid'], 'resourcehid'=>$data['hid']) ) );
             }
         }
     }
@@ -268,103 +312,76 @@ class HotelJumpController extends ComController {
             $this->error('请选择至少一条记录');
             die();
         }
-        $model = D(CONTROLLER_NAME);
-        $map['zxt_hotel_jump.id'] = array('in',$ids);
-        $decVolume = $model->field('zxt_hotel_jump.resourceid,zxt_hotel_resource.hid,zxt_hotel_resource.filepath,zxt_hotel_resource.size')->join('zxt_hotel_resource ON zxt_hotel_jump.resourceid = zxt_hotel_resource.id')->where($map)->select();
+        $wherejump['id'] = $ids['0'];
+        $whereresource['resourceid'] = $ids['0'];
+        $vo = D("hotel_jump")->where($wherejump)->field('hid')->find();
+        $wherehid['hid'] = $vo['hid'];
 
-        $model->startTrans();
-        $vresult = true;
-        $rresult = true;
-        $jresult = true;
-        $residArr=array();
-        if(!empty($decVolume)){
-            foreach ($decVolume as $key => $value) {
-                $residArr[$key] = $value['resourceid'];
-                $vmap['hid']=$value['hid'];
-                //更改volume表
-                $vresult = $this->csetDec($vmap,'content_size',$value['size']);
-            }
-            //删除resource表
-            $Rmap['id']=array('in',$residArr);
-            $rresult = M('hotel_resource')->where($Rmap)->delete();
-        }
+        D("hotel_jump")->startTrans();
+        $jumpresult = D("hotel_jump")->where($wherejump)->delete();
+        $resourcerusult = D('hotel_jump_resource')->where($whereresource)->delete();
+        $updatesize = $this->updatecontentsize($wherehid);
 
-        //删除hotelJump表
-        $jresult = $model->where($map)->delete();
-
-        if($vresult !== false && $rresult !== false && $jresult !== false){
-            if(!empty($decVolume)){
-                foreach ($decVolume as $key => $value) {
-                    @unlink(FILE_UPLOAD_ROOTPATH.$value['filepath']);
-                }
-            }
-            if(is_array($ids)){
-                $ids = implode(',',$ids);
-            }
-            if(is_array($residArr)){
-                $rids = implode(',',$residArr);
-            }
-            addlog('删除'.CONTROLLER_NAME.'表数据，数据ID：'.$ids.'，删除资源ID：'.$rids);
-            $model->commit();
+        if ($jumpresult!==false && $resourcerusult!==false && $updatesize!==false) {
+            D("hotel_jump")->commit();
             $this->success('删除成功');
         }else{
-            $model->rollback();
+            D("hotel_jump")->rollback();
             $this->error('删除失败');
         }
     }
     //启用
-    public function unlock(){
-        $model = M(CONTROLLER_NAME);
+    public function unlockresource(){
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
         if($ids){
             if(is_array($ids)){
-                $ids = implode(',',$ids);
                 $map['id']  = array('in',$ids);
             }else{
-                $map = 'id='.$ids;
+                $map['id'] = $ids;
             }
-            $list = $model->where($map)->select();
-            $residArr=array();
-            foreach ($list as $key => $value) {
-                $residArr[$key]=$value['resourceid'];
-            }
-            $where['id']=array('in',$residArr);
-            $result=M('hotel_resource')->where($where)->setField("status",1);
+            $result=M('hotel_jump_resource')->where($map)->setField("status",1);
             if($result !== false){
-                addlog('启用跳转视频资源数据，资源数据ID：'.$ids);
-                $this->success('恭喜，启用成功！');
+                $this->success('操作成功', U('resource',array('resourceid'=>$_POST['resourceid'], 'resourcehid'=>$_POST['hid']) ) );
             }else{
-                $this->error('启用失败，参数错误！');
+                $this->error('操作失败！',U('resource',array('resourceid'=>$_POST['resourceid'], 'resourcehid'=>$_POST['hid']) ));
             }
         }else{
             $this->error('参数错误！');
         }
     }
-    public function lock(){
-        $model = M(CONTROLLER_NAME);
+    public function lockresource(){
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
         if($ids){
             if(is_array($ids)){
-                $ids = implode(',',$ids);
                 $map['id']  = array('in',$ids);
             }else{
-                $map = 'id='.$ids;
+                $map['id'] = $ids;
             }
-            $list = $model->where($map)->select();
-            $residArr=array();
-            foreach ($list as $key => $value) {
-                $residArr[$key]=$value['resourceid'];
-            }
-            $where['id']=array('in',$residArr);
-            $result=M('hotel_resource')->where($where)->setField("status",0);
+            $result=M('hotel_jump_resource')->where($map)->setField("status",0);
             if($result !== false){
-                addlog('禁用跳转视频资源数据，资源数据ID：'.$ids);
-                $this->success('恭喜，禁用成功！');
+                $this->success('操作成功', U('resource',array('resourceid'=>$_POST['resourceid'], 'resourcehid'=>$_POST['hid']) ) );
             }else{
-                $this->error('禁用失败，参数错误！');
+                $this->error('操作失败！',U('resource',array('resourceid'=>$_POST['resourceid'], 'resourcehid'=>$_POST['hid']) ));
             }
         }else{
             $this->error('参数错误！');
+        }
+    }
+
+    public function deleteresource(){
+        $where['id'] = $_POST['ids']['0'];
+        $wherehid['hid'] = $_POST['hid'];
+        D('hotel_jump_resource')->startTrans();
+        $vo = D("hotel_jump_resource")->where($where)->field('filepath')->delete();
+        $result = D("hotel_jump_resource")->where($where)->delete();
+        $updatesize = $this->updatecontentsize($wherehid);
+        if ($result!==false && $updatesize!==false) {
+            D('hotel_jump_resource')->commit();
+            @unlink(FILE_UPLOAD_ROOTPATH.$vo['filepath']);
+            $this->success('操作成功', U('resource',array('resourceid'=>$_POST['resourceid'], 'resourcehid'=>$_POST['hid']) ) );
+        }else{
+            D('hotel_jump_resource')->rollback();
+            $this->error('操作失败！',U('resource',array('resourceid'=>$_POST['resourceid'], 'resourcehid'=>$_POST['hid']) ));
         }
     }
 }

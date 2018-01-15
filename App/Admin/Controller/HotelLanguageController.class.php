@@ -115,7 +115,7 @@ class HotelLanguageController extends ComController {
         $data['sort'] = I('post.sort','','intval');
         
         if(!$data['hid'] || !$data['name']|| !$data['langcodeid']|| !$data['appellation']|| !$data['content']|| !$data['signer']){
-            $this->error('警告！语言信息未填完整，请补充完整！');
+            // $this->error('警告！语言信息未填完整，请补充完整！');
         }
         if($data['id']){
             $model->data($data)->where('id='.$data['id'])->save();

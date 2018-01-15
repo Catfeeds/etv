@@ -75,6 +75,18 @@
                         </span>
                     </div>
                 </div>
+                <if condition="$currentMenuType.name eq '弹窗网址'">
+                    <div class="space-4"></div>
+                    <div class="form-group" id="weburldiv">
+                        <label class="col-sm-1 control-label no-padding-right" for="form-field-5">网址</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="weburlvalue" name="weburl" class="col-xs-10 col-sm-5" value="{$vo.weburl}">
+                            <span class="help-inline col-xs-12 col-sm-7">
+                                <span class="middle"></span>
+                            </span>
+                        </div>
+                    </div>
+                </if>
                 <div class="space-4"></div>
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-5">栏目描述</label>

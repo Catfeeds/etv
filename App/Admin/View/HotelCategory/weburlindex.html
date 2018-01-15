@@ -1,61 +1,76 @@
 <extend name="Public:layout"/>
 <block name="page-content-row">
+    <div class="row <?php if(empty($plist)) echo 'hide'; ?>" >
+        <div class="col-xs-12">
+            <div class="">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th class="">集团设定条目</th>
+                            <th class="col-xs-2">标题</th>
+                            <th class="col-xs-4">url地址</th>
+                            <th class="col-xs-3">时间</th>
+                            <th class="col-xs-2">状态</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <volist name="plist" id="pval">
+                            <tr>
+                                <td>/</td>
+                                <td>{$pval['name']}</td>
+                                <td>{$pval['weburl']}</td>
+                                <td>{$pval['time']}</td>
+                                <td>{$pval['status']|get_status}</td>
+                            </tr>
+                        </volist>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-xs-12">
-            <div class="row">
-                <span><a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a></span>                
-            </div>
             <div class="space-8"></div>
             <div class="row">
-                <a class="label label-xlg label-primary" href="javascript:;" id="add" val="{:U('addresource')}" ><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;添加</a>
-                <a class="label label-xlg label-success" href="javascript:;" id="edit" val="{:U('editresource')}" ><i class="ace-icon fa fa-pencil bigger-100"></i>&nbsp;修改</a>
-                <a class="label label-xlg label-info" href="javascript:;" id="unlock" val="{:U('unlockresource')}" ><i class="ace-icon fa fa-unlock bigger-100"></i>&nbsp;启用</a>
-                <a class="label label-xlg label-warning" href="javascript:;" id="lock" val="{:U('lockresource')}" ><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;禁用</a>
-                <a class="label label-xlg label-danger" href="javascript:;" id="delete" val="{:U('deleteresource')}" ><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除</a>
+                <a class="label label-xlg label-primary" href="{:U('weburladd')}?hid={$myhid}" ><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;添加</a>
+                <a class="label label-xlg label-success" href="javascript:;" id="weburledit" val="{:U('weburledit')}" ><i class="ace-icon fa fa-pencil bigger-100"></i>&nbsp;修改</a>
+                <a class="label label-xlg label-info" href="javascript:;" id="weburlunlock" val="{:U('weburlunlock')}" ><i class="ace-icon fa fa-unlock bigger-100"></i>&nbsp;启用</a>
+                <a class="label label-xlg label-warning" href="javascript:;" id="weburllock" val="{:U('weburllock')}" ><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;禁用</a>
+                <a class="label label-xlg label-danger" href="javascript:;" id="weburldelete" val="{:U('weburldelete')}" ><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除</a>
             </div>
             <div class="space-8"></div>
             <div class="row">
                 <form id="form" method="post" action="">
+                    <input type="hidden" name="hid" value="{$myhid}">
                     <table class="table table-striped table-bordered">
                       <thead>
                         <tr>
                           <th class="center"><input class="check-all" type="checkbox" value=""></th>
                           <th class="col-xs-2">标题</th>
-                          <th class="col-xs-4">路径</th>
-                          <th class="col-xs-2">上传时间</th>
-                          <th class="col-xs-1">排序</th>
-                          <th class="col-xs-1">状态</th>
-                          <th class="col-xs-2">审核状态</th>
+                          <th class="col-xs-4">url地址</th>
+                          <th class="col-xs-3">时间</th>
+                          <th class="col-xs-2">状态</th>
                         </tr>
                       </thead>
                       <tbody>
                       <volist name="list" id="val">
                         <tr>
-                            <td class="center"><input class="aids" type="checkbox" name="ids[]" value="{$val['id']}"></td>
-                            <td>{$val['title']}</td>
-                            <td>
-                                <a href="{:C('UPLOADPATH')}{$val['filepath']}" target="_blank">{$val['filepath']}
-                            </td>
-                            <td>{$val['upload_time']}</td>
-                            <td><input type="text" class="sort" rowid="{$val['id']}" value="{$val['sort']}" style="width:30px;"/></td>
-                            <td>{$val['status']|get_status}</td>
-                            <td>{$val['audit_status']|get_audit_status}</td>
+                          <td class="center"><input class="aids" type="checkbox" name="ids[]" value="{$val['id']}_{$val['category_id']}"></td>
+                          <td>{$val['name']}</td>
+                          <td>{$val['weburl']}</td>
+                          <td>{$val['time']}</td>
+                          <td>{$val['status']|get_status}</td>
                         </tr>
                       </volist>
                       </tbody>
                     </table>
-                    <input type="hidden" name="resourceid" value="{$resourceid}">
-                    <input type="hidden" name="hid" value="{$hid}">
                 </form>
-                {$page}
             </div>
         </div>
     </div>
 </block>
 <block name="currentPageJS">
     <script type="text/javascript">
-
-    $(function(){
         $(".check-all").click(function(){
             $(".aids").prop("checked", this.checked);
         });
@@ -70,11 +85,7 @@
                 }
             });
         });
-        $("#add").click(function(){
-            $("#form").attr("action",$("#add").attr("val"));
-            $("#form").submit();
-        });
-        $("#edit").click(function(){
+        $("#weburledit").click(function(){
             var len = $("input[name='ids[]']:checked").length;
             if(len!=1){
                 bootbox.confirm({
@@ -91,17 +102,16 @@
                 });
                 return;
             }
-            $("#form").attr("action",$("#edit").attr("val"));
+            $("#form").attr("action",$("#weburledit").attr("val"));
             $("#form").submit();
         });
-
-        $("#unlock").click(function(){
+        $("#weburlunlock").click(function(){
             bootbox.confirm({
                 title: "系统提示",
-                message: "是否要启用跳转视频？", 
+                message: "是否要启用？", 
                 callback:function(result){
                     if(result){
-                        $("#form").attr("action",$("#unlock").attr("val"));
+                        $("#form").attr("action",$("#weburlunlock").attr("val"));
                         $("#form").submit();
                     }
                 },
@@ -114,13 +124,13 @@
                 }
             });
         });
-        $("#lock").click(function(){
+        $("#weburllock").click(function(){
             bootbox.confirm({
                 title: "系统提示",
-                message: "是否要禁用跳转视频？", 
+                message: "是否要禁用？", 
                 callback:function(result){
                     if(result){
-                        $("#form").attr("action",$("#lock").attr("val"));
+                        $("#form").attr("action",$("#weburllock").attr("val"));
                         $("#form").submit();
                     }
                 },
@@ -133,7 +143,7 @@
                 }
             });
         });
-        $("#delete").click(function(){
+        $("#weburldelete").click(function(){
             var len = $("input[name='ids[]']:checked").length;
             if(len!=1){
                 bootbox.confirm({
@@ -150,24 +160,8 @@
                 });
                 return;
             }
-            bootbox.confirm({
-                title: "系统提示",
-                message: "是否要删除跳转视频？", 
-                callback:function(result){
-                    if(result){
-                        $("#form").attr("action",$("#delete").attr("val"));
-                        $("#form").submit();
-                    }
-                },
-                buttons: {
-                    "cancel" : {"label" : "取消"},
-                    "confirm" : {
-                            "label" : "确定",
-                            "className" : "btn-danger"
-                        }
-                }
-            });
+            $("#form").attr("action",$("#weburldelete").attr("val"));
+            $("#form").submit();
         });
-    })
     </script>
 </block>

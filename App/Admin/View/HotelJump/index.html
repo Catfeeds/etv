@@ -114,6 +114,22 @@
         });
 
         $("#delete").click(function(){
+            var len = $("input[name='ids[]']:checked").length;
+            if(len!=1){
+                bootbox.confirm({
+                title: "系统提示",
+                message: "仅能对一条数据进行操作", 
+                callback:function(result){},
+                    buttons: {
+                        "cancel" : {"label" : "取消"},
+                        "confirm" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
             bootbox.confirm({
                 title: "系统提示",
                 message: "是否要删除跳转视频？", 

@@ -716,7 +716,7 @@ class TopicCategoryController extends ComController {
             $map['gid'] = array('in',$value);
             $map['status'] = 1;
             $map['audit_status'] = 4;
-            $list = D("topic_resource")->where($map)->field('cid,gid,title,type,video,image,video_image,intro,sort')->order('sort')->select();
+            $list = D("topic_resource")->where($map)->field('id,cid,gid,title,type,video,image,video_image,intro,sort')->order('sort')->select();
             $plist = array();
             if(!empty($list)){
                 foreach ($list as $key => $value) {
