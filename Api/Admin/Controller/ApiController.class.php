@@ -1685,9 +1685,9 @@ class ApiController extends Controller{
             $json['sleep_marked_word']=$list['sleep_marked_word'];
             $json['sleep_countdown_time']=$list['sleep_countdown_time'];
             if(!empty($list['sleep_imageid'])){
-                $json['image_path'] = 'http://'.$_SERVER['SERVER_NAME'].':'.$_SERVER["SERVER_PORT"].__ROOT__.'/Public'.$imagelistbykey[$list['sleep_imageid']]['image_path'];
+                $json['image_path'] = self::$serverUrl.$imagelistbykey[$list['sleep_imageid']]['image_path'];
             }else{
-                $json['image_path'] ='http://'.$_SERVER['SERVER_NAME'].':'.$_SERVER["SERVER_PORT"]. __ROOT__.'/Public'.$imagelist[0]['image_path'];
+                $json['image_path'] =self::$serverUrl.$imagelist[0]['image_path'];
             }
         }
         header('Content-Type: application/json; charset=utf-8');

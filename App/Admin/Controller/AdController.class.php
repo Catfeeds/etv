@@ -19,34 +19,53 @@ class AdController extends ComController {
         }
         return $map;
     }
+
     public function index(){
         $model = M("ad");
         $map = $this->_map();
+        $hid_condition = $this->isHotelMenber();
+        $ad_id_arr = [];
+        if ($hid_condition) {   
+            $where_bind['hid'] = $hid_condition;
+            $bindlist = D("ad_bind")->where($where_bind)->field('ad_id')->distinct(true)->select();
+            if (!empty($bindlist)) {
+                foreach ($bindlist as $key => $value) {
+                    $ad_id_arr[] = $value['ad_id'];
+                }
+                $map['id'] = ['in', $ad_id_arr];
+            }else{
+                $map['id'] = 0;
+            }
+        }
         $list = $this->_list($model,$map);
         $this -> assign("list",$list);
-        if (empty($list[0]['hidlist'])) {
-            $list[0]['hidlist']='-';
-        }else if($list[0]['hidlist']=="all"){
-            $list[0]['hidlist']="全部酒店";
-        }else{
-            $ids = trim($list[0]['hidlist']);
-            $idsArr = explode(",", $ids);
-            $hotelname='';
-            $Hotel = D("Hotel");
-            foreach ($idsArr as $value) {
-                $vo=array();
-                $vo=$Hotel->getByHid($value);
-                $hotelname = $hotelname.','.$vo['hotelname'];
+        if (!empty($list['0'])) {
+            $firstbind = D("ad_bind")->where('ad_id="'.$list['0']['id'].'"')->field('hid')->select();
+            if (!empty($firstbind)) {
+                foreach ($firstbind as $key => $value) {
+                    $where_hid_arr[] = $value['hid'];
+                }
+                $where_hotel['hid'] = ['in', $where_hid_arr];
+                $hotellist = D('hotel')->where($where_hotel)->field('name')->select();
+                foreach ($hotellist as $key => $value) {
+                    $hotelname .= $value['name'].", ";
+                }
+                $hotelname = trim($hotelname, ", ");
             }
-            $list[0]['hidlist']=trim($hotelname,',');
+        }else{
+            $hotelname = "-";
         }
-        $this -> assign("vo",$list[0]);
+        $list['0']['hidlist']=trim($hotelname,',');
+        
+        $this -> assign("vo",$list['0']);
         $this -> display();
     }
+
     public function _before_add(){
         $regionList = $this->_hotel_list();
         $this->assign('menuTree', $regionList);
     }
+    
     public function edit(){
         $Ad = D(CONTROLLER_NAME);
         if(count($_REQUEST['ids'])!=1){
