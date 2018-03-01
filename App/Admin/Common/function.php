@@ -494,3 +494,13 @@ function getAuditresourcetype($resourcetype){
 function mbToKb($mb){
     return $KB = $mb*1024;
 }
+
+// 逗号转换br标签
+function nodetobr($data){
+    return str_replace(',','<br/>',$data);
+}
+
+// 逗号转换空格
+function nodetospace($data){
+    return str_replace(',','',$data);
+}
