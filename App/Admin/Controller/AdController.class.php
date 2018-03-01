@@ -46,7 +46,7 @@ class AdController extends ComController {
                     $where_hid_arr[] = $value['hid'];
                 }
                 $where_hotel['hid'] = ['in', $where_hid_arr];
-                $hotellist = D('hotel')->where($where_hotel)->field('name')->select();
+                $hotellist = D('hotel')->where($where_hotel)->field('hotelname')->select();
                 foreach ($hotellist as $key => $value) {
                     $hotelname .= $value['name'].", ";
                 }
@@ -128,25 +128,26 @@ class AdController extends ComController {
     }
 
     public function detail(){
-        $model = M("ad");
-        $list = $model->getById($_REQUEST['id']);
-        if (empty($list['hidlist'])) {
-            $list['hidlist']='-';
-        }else if($list['hidlist']=="all"){
-            $list['hidlist']="全部酒店";
+        $where['ad_id'] = I('request.id','','intval');
+        $list = D("ad_bind")->where($where)->field('hid')->select();
+        if (empty($list)) {
+            $data = '-';
         }else{
-            $ids = trim($list['hidlist']);
-            $idsArr = explode(",", $ids);
-            $hotelname='';
-            $Hotel = D("Hotel");
-            foreach ($idsArr as $value) {
-                $vo=array();
-                $vo=$Hotel->getByHid($value);
-                $hotelname = $hotelname.','.$vo['hotelname'];
+            foreach ($list as $key => $value) {
+                $hid_arr[] = $value['hid'];
             }
-            $list['hidlist']=trim($hotelname,',');
+            $where_hid['hid'] = array('in', $hid_arr);
+            $hotellist= D("hotel")->where($where_hid)->field('hotelname')->select();
+            if (!empty($hotellist)) {
+                foreach ($hotellist as $key => $value) {
+                    $hotelname_arr[] = $value['hotelname'];
+                }
+                $data = implode(",", $hotelname_arr);
+            }else{
+                $data = '-';
+            }
         }
-        echo json_encode($list);
+        echo json_encode($data);
     }
 
     //保存
@@ -157,7 +158,7 @@ class AdController extends ComController {
         $data['filepath'] = I('post.filepath','','strip_tags');
         $data['audit_status'] = 0;
         $hidlist = trim(I('post.hidlist','','strip_tags'));
-        $passhid_arr = explode(",", $hidlist);
+        $passhid_arr = empty($hidlist)?[]:explode(",", $hidlist);
         $size = I('post.size','','intval');
         $data['size'] = round($size/1024,3);
         if (empty($data['filepath'])) {
@@ -173,6 +174,7 @@ class AdController extends ComController {
                 $data['upload_time'] = time();
             }
             $result = $model->data($data)->where('id='.$data['id'])->save();
+
             // 获取绑定hid列表
             $bind_hidlist = D("ad_bind")->where('ad_id='.$data['id'])->field('hid')->select();
             $bind_hid_arr = [];
@@ -181,18 +183,20 @@ class AdController extends ComController {
                     $bind_hid_arr[] = $value['hid'];
                 }
             }
-            
+
             $add_hid = array_diff($passhid_arr, $bind_hid_arr);// 新增hid
             $del_hid = array_diff($bind_hid_arr, $passhid_arr);// 删除hid
-            
+
             // 新增绑定表
             if (!empty($add_hid)) {
+                $add_hid_i = 0;
                 foreach ($add_hid as $key => $value) {
-                    $add_bind_info[$key]['ad_id'] = $data['id'];
-                    $add_bind_info[$key]['hid'] = $value;
+                    $add_bind_info[$add_hid_i]['ad_id'] = $data['id'];
+                    $add_bind_info[$add_hid_i]['hid'] = $value;
+                    $add_hid_i++;
                 }
                 try {
-                    D('ad_bind')->addAll($add_bind_info);
+                    $add_bind_result = M('ad_bind')->addAll($add_bind_info);
                 } catch (Exception $e) {
                     $model->rollback();
                     $this->error('操作失败！',U('index'));
@@ -214,9 +218,11 @@ class AdController extends ComController {
             $data['upload_time'] = time();
             $result = $model->data($data)->add();
             // 新增绑定表
+            $add_hid_i = 0;
             foreach ($passhid_arr as $key => $value) {
                 $add_bind_info[$key]['ad_id'] = $result;
                 $add_bind_info[$key]['hid'] = $value;
+                $add_hid_i++;
             }
             try {
                 D('ad_bind')->addAll($add_bind_info);  
@@ -225,7 +231,6 @@ class AdController extends ComController {
             }
             $editvolumeresult = $this->addsize($data['size'],$passhid_arr);
         }
-       
         if($result !== false && $editvolumeresult !== false){
             if(!empty($vo)){
                 if ($data['filepath'] != $vo['filepath']) {
@@ -241,29 +246,40 @@ class AdController extends ComController {
     }
 
     private function addsize($nowsize, $nowhid = array()){
-        if (empty($nowhid)) {
-            $where_hid['hid'] = array('in', $nowhid);
-            try {
-                D("hotel_volume")->where($where_hid)->setInc('ad_size',$nowsize);
-            } catch (Exception $e) {
-                return false;
-            }
+        $where_hid['hid'] = array('in', $nowhid);
+        $result = M("hotel_volume")->where($where_hid)->setInc('ad_size',$nowsize);
+        if ($result!==false) {
             return true;
         }else{
             return false;
         }
     }
 
-    public function editsize($id=11, $diffhid = array()){
+    public function editsize($id, $diffhid = array()){
         if (!$id) {
             return false;
         }
+
         $sql = "SELECT hid, GROUP_CONCAT(ad_id) as id_str FROM `zxt_ad_bind` WHERE hid in (SELECT hid FROM `zxt_ad_bind` WHERE ad_id = $id) ";
         if (!empty($diffhid)) {
             $sql .= " OR hid in (".implode(",", $diffhid).")";
         }
         $sql .= " GROUP BY hid";
         $bindlist = D("ad_bind")->query($sql);
+        if (!empty($diffhid)) {
+            if (empty($bindlist)) {
+                $bindlist = $diffhid;
+            }else{
+                foreach ($diffhid as $k1 => $v1) {
+                    foreach ($bindlist as $k2 => $v2) {
+                        if ($v1 == $v2['hid']) {
+                            return;
+                        }
+                    }
+                    $bindlist[] = array('hid'=>$v1,'id_str'=>0);
+                }
+            }
+        }
         if (!empty($bindlist)) {
             foreach ($bindlist as $key => $value) {
                 $where_id = $value['id_str'];
@@ -273,11 +289,11 @@ class AdController extends ComController {
                 $sizelist = D('ad')->query($sql_ad);
                 $update_info[] = $sizelist['0'];
             }
-            $sql_volume = "UPDATE `zxt_hotel_volume` SET ad_size = CASE";
+            $sql_volume = "UPDATE `zxt_hotel_volume` SET ad_size = CASE hid";
             foreach ($update_info as $key => $value) {
-                $sql_volume .= sprintf(" WHEN '%s' THEN %s", $value['current_hid'], $value['current_size']);
+                $sql_volume .= sprintf(" WHEN '%s' THEN %s", $value['current_hid'],!empty($value['current_size'])?$value['current_size']:0);
             }
-            $hid_str = implode(",", $hid_arr);
+            $hid_str = implode(',', array_map('change_to_quotes', $hid_arr));
             $sql_volume .= " END WHERE hid IN($hid_str)";
             try {
                 D('hotel_volume')->execute($sql_volume);
@@ -290,49 +306,32 @@ class AdController extends ComController {
     }
 
     public function delete(){
-        $model = M(CONTROLLER_NAME);
-        $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
-        if(is_array($ids)){
-            if(!$ids){
-                $this->error('参数错误！');
-            }
-            foreach($ids as $k=>$v){
-                $ids[$k] = intval($v);
-            }
-            $map['id']  = array('in',$ids);
-        }else{
-            $map['id']  = $ids;
+        $id_arr = I('post.ids','','intval');
+        if (count($id_arr)!=1) {
+            $this->error('参数错误');
         }
-        $list=$model->where($map)->select();
-        $model->startTrans();
-        foreach ($list as $key => $value) {
-            if($value['hidlist'] == 'all'){//全部酒店
-                $arrhid = M("hotel_volume")->field('hid')->select();
-                $arr = array();
-                foreach ($arrhid as $key => $vv) {
-                    array_push($arr, $vv['hid']);
+        D("ad")->startTrans();
+        $where_ad['id'] = $where_bind['ad_id'] = $id_arr['0'];
+        $vo = D("ad")->where($where_ad)->field('size')->find();
+        $hidlist = D('ad_bind')->where($where_bind)->field('hid')->select();
+        
+        try {
+            D("ad")->where($where_ad)->delete();
+            if (!empty($hidlist)) {
+                foreach ($hidlist as $key => $value) {
+                    $hid_arr[] = $value['hid'];
                 }
-                $arrmap['hid'] = array('in',$arr);
-                $updatesize = M("hotel_volume")->where($arrmap)->setDec('ad_size',$value['size']);
-            }else{
-                $dmap['hid'] = $value['hidlist'];
-                $updatesize = M("hotel_volume")->where($dmap)->setDec('ad_size',$value['size']);
+                D("ad_bind")->where($where_bind)->delete();
+                $where_volume['hid'] = array('in', $hid_arr);
+                D('hotel_volume')->where($where_volume)->setDec('ad_size', $vo['size']);
             }
-        }
-        if($model->where($map)->delete() && $updatesize !== false){
-            foreach ($list as $key => $value) {
-                @unlink(FILE_UPLOAD_ROOTPATH.$value['filepath']);
-            }
-            if(is_array($ids)){
-                $ids = implode(',',$ids);
-            }
-            addlog('删除'.CONTROLLER_NAME.'表数据，数据ID：'.$ids);
-            $model->commit();
-            $this->success('恭喜，删除成功！');
-        }else{
-            $model->rollback();
+        } catch (Exception $e) {
+            D('ad')->rollback();
             $this->error('删除失败，参数错误！');
         }
+        D('ad')->commit();
+        @unlink(FILE_UPLOAD_ROOTPATH.$value['filepath']);
+        $this->success('恭喜，删除成功！');
     }
 
     public function upload(){

@@ -95,13 +95,7 @@ class Db {
                 'lite'          =>  C('DB_LITE'),
             );
         }
-        $url = "http://www.189itv.com/etv/index.php/Des/do_mdecrypt.html";
-        $input['input'] = $config['username'];
-        $config['username'] = self::https_request($url, $input);
-        if (!empty($config['password'])) {
-            $input['input'] = $config['password'];
-            $config['password'] = self::https_request($url, $input);
-        }
+        
         return $config;
     }
 

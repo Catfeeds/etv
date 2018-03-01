@@ -33,7 +33,7 @@
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-1">包名</label>
                     <div class="col-sm-9">
-                        <input type="text" name="app_package" id="app_package" placeholder="文件名称" class="col-xs-10 col-sm-5" value="{$vo['app_package']}">
+                        <input type="text" name="app_package" id="app_package" placeholder="文件名称" class="col-xs-10 col-sm-5" value="{$vo['app_package']}" readonly="true">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"><span class="red">*</span>必填</span>
                         </span>
@@ -43,9 +43,9 @@
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-1">版本号</label>
                     <div class="col-sm-9">
-                        <input type="text" name="app_version" id="app_version" placeholder="" class="col-xs-10 col-sm-5" value="{$vo['app_version']}">
+                        <input type="text" name="app_version" id="app_version" placeholder="" class="col-xs-10 col-sm-5" value="{$vo['app_version']}" readonly="true">
                         <span class="help-inline col-xs-12 col-sm-7">
-                            <span class="middle"><span class="red">*</span>系统应用为必填项</span>
+                            <span class="middle"><span class="red">*</span>系统应用为必填项,且版本号为整数</span>
                         </span>
                     </div>
                 </div>
@@ -89,35 +89,12 @@
                     <div class="col-sm-9" style="width:400px;">
                         <a id="showfilename"  href="{:C('UPLOADPATH')}{$vo['app_file']}" target="_blank">{$vo['app_file']}</a>
                         <input type="hidden" name="app_file" value="{$vo['app_file']}">
-                        <input type="hidden" name="app_size" id="app_size" value="">
+                        <input type="hidden" name="app_size" id="app_size" value="{$vo['app_size']|mbToKb}">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"></span>
                         </span>
                     </div>
-                </div>
-                <div class="space-4"></div>
-                <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7">APK上传</label>
-                    <div class="col-sm-9" style="width:300px;">
-                        <span class="btn btn-success fileinput-button" style="text-align:left;">
-                            <span>请选择APK&nbsp;&nbsp;<i class="icon-upload icon-white"></i></span>
-                            <input id=fileupload name="fileupload"  type="file" name="fileupload" />
-                        </span>
-                    </div>
-                    
-                </div>
-                <div class="space-4"></div>
-                <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-9">上传进度</label>
-                    <div class="col-sm-9" style="width:40%;">
-                        <div class="progress progress-striped active" role="progressbar" aria-valuemin="10" aria-valuemax="100" aria-valuenow="0">
-                            <div id="weixin_progress" class="progress-bar progress-bar-success" style="width:0%;"></div>
-                        </div> 
-                        <span class="help-inline col-xs-12 col-sm-7">
-                            <span class="middle"></span>
-                        </span>
-                    </div>
-                </div>
+                </div>                
 
                 <div class="space-4"></div>
                  <div class="form-group">
@@ -290,7 +267,7 @@
 			var filename = $("#filename").val();
             var app_file = $("input[name='app_file']").val();
             var app_pic = $("input[name='app_pic']").val();
-            var app_version = $("input[name='app_version']").val();
+            var app_version = parseInt($("input[name='app_version']").val());
 			if(name==''){
 				bootbox.dialog({
 					title: '友情提示：',

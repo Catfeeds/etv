@@ -44,7 +44,7 @@
                     <div class="col-sm-9">
                         <input type="text" name="app_version" id="app_version" placeholder="" class="col-xs-10 col-sm-5" value="">
                         <span class="help-inline col-xs-12 col-sm-7">
-                            <span class="middle"><span class="red">*</span>系统应用为必填项</span>
+                            <span class="middle"><span class="red">*</span>系统应用为必填项,且版本号为整数</span>
                         </span>
                     </div>
                 </div>
@@ -230,7 +230,9 @@
             toggle:false
         });      
     });
-	$(function () {
+
+    $(function () {
+
 		$("#fileupload").fileupload({
             url: "{:U('upload')}?name=fileupload", 
             dataType: 'json',
@@ -282,7 +284,7 @@
             var app_file = $("input[name='app_file']").val();
             var app_pic = $("input[name='app_pic']").val();
             var app_type = $("#app_type option:selected").val();
-            var app_version = $("input[name='app_version']").val();
+            var app_version = parseInt($("input[name='app_version']").val());
 			if(name==''){
 				bootbox.dialog({
 					title: '友情提示：',
@@ -348,7 +350,8 @@
                 });
                 return;
             }
-			$("#form").submit();
+
+            $("#form").submit();
 		});
 
         //选择房间静态模板

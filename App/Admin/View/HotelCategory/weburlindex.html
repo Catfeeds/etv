@@ -19,7 +19,7 @@
                                 <td>/</td>
                                 <td>{$pval['name']}</td>
                                 <td>{$pval['weburl']}</td>
-                                <td>{$pval['time']}</td>
+                                <td>{$pval['date']} {$pval['time']}</td>
                                 <td>{$pval['status']|get_status}</td>
                             </tr>
                         </volist>
@@ -58,7 +58,7 @@
                           <td class="center"><input class="aids" type="checkbox" name="ids[]" value="{$val['id']}_{$val['category_id']}"></td>
                           <td>{$val['name']}</td>
                           <td>{$val['weburl']}</td>
-                          <td>{$val['time']}</td>
+                          <td>{$val['date']} {$val['time']}</td>
                           <td>{$val['status']|get_status}</td>
                         </tr>
                       </volist>

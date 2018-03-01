@@ -55,11 +55,8 @@
                 {$page}
                 </div>
                 <div class="col-sm-3">
-                    <h5><strong>广告详情</strong></h5>
+                    <h5><strong>广告投放地:</strong></h5>
                     <div class="detailbar" id="detailbar" style="word-wrap: break-word;word-break:keep-all;">
-                        <p>标题：{$vo.title}</p>
-                    	<p>图片：</p>
-                        <p><img src="{:C('UPLOADPATH')}{$vo.filepath}" style="width:150px;height:210px;"/></p>
                         <p>投放酒店：<br/>{$vo.hidlist}</p>
                     </div>
                 </div>
@@ -143,6 +140,22 @@
 			});
 		});
 		$("#delete").click(function(){
+      var len = $("input[name='ids[]']:checked").length;
+      if(len!=1){
+        bootbox.confirm({
+          title: "系统提示",
+          message: "仅能对一条数据进行操作", 
+          callback:function(result){},
+              buttons: {
+                  "cancel" : {"label" : "取消"},
+                  "confirm" : {
+                      "label" : "确定",
+                      "className" : "btn-danger"
+                  }
+              }
+          });
+          return;
+      }
 			bootbox.confirm({
 				title: "系统提示",
 				message: "是否要删除所选广告？", 
@@ -161,25 +174,22 @@
 				}
 			});
 		});
-        $(".row_line").click(function(){
-            var url = "{:U('detail')}?id="+$(this).attr("rowid");
-            $.ajax({
-                url:url,
-                dataType:"json",
-                success:function(json){
-                    $("#detailbar").html("");
-                    var str = "";   
-                    str += "<p>标题："+json.title+"</p>";
-                    str += "<p>图片：</p>";
-                    str += '<p><img src="{:C("UPLOADPATH")}'+json.filepath+'" style="width:150px;height:210px;"/></p>';
-                    str += "<p>投放酒店：<br/>"+json.hidlist+"</p>";
-                    $("#detailbar").html(str);
-                },
-                error:function(){
-                    mainAjaxMsg(0,"AjaxError!");
-                }
-            })
-        }); 
+    
+    $(".row_line").click(function(){
+        var url = "{:U('detail')}?id="+$(this).attr("rowid");
+        $.ajax({
+            url:url,
+            dataType:"json",
+            success:function(data){
+                $("#detailbar").html("");
+                str = "<p>投放酒店：<br/>"+data+"</p>";
+                $("#detailbar").html(str);
+            },
+            error:function(){
+                mainAjaxMsg(0,"AjaxError!");
+            }
+        })
+    }); 
     })
     </script>
 </block>

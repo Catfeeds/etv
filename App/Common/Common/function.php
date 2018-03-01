@@ -129,3 +129,7 @@ function p($data){
     $str.='</pre>';
     echo $str;
 }
+
+function change_to_quotes($str){
+    return sprintf("'%s'", $str);
+}

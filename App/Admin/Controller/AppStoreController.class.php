@@ -293,4 +293,32 @@ class AppStoreController extends ComController {
         $this->display();
     }
 
+    public function true_delindex(){
+        $model = D("appstore");
+        $list = $this->_list($model,$map,10,'app_uploadtime desc');
+        $this->assign('list',$list);
+        $this->display();
+    }
+
+    public function true_del(){
+        if ($_POST['ids']) {
+            foreach ($_POST['ids'] as $key => $value) {
+                $ids_arr[] = $value;
+            }
+            D("appstore")->startTrans();
+            $where_appstore['id'] = $where_update['uplist_id'] = array('in', $ids_arr);
+            try {
+                D("appstore")->where($where_appstore)->delete();
+                D("device_update_result")->where($where_update)->delete();
+            } catch (Exception $e) {
+                D("appstore")->rollback();
+                $this->error("删除APK出错",U('true_delindex'));
+            }
+            D("appstore")->commit();
+            $this->error("操作成功",U('true_delindex'));
+        }else{
+            $this->error("请选择要删除的APK",U('true_delindex'));
+        }
+    }
+
 }

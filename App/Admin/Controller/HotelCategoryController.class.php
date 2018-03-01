@@ -996,7 +996,7 @@ class HotelCategoryController extends ComController {
         $modelinfo = M('modeldefine')->where('codevalue=505')->field('id')->find();
         $category_where['modeldefineid'] = $modelinfo['id'];
         $category_where['hid'] = $myhid;
-        $categorylist = D("hotel_category")->where($category_where)->field('"0" as id, hid, name, weburl, "2" as category_type, id as category_id, "" as time, "0" as status')->select();
+        $categorylist = D("hotel_category")->where($category_where)->field('"0" as id, hid, name, weburl, "2" as category_type, id as category_id, "" as date, "" as time, "0" as status')->select();
         $hotelinfo = M("hotel")->where('hid="'.$myhid.'"')->field('pid')->find();
         // 集团
         $plist = [];
@@ -1004,7 +1004,7 @@ class HotelCategoryController extends ComController {
             $photelinfo = M('hotel')->where('id='.$hotelinfo['pid'])->field('hid')->find();
             $pweburl_where['hid'] = $photelinfo['hid'];
             $pweburl_where['status'] = 1;
-            $plist = D("weburl")->where($pweburl_where)->field('name,weburl,time,status')->select();
+            $plist = D("weburl")->where($pweburl_where)->field('name,weburl,date,time,status')->select();
         }
         $list = array_merge($weburlinfo, $categorylist);
         $this->assign('list', $list);
@@ -1025,7 +1025,7 @@ class HotelCategoryController extends ComController {
         if ($ids_arr['0'] != 0) {
             $vo = D("weburl")->where('id='.$ids_arr['0'])->find();
         }else{
-            $vo = D("hotel_category")->where('id='.$ids_arr['1'])->field('"0" as id, hid, name, weburl, "2" as category_type, id as category_id, "" as time, "0" as status')->find();
+            $vo = D("hotel_category")->where('id='.$ids_arr['1'])->field('"0" as id, hid, name, weburl, "2" as category_type, id as category_id, "" as date, "" as time, "0" as status')->find();
         }
         if ($vo['time']) {
             $time = explode(":", $vo['time']);

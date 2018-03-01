@@ -66,8 +66,8 @@
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-7"></label>
                     <div class="col-sm-9">
-                        <input type="hidden" name="hidlist" value="all" />
-                        <textarea name="hotel" id="intro" readonly="true" class="col-xs-10 col-sm-5" rows="5">不选择则默认全部酒店</textarea>
+                        <input type="hidden" name="hidlist" value="" />
+                        <textarea name="hotel" id="intro" readonly="true" class="col-xs-10 col-sm-5" rows="5"></textarea>
                     </div>
                 </div>
                 <div class="space-4"></div>
@@ -91,17 +91,11 @@
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                         <h4 class="modal-title" id="myModalLabel">选择要推送广告的酒店</h4>
-                            （不选择则默认全部酒店）
                     </div>
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-xs-12">
                                 <div class="panel-group" id="accordion">
-                                    <div class="panel panel-default">
-                                        <div class="panel-heading">
-                                            <h4 class="panel-title"><input type="checkbox" name="allHotel" id="allHotel" class="checkHotelAll" value="allHotel" >&nbsp;&nbsp;全部</h4>
-                                        </div>
-                                    </div>
                                     <volist name="menuTree" id="list">
                                     <div class="panel panel-default">
                                         <div class="panel-heading">
@@ -204,15 +198,6 @@
         });
 	});
 
-    $("input[type=checkbox].checkHotelAll").on("click",function(){
-        var ischeck = this.checked;
-        $.each($("input.checkAccessSingle"),function(i,item){
-            item.checked=ischeck;
-        });
-        $.each($("input.checkAccessAll"),function(i,item){
-            item.checked=ischeck;
-        });
-    });
     $("input[type=checkbox].checkAccessAll").on("click",function(){
         var ischeck = this.checked;
         $.each($("input[cid="+this.id+"].checkAccessSingle"),function(i,item){
@@ -238,7 +223,6 @@
         var hotelIDs=[];
         var hotelNames=[];
         var i=0;
-        var allischecked = $("input[type=checkbox].checkHotelAll").is(':checked');
         $("input[type=checkbox].checkAccessSingle ").each(function(){
             if(this.checked){
                 hotelIDs[i]=$(this).val();
@@ -246,13 +230,13 @@
                 i++;
             }
         });
-        if(hotelNames.join()=="" || hotelNames.join()=="NULL" || allischecked){
-            $("textarea[name=hotel]").val("全部酒店");
+        if(hotelNames.join()=="" || hotelNames.join()=="NULL"){
+            $("textarea[name=hotel]").val("");
         }else{
             $("textarea[name=hotel]").val(hotelNames.join());
         }
-        if(hotelNames.join()=="" || hotelNames.join()=="NULL" || allischecked){
-            $("input[name=hidlist]").val("all");
+        if(hotelNames.join()=="" || hotelNames.join()=="NULL"){
+            $("input[name=hidlist]").val("");
         }else{
             $("input[name=hidlist]").val(hotelIDs.join());
         }

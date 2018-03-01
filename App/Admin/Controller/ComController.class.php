@@ -322,6 +322,26 @@ class ComController extends BaseController{
         }
         return $regionList;
     }
+    public function _new_hotel_list($map = array()){
+        $hotelinfo = D("hotel")->where($map)->field('hid,hotelname,cityid')->select();
+        if (!empty($hotelinfo)) {
+            foreach ($hotelinfo as $key => $value) {
+                $cityid_arr[] = $value['cityid'];
+            }
+            $cityid_arr = array_unique($cityid_arr);
+            $region_where['id'] = array('in', $cityid_arr); 
+            $regionList = D('region')->where($region_where)->field('id,name')->select();
+            foreach ($regionList as $key => $value) {
+                $region_arr[$value['id']] = $value;
+            }
+            foreach ($hotelinfo as $key => $value) {
+                $region_arr[$value['cityid']]['sub'][] = $value;
+            }
+            return $region_arr;
+        }else{
+            return false;
+        }
+    }
     public function get_client_ip(){
         if (getenv("HTTP_CLIENT_IP") && strcasecmp(getenv("HTTP_CLIENT_IP"), "unknown"))
         $ip = getenv("HTTP_CLIENT_IP");

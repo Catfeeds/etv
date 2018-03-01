@@ -3,7 +3,7 @@
     <div class="row">
         <div class="col-xs-12">
             <div class="row">
-                <form class="form-inline" action="{:U('index')}" method="get">
+                <form class="form-inline" action="{:U('index')}" method="GET">
                     <input type="hidden" name="currentpage" value="1"/>
                     <span><label style="width:auto;">开始日期：</label> </span>
                     <input placeholder=" 年 / 月 / 日 " class="date" name="begindate" value="{$_GET['begindate']}" type="text" data-date-format="yyyy-mm-dd" style="width: 150px;" /><span style="padding-right: 10px;"></span>
@@ -12,10 +12,6 @@
                     <span><label style="width:auto;">状态:</label> </span>
                     <select  name="status" style="width:120px;">
                         <option value="-1" selected  >请选择</option>
-                        <option value="0" <if condition="($_REQUEST['status'] eq 0) and ($_REQUEST['status'] neq null)"> selected</if>  >升级成功</option>
-                        <option value="1" <if condition="($_REQUEST['status'] eq 1)"> selected</if>  >校验失败</option>
-                        <option value="2" <if condition="($_REQUEST['status'] eq 2)"> selected</if>  >安装失败</option>
-                        <option value="3" <if condition="($_REQUEST['status'] eq 3)"> selected</if>  >下载安装包</option>
                         <option value="4" <if condition="($_REQUEST['status'] eq 4)"> selected</if>  >开机例询</option>
                     </select>&nbsp;&nbsp;
                     <span><label style="width:auto;">其他条件:</label> </span>

@@ -93,5 +93,16 @@ class DeviceParaLogController extends ComController {
         addlog('清空参数上传日志表所有数据');
         $this->success('恭喜，操作成功！');
     }
+    // 删除最近一周的上传参数日志
+    public function deleteweek(){
+        $time = time()-60*60*24*7;
+        $map['post_time'] = array('ELT',$time);
+        $result = D("device_para_log")->where($map)->delete();
+        if($result!==false){
+            $this->success('删除日志成功');
+        }else{
+            $this->error('删除日志失败');
+        }
+    }
 
 }

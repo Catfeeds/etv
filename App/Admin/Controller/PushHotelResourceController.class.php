@@ -139,20 +139,20 @@ class PushHotelResourceController extends ComController {
         $map['cat'] = 'content';
         $map['status'] = 1;
         $map['audit_status'] = 4;
-        $field = "";
-        $list = D("hotel_resource")->where($map)->field()->select();
+        $field = "id,hid,category_id as cid,title,intro,sort,filepath,type as file_type,video_image as icon";
+        $list = D("hotel_resource")->where($map)->field($field)->select();
         if (!empty($list)) {
             foreach ($list as $key => $value) {
-                $plist[$value['category_id']][] = $value; 
+                $plist[$value['cid']][] = $value; 
             }
             $jsondata = json_encode($plist);
         }else{
             $jsondata = '';
         }
-        if(!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid)){
-            mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid);
+        if(!is_dir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$map['hid'])){
+            mkdir(FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$map['hid']);
         }
-        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$hid.'/hotelresource.json';
+        $filename = FILE_UPLOAD_ROOTPATH.'/hotel_json/'.$map['hid'].'/hotelresource.json';
         file_put_contents($filename, $jsondata);
     }
 }

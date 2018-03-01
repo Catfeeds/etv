@@ -1013,6 +1013,7 @@ class ApiController extends Controller{
             $where['hid'] = $hid;
         }
         $where['status'] = 1;
+        $where['date'] = date("Y-m-d");
         $list = D("weburl")->where($where)->field("id,name,weburl,time")->select();
         if (!empty($list)) {
             $json['status'] = 200;
@@ -2174,7 +2175,7 @@ class ApiController extends Controller{
      * @return [array] $list [视频轮播资源列表]
      */
     public function getVideoCarousel(){
-        $hid = I('post.hid');
+        $hid = I('request.hid');
         if(empty($hid)){
             $this->Callback(10000,'the hid is empty');
         }

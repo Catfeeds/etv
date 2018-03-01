@@ -94,17 +94,11 @@
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                         <h4 class="modal-title" id="myModalLabel">选择要推送广告的酒店</h4>
-                            （不选择则默认全部酒店）
                     </div>
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-xs-12">
                                 <div class="panel-group" id="accordion">
-                                    <div class="panel panel-default">
-                                        <div class="panel-heading">
-                                            <h4 class="panel-title"><input type="checkbox" name="allHotel" id="allHotel" class="checkHotelAll" value="allHotel" >&nbsp;&nbsp;全部</h4>
-                                        </div>
-                                    </div>
                                     <volist name="menuTree" id="list">
                                     <div class="panel panel-default">
                                         <div class="panel-heading">
@@ -117,7 +111,7 @@
                                             <div class="panel-body">
                                                 <volist name="list['sub']" id="sub">
                                                 <label class="checkbox inline" style="padding-left: 30px;">
-                                                    <input type="checkbox" name="eHotel" cid="list_{$list.id}" class="checkAccessSingle" value="{$sub.hid}" hotelname="{$sub.hotelname}" <if condition="$sub.flag eq 1">checked</if> />{$sub.hotelname}
+                                                    <input type="checkbox" name="eHotel" cid="list_{$list.id}" class="checkAccessSingle" value="{$sub.hid}" hotelname="{$sub.hotelname}" <if condition="$sub.isselect eq 1">checked</if> />{$sub.hotelname}
                                                 </label>
                                                 </volist>
                                             </div>
@@ -144,6 +138,16 @@
     $(function(){
         $(".panel-collapse").collapse({
             toggle:false
+        });
+        // 遍历获取房间已经选中的酒店进行勾选
+        $("input[type=checkbox].checkAccessAll").each(function(index, el) {
+           var $cid = $("input[cid='"+$(this).attr('id')+"']").attr('checked');
+           var that = $(this);
+           $("input[cid='"+$(this).attr('id')+"']").each(function(index, el) {
+               if($(this).attr('checked')== 'checked'){
+                    that.attr('checked', 'checked');
+               }
+           })
         });      
     });
 	$(function () {
@@ -205,15 +209,6 @@
             $('div#HotelModal').modal('show');  
         });
 	});
-    $("input[type=checkbox].checkHotelAll").on("click",function(){
-        var ischeck = this.checked;
-        $.each($("input.checkAccessSingle"),function(i,item){
-            item.checked=ischeck;
-        });
-        $.each($("input.checkAccessAll"),function(i,item){
-            item.checked=ischeck;
-        });
-    });
     $("input[type=checkbox].checkAccessAll").on("click",function(){
         var ischeck = this.checked;
         $.each($("input[cid="+this.id+"].checkAccessSingle"),function(i,item){
@@ -239,7 +234,6 @@
         var hotelIDs=[];
         var hotelNames=[];
         var i=0;
-        var allischecked = $("input[type=checkbox].checkHotelAll").is(':checked');//所有选中
         $("input[type=checkbox].checkAccessSingle ").each(function(){
             if(this.checked){
                 hotelIDs[i]=$(this).val();
@@ -247,13 +241,13 @@
                 i++;
             }
         });
-        if(hotelNames.join()=="" || hotelNames.join()=="NULL" || allischecked){
-            $("textarea[name=hotel]").val("全部酒店");
+        if(hotelNames.join()=="" || hotelNames.join()=="NULL"){
+            $("textarea[name=hotel]").val("-");
         }else{
             $("textarea[name=hotel]").val(hotelNames.join());
         }
-        if(hotelNames.join()=="" || hotelNames.join()=="NULL" || allischecked){
-            $("input[name=hidlist]").val("all");
+        if(hotelNames.join()=="" || hotelNames.join()=="NULL"){
+            $("input[name=hidlist]").val("");
         }else{
             $("input[name=hidlist]").val(hotelIDs.join());
         }
