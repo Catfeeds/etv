@@ -15,7 +15,8 @@ return array(
     'DEVICE_ONLINE_TIME'=>120,//设备在线判断（秒数）
     'LOAD_EXT_CONFIG'=> 'const', //自定义常量
     'URL_CASE_INSENSITIVE' => false,
-    'LOG_LEVEL' => 'ERR', //记录允许的日志
+	'LOG_RECORD' => true,
+    'LOG_LEVEL' => 'EMERG,ALERT,CRIT,ERR', //记录允许的日志
     //数据库链接配置
     'DB_TYPE'   => 'mysql', // 数据库类型
     'DB_HOST'   => 'localhost', // 服务器地址

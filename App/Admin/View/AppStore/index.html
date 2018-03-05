@@ -85,26 +85,27 @@
 				}
 			});
 		});
-    //提交某条记录的修改
+
+        //提交某条记录的修改
 		$("#edit").click(function(){
-      var len = $("input[name='ids[]']:checked").length;
-      if(len!=1){
-        bootbox.confirm({
-          title: "系统提示",
-          message: "仅能对一条数据进行操作", 
-          callback:function(result){},
-            buttons: {
-                "cancel" : {"label" : "取消"},
-                "confirm" : {
-                    "label" : "确定",
-                    "className" : "btn-danger"
-                }
+            var len = $("input[name='ids[]']:checked").length;
+            if(len!=1){
+                bootbox.confirm({
+                  title: "系统提示",
+                  message: "仅能对一条数据进行操作",
+                  callback:function(result){},
+                    buttons: {
+                        "cancel" : {"label" : "取消"},
+                        "confirm" : {
+                            "label" : "确定",
+                            "className" : "btn-danger"
+                        }
+                    }
+                });
+                return;
             }
-        });
-        return;
-      }
-			$("#form").attr("action",$("#edit").attr("val"));
-			$("#form").submit();
+            $("#form").attr("action",$("#edit").attr("val"));
+            $("#form").submit();
 		});
 
 		$("#unlock").click(function(){

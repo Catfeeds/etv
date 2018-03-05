@@ -2,38 +2,39 @@
 <block name="page-content-row">
     <div class="row">
         <div class="col-xs-12">
-            <div class="row">
-                <form class="form-inline" action="{:U('index')}" method="get">
-
-                </form>
+            <div class="page-header">
+                <a class="label label-xlg label-primary arrowed " href="{:U('index')}">返回列表</a>
             </div>
-            <div class="space-8"></div>
             <div class="row">
-                <a class="label label-xlg label-primary" href="{:U('addappname')}" ><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;添加APP</a>
-                <a class="label label-xlg label-success" href="javascript:;" id="editappname" val="{:U('editappname')}" ><i class="ace-icon fa fa-pencil bigger-100"></i>&nbsp;修改APP名称</a>
-                <a class="label label-xlg label-danger" href="javascript:;" id="delappname" val="{:U('delappname')}" ><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除APP</a>
-                <a class="label label-xlg label-purple" href="javascript:;" id='indexappset' val="{:U('indexappset')}" ><i class="ace-icon fa fa-list bigger-100"></i>&nbsp;APP定时设置</a>
+                <a class="label label-xlg label-primary" href="javascript:;" id="addappset" val="{:U('addappset')}" ><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;新增定时设置</a>
+                <a class="label label-xlg label-success" href="javascript:;" id="editappset" val="{:U('editappset')}" ><i class="ace-icon fa fa-pencil bigger-100"></i>&nbsp;修改定时设置</a>
+                <a class="label label-xlg label-danger" href="javascript:;" id="delappset" val="{:U('delappset')}" ><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除定时设置</a>
+                <a class="label label-xlg label-info" href="javascript:;" id="setunlock" val="{:U('setunlock')}" ><i class="ace-icon fa fa-unlock bigger-100"></i>&nbsp;启用</a>
+                <a class="label label-xlg label-warning" href="javascript:;" id="setlock" val="{:U('setlock')}" ><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;禁用</a>
             </div>
             <div class="space-8"></div>
             <div class="row">
                 <div class="col-sm-12">
                     <form id="form" method="post" action="">
+                        <input name="applistid" value="{$applistid}" type="hidden">
                         <table class="table table-striped table-bordered">
                             <thead>
                             <tr>
                                 <th class="center"><input class="check-all" type="checkbox" value=""></th>
-                                <th>APP名称</th>
-                                <th>所属客户</th>
-                                <th>时间段</th>
+                                <th>设置日期</th>
+                                <th>开启时间</th>
+                                <th>结束时间</th>
+                                <th>状态</th>
                             </tr>
                             </thead>
                             <tbody>
                             <volist name="list" id="val">
                                 <tr class="row_line" rowid="{$val['id']}">
                                     <td class="center"><input class="aids" type="checkbox" name="ids[]" value="{$val['id']}"></td>
-                                    <td>{$val.appname}</td>
-                                    <td>{$val.hotelname}</td>
-                                    <td title="{$val.settime|nodetospace}" style="">{$val.settime|nodetobr}</td>
+                                    <td>{$val.date}</td>
+                                    <td>{$val.start_time}</td>
+                                    <td>{$val.end_time}</td>
+                                    <td>{$val.status|get_status}</td>
                                 </tr>
                             </volist>
                             </tbody>
@@ -62,73 +63,23 @@
                     }
                 });
             });
-            $("#delappname").click(function(){
-                var len = $("input[name='ids[]']:checked").length;
-                if(len!=1){
-                    bootbox.confirm({
-                        title: "系统提示",
-                        message: "仅能对一条数据进行操作",
-                        callback:function(result){
 
-                        },
-                        buttons: {
-                            "cancel" : {"label" : "取消"},
-                            "confirm" : {
-                                "label" : "确定",
-                                "className" : "btn-danger"
-                            }
-                        }
-                    });
-                    return;
-                }else{
-                    bootbox.confirm({
-                        title: "系统提示",
-                        message: "删除APP会将所属设置时间一并删除,请确定进行删除操作?",
-                        buttons: {
-                            confirm: {
-                                label: "确定"
-                            },
-                            cancel:{
-                                label:"取消"
-
-                            }
-                        },
-                        callback:function(result){
-                            if(!result){
-                                return ;
-                            }else{
-                                $("#form").attr("action",$("#delappname").attr("val"));
-                                $("#form").submit();
-                            }
-                        }
-                    });
-                }
-            });
-
-            $("#editappname").click(function(){
-                var len = $("input[name='ids[]']:checked").length;
-                if(len!=1){
-                    bootbox.confirm({
-                        title: "系统提示",
-                        message: "仅能对一条数据进行操作",
-                        callback:function(result){
-
-                        },
-                        buttons: {
-                            "cancel" : {"label" : "取消"},
-                            "confirm" : {
-                                "label" : "确定",
-                                "className" : "btn-danger"
-                            }
-                        }
-                    });
-                    return;
-                }
-                $("#form").attr("action",$("#editappname").attr("val"));
+            $("#addappset").click(function(){
+                $("#form").attr("action",$("#addappset").attr("val"));
                 $("#form").submit();
             });
 
-            $("#indexappset").click(function(){
+            $("#setunlock").click(function(){
+                $("#form").attr("action",$("#setunlock").attr("val"));
+                $("#form").submit();
+            });
+
+            $("#setlock").click(function(){
+                $("#form").attr("action",$("#setlock").attr("val"));
+                $("#form").submit();
+            });
+
+            $("#delappset").click(function(){
                 var len = $("input[name='ids[]']:checked").length;
                 if(len!=1){
                     bootbox.confirm({
@@ -147,9 +98,33 @@
                     });
                     return;
                 }
-                $("#form").attr("action",$("#indexappset").attr("val"));
+                $("#form").attr("action",$("#delappset").attr("val"));
                 $("#form").submit();
             });
+
+            $("#editappset").click(function(){
+                var len = $("input[name='ids[]']:checked").length;
+                if(len!=1){
+                    bootbox.confirm({
+                        title: "系统提示",
+                        message: "仅能对一条数据进行操作",
+                        callback:function(result){
+
+                        },
+                        buttons: {
+                            "cancel" : {"label" : "取消"},
+                            "confirm" : {
+                                "label" : "确定",
+                                "className" : "btn-danger"
+                            }
+                        }
+                    });
+                    return;
+                }
+                $("#form").attr("action",$("#editappset").attr("val"));
+                $("#form").submit();
+            });
+
         })
     </script>
 </block>
