@@ -540,28 +540,28 @@ class ApiController extends Controller{
     public function getMainAd(){
         $json = array();
         $hid = strtoupper(I('request.hid'));
-        $room = I('request.room');
-        $mac = I('request.mac');
+        
         if (empty($hid)) {
             $this->errorCallback(404, "Error: hid param is needed!");
         }
-        if (empty($room)) {
-            $this->errorCallback(404, "Error: room param is needed!");
-        }
-        if (empty($mac)) {
-            $this->errorCallback(404, "Error: mac param is needed!");
-        }
-        $Ad = D("ad");
-        $list=$Ad->where('status=1 and audit_status=4 and (hidlist = "all" or hidlist like "'."%".$hid."%".'")')->order('upload_time desc')->select();
-        if (empty($list)) {
+        $bindlist = D('ad_bind')->where('hid='.$hid)->field('ad_id')->select();
+        if (!empty($bindlist)) {
+            $map['id'] = array('in', $bindlist['0']['ad_id']);
+            $map['status'] = 1;
+            $map['audit_status'] = 4;
+            $list = D('ad')->where($map)->field('filepath')->select();
+            if (empty($list)) {
+                $this->errorCallback(404, "Error:ad is not authorized to the hotel, or the audit ad image is empty!");
+            }
+            $json['status'] = 200;
+            $json['info'] = "Successed!";
+            $json['image']=self::$serverUrl.$list[0]['filepath'];
+            $json['getimage']="/Public".$list[0]['filepath'];
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($json);
+        }else{
             $this->errorCallback(404, "Error:ad is not authorized to the hotel, or the audit ad image is empty!");
         }
-        $json['status'] = 200;
-        $json['info'] = "Successed!";
-        $json['image']=self::$serverUrl.$list[0]['filepath'];
-        $json['getimage']="/Public".$list[0]['filepath'];
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($json);
     }
 
     /**
@@ -2426,6 +2426,26 @@ class ApiController extends Controller{
         }
         $result = D("hotel")->where("id=".$vo['pid'])->field('hid')->find();
         return $result;
+    }
+
+	/**
+     * 获取app定时启动设置
+     */
+    public function getapptimeset()
+    {
+        $hid = I('request.hid', '', 'strip_tags');
+        if (empty($hid)) {
+            $this->Callback(404, 'the hid is empty');
+        }
+        $where['zxt_appopen_name.hid'] = $hid;
+        $where['zxt_appopen_set.status'] = 1;
+        $field = "zxt_appopen_name.appname,zxt_appopen_name.packagename,zxt_appopen_name.classname,zxt_appopen_set.start_time,zxt_appopen_set.end_time,zxt_appopen_set.date";
+        $list = D('appopen_name')
+            ->where($where)
+            ->field($field)
+            ->join('join zxt_appopen_set on zxt_appopen_name.id=zxt_appopen_set.applistid')
+            ->select();
+        $this->Callback('200', $list);
     }
 }
 ?>

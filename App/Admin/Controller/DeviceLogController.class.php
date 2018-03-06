@@ -28,27 +28,24 @@ class DeviceLogController extends ComController {
             $map['runtime'] = array("BETWEEN",array($begindate,$enddate));
         }
         if ($_GET['status']>=0 && $_GET['status']!=null ) {
-           $map['status'] = array("like","%".$_REQUEST['status']."%");
+           $map['status'] = $_REQUEST['status'];
         }
         if (!empty($_GET['search_type']) ) {
             if($_GET['search_type'] == 'hid'){
-                $hotelname = I('get.keyword','','strip_tags');
-                $hid = $this->getHidByHotelname($hotelname);
+                $hid = I('get.keyword','','strip_tags');
                 if(!empty($hid)){
                     $map['hid'] = array('in',$hid);
-                }else{
-                    $map = false;
-                }       
-            }elseif($_GET['search_type'] == 'cityname'){
-                $cityname = I('get.keyword','','strip_tags');
-                $hid = $this->getHidByCityName($cityname);
-                if(!empty($hid)){
-                    $map['hid'] = array('in',$hid);
-                }else{
-                    $map = false;
-                } 
-            }else{
-                $map[$_GET['search_type']] = array("like","%".trim(I('get.keyword','','strip_tags'))."%");
+                }
+            }elseif($_GET['search_type'] == 'mac'){
+                $mac = I('get.keyword','','strip_tags');
+                if(!empty($mac)){
+                    $map['mac'] = array('in',$mac);
+                }
+            }elseif($_GET['search_type'] == 'room'){
+                $room = I('get.keyword','','strip_tags');
+                if(!empty($room)){
+                    $map['room'] = array('in',$room);
+                }
             }
         }
         return $map;
@@ -56,11 +53,22 @@ class DeviceLogController extends ComController {
     public function index(){
         $model = D(CONTROLLER_NAME);
         $map = $this->_map();
-        if($map !== false){
-            $list = $this->_list($model,$map);
+        if(empty($map)){
+            $count = $model->count();
+            if(empty($_GET['p'])){
+                $sql = "select * from zxt_device_log order by id desc limit 10";
+            }else{
+                $getpage = $_GET['p'];
+                $idcount = ($getpage-1)*10;
+                $sql = "select * from zxt_device_log WHERE id <= (select id from zxt_device_log order by id desc limit ".$idcount." ,1) ORDER BY id desc limit 0,10";
+            }
+            $Page = new\Think\Page($count,10,$_GET);
+            $pageshow = $Page -> show();
+            $this -> assign("page",$pageshow);//赋值分页输出
+            $list = $model->query($sql);
         }else{
-            $list = '';
-        }      
+            $list = $this->_list($model,$map);
+        }
         $this->assign('list',$list);
         $this->display();
     }

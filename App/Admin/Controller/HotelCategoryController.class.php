@@ -1004,7 +1004,7 @@ class HotelCategoryController extends ComController {
             $photelinfo = M('hotel')->where('id='.$hotelinfo['pid'])->field('hid')->find();
             $pweburl_where['hid'] = $photelinfo['hid'];
             $pweburl_where['status'] = 1;
-            $plist = D("weburl")->where($pweburl_where)->field('name,weburl,date,time,status')->select();
+            $plist = D("weburl")->where($pweburl_where)->field('name,weburl,date,start_time,end_time,status')->select();
         }
         $list = array_merge($weburlinfo, $categorylist);
         $this->assign('list', $list);

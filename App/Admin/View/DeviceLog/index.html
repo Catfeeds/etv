@@ -9,11 +9,7 @@
                     <input placeholder=" 年 / 月 / 日 " class="date" name="begindate" value="{$_GET['begindate']}" type="text" data-date-format="yyyy-mm-dd" style="width: 150px;" /><span style="padding-right: 10px;"></span>
                     <span><label style="width:auto;">结束日期：</label> </span>
                     <input placeholder=" 年 / 月 / 日 " class="date" name="enddate" value="{$_GET['enddate']}" type="text" data-date-format="yyyy-mm-dd" style="width: 150px;" /><span style="padding-right: 10px;"></span>
-                    <span><label style="width:auto;">状态:</label> </span>
-                    <select  name="status" style="width:120px;">
-                        <option value="-1" selected  >请选择</option>
-                        <option value="4" <if condition="($_REQUEST['status'] eq 4)"> selected</if>  >开机例询</option>
-                    </select>&nbsp;&nbsp;
+                    &nbsp;&nbsp;
                     <span><label style="width:auto;">其他条件:</label> </span>
                     <select  name="search_type"  style="width:130px;">
                         <option value="" selected  >请选择</option>
@@ -21,7 +17,7 @@
                         <option value="mac"       <if condition="($_REQUEST['search_type'] eq 'mac')"> selected</if> >MAC地址</option>
                         <!-- <option value="cversion"  <if condition="($_REQUEST['search_type'] eq 'cversion')" > selected</if> >当前版本</option> -->
                         <!-- <option value="uversion"  <if condition="($_REQUEST['search_type'] eq 'uversion')"> selected</if> >升级版本</option> -->
-                        <option value="hid"  <if condition="($_REQUEST['search_type'] eq 'hid')"> selected</if> >酒店名称</option>
+                        <option value="hid"  <if condition="($_REQUEST['search_type'] eq 'hid')"> selected</if> >酒店编号</option>
                         <!-- <option value="cityname"  <if condition="($_REQUEST['search_type'] eq 'cityname')"> selected</if> >城市名称</option> -->
                     </select>&nbsp;&nbsp;
                     <input type="text" name="keyword" value="{$_REQUEST['keyword']}">
