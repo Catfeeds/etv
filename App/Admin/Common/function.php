@@ -504,3 +504,7 @@ function nodetobr($data){
 function nodetospace($data){
     return str_replace(',','',$data);
 }
+
+function weekdaytran($str){
+    return '周'.str_replace(",", ",周", $str);
+}
