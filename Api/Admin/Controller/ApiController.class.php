@@ -1002,6 +1002,7 @@ class ApiController extends Controller{
      */
     public function weburllist(){
         $hid =I('request.hid');
+        $date =I('request.date');
         if (empty($hid)) {
             $this->errorCallback(10000, "Error: hid param is needed!");
         }
@@ -1013,8 +1014,10 @@ class ApiController extends Controller{
             $where['hid'] = $hid;
         }
         $where['status'] = 1;
-        $where['date'] = date("Y-m-d");
-        $list = D("weburl")->where($where)->field("id,name,weburl,time")->select();
+        if(!empty($data)){
+            $where['date'] = $date;
+        }
+        $list = D("weburl")->where($where)->field("id,name,weburl,start_time,end_time")->select();
         if (!empty($list)) {
             $json['status'] = 200;
             $json['data'] = $list;
@@ -2434,17 +2437,17 @@ class ApiController extends Controller{
     public function getapptimeset()
     {
         $hid = I('request.hid', '', 'strip_tags');
+        $mac = I('request.mac', '', 'strip_tags');
         if (empty($hid)) {
             $this->Callback(404, 'the hid is empty');
         }
-        $where['zxt_appopen_name.hid'] = $hid;
-        $where['zxt_appopen_set.status'] = 1;
-        $field = "zxt_appopen_name.appname,zxt_appopen_name.packagename,zxt_appopen_name.classname,zxt_appopen_set.start_time,zxt_appopen_set.end_time,zxt_appopen_set.date";
-        $list = D('appopen_name')
-            ->where($where)
-            ->field($field)
-            ->join('join zxt_appopen_set on zxt_appopen_name.id=zxt_appopen_set.applistid')
-            ->select();
+        if (empty($mac)) {
+            $this->Callback(404, 'the mac is empty');
+        }
+        $where['zxt_appopen_setting.hid'] = $hid;
+        $where['zxt_appopen_setting.status'] = 1;
+        $where['zxt_appopen_setting.maclist'] = array('like','%'.$mac.'%');
+        $list = D('appopen_setting')->where($where)->select();
         $this->Callback('200', $list);
     }
 }

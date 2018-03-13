@@ -11,7 +11,7 @@
             <div class="row">
                 <a class="label label-xlg label-primary" href="{:U('add')}" ><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;添加APP定时</a>
                 <a class="label label-xlg label-success" href="javascript:;" id="edit" val="{:U('edit')}" ><i class="ace-icon fa fa-pencil bigger-100"></i>&nbsp;修改APP定时</a>
-                <a class="label label-xlg label-danger" href="javascript:;" id="delete" val="{:U('delete')}" ><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除APP定时</a>
+                <a class="label label-xlg label-danger" href="javascript:;" id="del" val="{:U('delete')}" ><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除APP定时</a>
                 <a class="label label-xlg label-info" href="javascript:;" id="unlock" val="{:U('unlock')}" ><i class="ace-icon fa fa-unlock bigger-100"></i>&nbsp;启用</a>
                 <a class="label label-xlg label-warning" href="javascript:;" id="lock" val="{:U('lock')}" ><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;禁用</a>
             </div>
@@ -89,48 +89,6 @@
                     }
                 });
             });
-            $("#delappname").click(function(){
-                var len = $("input[name='ids[]']:checked").length;
-                if(len!=1){
-                    bootbox.confirm({
-                        title: "系统提示",
-                        message: "仅能对一条数据进行操作",
-                        callback:function(result){
-
-                        },
-                        buttons: {
-                            "cancel" : {"label" : "取消"},
-                            "confirm" : {
-                                "label" : "确定",
-                                "className" : "btn-danger"
-                            }
-                        }
-                    });
-                    return;
-                }else{
-                    bootbox.confirm({
-                        title: "系统提示",
-                        message: "删除APP会将所属设置时间一并删除,请确定进行删除操作?",
-                        buttons: {
-                            confirm: {
-                                label: "确定"
-                            },
-                            cancel:{
-                                label:"取消"
-
-                            }
-                        },
-                        callback:function(result){
-                            if(!result){
-                                return ;
-                            }else{
-                                $("#form").attr("action",$("#delappname").attr("val"));
-                                $("#form").submit();
-                            }
-                        }
-                    });
-                }
-            });
             $("#unlock").click(function(){
                 bootbox.confirm({
                     title: "系统提示",
@@ -194,7 +152,7 @@
             $("#delete").click(function(){
                 bootbox.confirm({
                     title: "系统提示",
-                    message: "是否要删除所选数据？",
+                    message: "是否要删除所选？",
                     callback:function(result){
                         if(result){
                             $("#form").attr("action",$("#delete").attr("val"));

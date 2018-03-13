@@ -301,7 +301,7 @@
                             label = '';
                             var $count = data.length;
                             for(var i =0; i<$count; i++){
-                                label += '<label class="checkbox" style="padding-left: 30px;"><input type="checkbox" name="eHotel" class="checkAccessSingle" value="'+data[i]['maclist']+'" hotelname="'+data[i]['room']+'">'+data[i]['room']+"(详细地址备注："+data[i]["room_remark"]+")"+'</label>';
+                                label += '<label class="checkbox" style="padding-left: 30px;"><input type="checkbox" name="eHotel" class="checkAccessSingle" value="'+data[i]['mac']+'" hotelname="'+data[i]['room']+'">'+data[i]['room']+"(详细地址备注："+data[i]["room_remark"]+")"+'</label>';
                             }
                             $("#sub").html(label);
                             $('div#HotelModal').modal('show');
