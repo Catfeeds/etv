@@ -6,7 +6,6 @@
     <div class="row">
         <div class="col-xs-12">
             <form class="form-horizontal" id="form" method="post" action="{:U('update')}" enctype="multipart/form-data">
-                <input type="hidden" name="id" value="{$vo.id}">
                 <div class="space-4"></div>
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right">标题</label>
@@ -17,6 +16,7 @@
                         </span>
                     </div>
                 </div>
+                <input type="hidden" name="relock" value="{$vo.id}">
                 <div class="space-4"></div>
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right">内容</label>
@@ -49,13 +49,13 @@
                 <div class="form-group" id="repeattime3" <if condition="$vo.repeat_set neq 3"> style="display:none;" </if>>
                     <label class="col-sm-1 control-label no-padding-right">具体日期:</label>
                     <div class="col-sm-9">
-                        <input type="checkbox" name="weekday[]"  value="1" />周一 &nbsp;&nbsp;&nbsp;
-                        <input type="checkbox" name="weekday[]"  value="2" />周二 &nbsp;&nbsp;&nbsp;
-                        <input type="checkbox" name="weekday[]"  value="3" />周三 &nbsp;&nbsp;&nbsp;
-                        <input type="checkbox" name="weekday[]"  value="4" />周四 &nbsp;&nbsp;&nbsp;
-                        <input type="checkbox" name="weekday[]"  value="5" />周五 &nbsp;&nbsp;&nbsp;
-                        <input type="checkbox" name="weekday[]"  value="6" />周六 &nbsp;&nbsp;&nbsp;
-                        <input type="checkbox" name="weekday[]"  value="7" />周日
+                        <input type="checkbox" name="weekday[]"  value="1" <?php if(strstr($vo['weekday'], '1')) echo 'checked'; ?> />周一 &nbsp;&nbsp;&nbsp;
+                        <input type="checkbox" name="weekday[]"  value="2" <?php if(strstr($vo['weekday'], '2')) echo 'checked'; ?> />周二 &nbsp;&nbsp;&nbsp;
+                        <input type="checkbox" name="weekday[]"  value="3" <?php if(strstr($vo['weekday'], '3')) echo 'checked'; ?> />周三 &nbsp;&nbsp;&nbsp;
+                        <input type="checkbox" name="weekday[]"  value="4" <?php if(strstr($vo['weekday'], '4')) echo 'checked'; ?> />周四 &nbsp;&nbsp;&nbsp;
+                        <input type="checkbox" name="weekday[]"  value="5" <?php if(strstr($vo['weekday'], '5')) echo 'checked'; ?> />周五 &nbsp;&nbsp;&nbsp;
+                        <input type="checkbox" name="weekday[]"  value="6" <?php if(strstr($vo['weekday'], '6')) echo 'checked'; ?> />周六 &nbsp;&nbsp;&nbsp;
+                        <input type="checkbox" name="weekday[]"  value="7" <?php if(strstr($vo['weekday'], '7')) echo 'checked'; ?> />周日
                     </div>
                 </div>
                 <div class="space-4"></div>
@@ -64,13 +64,13 @@
                     <div class="col-sm-9">
                         <select name="starthour" style="width:80px;margin-right:5px;">
                             <volist name="hour" id="sh">
-                                <option value="{$sh}">{$sh}</option>
+                                <option value="{$sh}" <if condition="$sh eq $vo['starthour']">selected</if> >{$sh}</option>
                             </volist>
                         </select>
                         <span style="padding-top:5px;">：</span>
                         <select name="startminute" style="width:80px;margin-right:5px;">
                             <volist name="minute" id="sm">
-                                <option value="{$sm}">{$sm}</option>
+                                <option value="{$sm}" <if condition="$sm eq $vo['startminute']">selected</if>>{$sm}</option>
                             </volist>
                         </select>
                     </div>
@@ -81,13 +81,13 @@
                     <div class="col-sm-9">
                         <select name="endhour" style="width:80px;margin-right:5px;">
                             <volist name="hour" id="sh">
-                                <option value="{$sh}">{$sh}</option>
+                                <option value="{$sh}" <if condition="$sh eq $vo['endhour']">selected</if> >{$sh}</option>
                             </volist>
                         </select>
                         <span style="padding-top:5px;">：</span>
                         <select name="endminute" style="width:80px;margin-right:5px;">
                             <volist name="minute" id="sm">
-                                <option value="{$sm}">{$sm}</option>
+                                <option value="{$sm}" <if condition="$sm eq $vo['endminute']">selected</if> >{$sm}</option>
                             </volist>
                         </select>
                     </div>
@@ -97,10 +97,10 @@
                     <label class="col-sm-1 control-label no-padding-right">结束跳转至</label>
                     <div class="col-sm-9">
                         <select name="outtolink">
-                            <option value="0">不跳转</option>
-                            <option value="1">首页</option>
-                            <option value="2">主页</option>
-                            <option value="3">应用列表</option>
+                            <option value="0" <if condition="0 eq $vo['outtolink']">selected</if> >不跳转</option>
+                            <option value="1" <if condition="1 eq $vo['outtolink']">selected</if> >首页</option>
+                            <option value="2" <if condition="2 eq $vo['outtolink']">selected</if> >主页</option>
+                            <option value="3" <if condition="3 eq $vo['outtolink']">selected</if> >应用列表</option>
                         </select>
                     </div>
                 </div>
@@ -117,8 +117,8 @@
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right"></label>
                     <div class="col-sm-9">
-                        <input type="hidden" name="maclist" value="" />
-                        <textarea name="room" id="intro" readonly="true" class="col-xs-10 col-sm-5" rows="5"></textarea>
+                        <input type="hidden" name="maclist" value="{$vo['maclist']}" />
+                        <textarea name="room" id="intro" readonly="true" class="col-xs-10 col-sm-5" rows="5">{$vo['room']}</textarea>
                     </div>
                 </div>
                 <div class="space-4"></div>
@@ -151,11 +151,15 @@
                                         <div class="panel-heading">
                                             <h4 class="panel-title"><input type="checkbox" name="allHotel" id="allHotel" class="checkHotelAll" value="allHotel" >&nbsp;&nbsp;全部</h4>
                                         </div>
-                                        <input type="hidden" id="checkhidchange" value="">
-                                        <div class="panel-body" id="sub">
-
-                                        </div>
                                     </div>
+                                    <div class="panel-body">
+                                        <volist name="roomList" id="sub">
+                                            <label class="checkbox" style="padding-left: 30px;">
+                                                <input type="checkbox" name="eHotel" class="checkAccessSingle" value="{$sub.mac}" hotelname="{$sub.room}" <if condition="$sub.isselect eq 1">checked</if> >{$sub.room}
+                                            </label>
+                                        </volist>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -238,72 +242,14 @@
 
             //选择酒店静态模板
             $("#chooseHotel").click(function(){
-                var $checkhidchange = $("#checkhidchange").val();
-                var $hid = $("#hid").val();
-                if($.trim($hid) == ''){
-                    bootbox.dialog({
-                        title: '友情提示：',
-                        message: "请先选择归属酒店",
-                        buttons: {
-                            "success" : {
-                                "label" : "确定",
-                                "className" : "btn-danger"
-                            }
-                        }
-                    });
-                    return;
-                }
-                if($checkhidchange == $hid){
-                    $('div#HotelModal').modal('show');
-                    return;
-                }
-                $("#checkhidchange").attr('value', $hid);
-                $.ajax({
-                            url: "{:U('findDeviceByHid')}",
-                            type: 'POST',
-                            dataType: 'json',
-                            data: {'hid': $hid},
-                        })
-                        .done(function(data) {
-                            if($.trim(data)==''){
-                                bootbox.dialog({
-                                    title: '友情提示：',
-                                    message: "该酒店没有建设房间",
-                                    buttons: {
-                                        "success" : {
-                                            "label" : "确定",
-                                            "className" : "btn-danger"
-                                        }
-                                    }
-                                });
-                                return;
-                            }
-                            label = '';
-                            var $count = data.length;
-                            for(var i =0; i<$count; i++){
-                                label += '<label class="checkbox" style="padding-left: 30px;"><input type="checkbox" name="eHotel" class="checkAccessSingle" value="'+data[i]['maclist']+'" hotelname="'+data[i]['room']+'">'+data[i]['room']+"(详细地址备注："+data[i]["room_remark"]+")"+'</label>';
-                            }
-                            $("#sub").html(label);
-                            $('div#HotelModal').modal('show');
-                        })
-                        .fail(function() {
-                            bootbox.dialog({
-                                title: '友情提示：',
-                                message: "获取酒店房间失败 请重试",
-                                buttons: {
-                                    "success" : {
-                                        "label" : "确定",
-                                        "className" : "btn-danger"
-                                    }
-                                }
-                            });
-                            return;
-                        });
-
+                $('div#HotelModal').modal('show');
             });
             $("input[type=checkbox].checkHotelAll").on("click",function(){
                 var ischeck = this.checked;
                 $.each($("input.checkAccessSingle"),function(i,item){
+                    item.checked=ischeck;
+                });
+                $.each($("input.checkAccessAll"),function(i,item){
                     item.checked=ischeck;
                 });
             });

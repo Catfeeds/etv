@@ -11,7 +11,7 @@
                 <input type="hidden" name="category_id" value="{$vo['category_id']}">
                 <input type="hidden" name="id" value="{$vo['id']}">
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">标题</label>
+                    <label class="col-sm-1 control-label no-padding-right" >标题</label>
                     <div class="col-sm-9">
                         <input type="text" name="name" id="name" placeholder="标题" class="col-xs-10 col-sm-5" value="{$vo['name']}">
                         <span class="help-inline col-xs-12 col-sm-7">
@@ -21,7 +21,7 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">URL</label>
+                    <label class="col-sm-1 control-label no-padding-right" >URL</label>
                     <div class="col-sm-9">
                         <input type="text" name="weburl" id="weburl" placeholder="URL地址" class="col-xs-10 col-sm-5" value="{$vo['weburl']}">
                         <span class="help-inline col-xs-12 col-sm-7">
@@ -31,7 +31,7 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">日期</label>
+                    <label class="col-sm-1 control-label no-padding-right" >日期</label>
                     <div class="col-sm-9">
                         <input type="date" name="date" id="date" class="col-xs-10 col-sm-5" value="{$vo['date']}" style="height: 30px;">
                         <span class="help-inline col-xs-12 col-sm-7">
@@ -41,23 +41,53 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">弹窗具体时间</label>
+                    <label class="col-sm-1 control-label no-padding-right" >弹窗开始时间</label>
                     <div class="col-sm-9">
                         <span style="padding-top:5px;" class="text-error"></span>
-                        <select name="hour" style="width:80px;">
+                        <select name="starthour" style="width:80px;">
                             <volist name="hour" id="sh">
-                                <option value="{$sh}" <?php if($vo['hour']==$sh) echo "selected" ?> >{$sh}</option>
+                                <option value="{$sh}" <?php if($vo['starthour']==$sh) echo "selected" ?> >{$sh}</option>
                             </volist>
                         </select>
                         <span style="padding-top:5px;">： </span>
-                        <select name="minute" style="width:80px;margin-right:5px;">
+                        <select name="startminute" style="width:80px;margin-right:5px;">
                             <volist name="minute" id="sm">
-                                <option value="{$sm}" <?php if($vo['minute']==$sm) echo "selected" ?> >{$sm}</option>
+                                <option value="{$sm}" <?php if($vo['startminute']==$sm) echo "selected" ?> >{$sm}</option>
                             </volist>
                         </select>
                     </div>
                 </div>
-             
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" >弹窗关闭时间</label>
+                    <div class="col-sm-9">
+                        <span style="padding-top:5px;" class="text-error"></span>
+                        <select name="endhour" style="width:80px;">
+                            <volist name="hour" id="sh">
+                                <option value="{$sh}" <?php if($vo['endhour']==$sh) echo "selected" ?> >{$sh}</option>
+                            </volist>
+                        </select>
+                        <span style="padding-top:5px;">： </span>
+                        <select name="endminute" style="width:80px;margin-right:5px;">
+                            <volist name="minute" id="sm">
+                                <option value="{$sm}" <?php if($vo['endminute']==$sm) echo "selected" ?> >{$sm}</option>
+                            </volist>
+                        </select>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right">结束跳转至</label>
+                    <div class="col-sm-9">
+                        <select name="outtolink">
+                            <option value="0" <if condition="0 eq $vo['outtolink']">selected</if> >不跳转</option>
+                            <option value="1" <if condition="1 eq $vo['outtolink']">selected</if> >首页</option>
+                            <option value="2" <if condition="2 eq $vo['outtolink']">selected</if> >主页</option>
+                            <option value="3" <if condition="3 eq $vo['outtolink']">selected</if> >应用列表</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="col-md-offset-2 col-md-9">
                     <button class="btn btn-info submit" type="button">
                         <i class="icon-ok bigger-110"></i>提交

@@ -49,10 +49,11 @@
                         <tr>
                             <th class="center"><input class="check-all" type="checkbox" value=""></th>
                             <th class="col-xs-2">标题</th>
-                            <th class="col-xs-4">url地址</th>
-                            <th class="col-xs-3">日期</th>
+                            <th class="col-xs-3">url地址</th>
+                            <th class="col-xs-2">日期</th>
                             <th class="col-xs-2">时间</th>
-                            <th class="col-xs-2">状态</th>
+                            <th class="col-xs-1">状态</th>
+                            <th class="col-xs-2">创建时间</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -64,6 +65,7 @@
                             <td>{$val['date']}</td>
                             <td>{$val['start_time']} -- {$val['end_time']}</td>
                             <td>{$val['status']|get_status}</td>
+                            <td>{$val['createtime']}</td>
                         </tr>
                       </volist>
                       </tbody>

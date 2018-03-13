@@ -1027,15 +1027,21 @@ class HotelCategoryController extends ComController {
         }else{
             $vo = D("hotel_category")->where('id='.$ids_arr['1'])->field('"0" as id, hid, name, weburl, "2" as category_type, id as category_id, "" as date, "" as time, "0" as status')->find();
         }
-        if ($vo['time']) {
-            $time = explode(":", $vo['time']);
-            $vo['hour'] = $time['0'];
-            $vo['minute'] = $time['1'];
-            unset($vo['time']);
-            unset($time);
+        if ($vo['start_time']) {
+            $starttime = explode(":", $vo['start_time']);
+            $vo['starthour'] = $starttime['0'];
+            $vo['startminute'] = $starttime['1'];
         }else{
-            $vo['hour'] = '';
-            $vo['minute'] = '';
+            $vo['starthour'] = '';
+            $vo['startminute'] = '';
+        }
+        if ($vo['end_time']) {
+            $endtime = explode(":", $vo['end_time']);
+            $vo['endhour'] = $endtime['0'];
+            $vo['endminute'] = $endtime['1'];
+        }else{
+            $vo['endhour'] = '';
+            $vo['endminute'] = '';
         }
         $this->assign('vo',$vo);
         $this->_assign_hour_minute();
@@ -1044,13 +1050,15 @@ class HotelCategoryController extends ComController {
 
     public function weburlupdate(){
         $param = $_POST;
-        $param['time'] = $param['hour'].":".$param['minute'];
-        unset($param['hour']);
-        unset($param['minute']);
+        $param['start_time'] = $param['starthour'].":".$param['startminute'];
+        $param['end_time'] = $param['endhour'].":".$param['endminute'];
+        $param['createtime'] = date("Y-m-d H:i:s");
+        $param['status'] = 0;
+        $allowfield = "hid,name,weburl,category_type,category_id,date,start_time,end_time,status,outtolink,createtime";
         if (empty($param['id']) || $param['id'] == 0) { //新增
-            $result = M('weburl')->data($param)->add();
+            $result = M('weburl')->field($allowfield)->filter('strip_tags')->data($param)->add();
         }else{  //修改
-            $result = D("weburl")->where('id='.$param['id'])->data($param)->save();
+            $result = D("weburl")->where('id='.$param['id'])->field($allowfield)->filter('strip_tags')->save($param);
         }
         if ($result) {
             $this->success('操作成功',U('weburlindex')."?myhid=".$param['hid']);
