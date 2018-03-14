@@ -76,15 +76,17 @@ class AppOpenSetController extends ComController{
 			$vo['room'] = '';
 			$roomList = [];
 		}
+		$appname = D('appopen_name')->where('hid='.$vo['hid'])->field('id,title')->select();
 		$this->assign('roomList', $roomList);
 		$this->assign('vo', $vo);
+		$this->assign('appname', $appname);
 		$this->_assign_hour_minute();
 		$this->display();
 	}
 
 	public function update(){
 		$params = I('post.');
-		$allowfield = "hid,title,content,repeat_set,weekday,norepeat_time,start_time,end_time,outtolink,createtime,status,maclist";
+		$allowfield = "hid,appname_id,title,content,repeat_set,weekday,norepeat_time,start_time,end_time,outtolink,createtime,status,maclist";
 		$params['createtime'] = date("Y-m-d H:i:s");
 		$params['start_time'] = $params['starthour'].":".$params['startminute'];
 		$params['end_time'] = $params['endhour'].":".$params['endminute'];
@@ -277,5 +279,16 @@ class AppOpenSetController extends ComController{
 		$map['hid']=array("eq",$hid);
 		$roomList = $Device->field('id,room,mac,room_remark')->where($map)->order ('room asc')->select();
 		echo json_encode($roomList);
+	}
+
+	public function findAppopenlist(){
+		$hid = I('post.hid');
+		if(trim($hid) == ''){
+			echo false;
+			die();
+		}
+		$map['hid'] = $hid;
+		$list = D("appopen_name")->where($map)->field('id,title')->select();
+		echo json_encode($list);
 	}
 }

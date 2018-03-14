@@ -1,6 +1,5 @@
 <?php
 return array(
-    'SHOW_PAGE_TRACE' =>true,  //开启trace功能
-    'URL_CASE_INSENSITIVE' => false,
+    'SHOW_PAGE_TRACE' =>false,  //开启trace功能
     // 'DEFAULT_CONTROLLER' => 'Hotel' //默认控制器
 );

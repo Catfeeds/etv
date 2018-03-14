@@ -1017,7 +1017,7 @@ class ApiController extends Controller{
         if(!empty($data)){
             $where['date'] = $date;
         }
-        $list = D("weburl")->where($where)->field("id,name,weburl,start_time,end_time")->select();
+        $list = D("weburl")->where($where)->field("id,name,weburl,date,start_time,end_time,outtolink")->select();
         if (!empty($list)) {
             $json['status'] = 200;
             $json['data'] = $list;
@@ -2439,16 +2439,24 @@ class ApiController extends Controller{
         $hid = I('request.hid', '', 'strip_tags');
         $mac = I('request.mac', '', 'strip_tags');
         if (empty($hid)) {
-            $this->Callback(404, 'the hid is empty');
+            $this->Callback(10000, 'the hid is empty');
         }
         if (empty($mac)) {
-            $this->Callback(404, 'the mac is empty');
+            $this->Callback(10000, 'the mac is empty');
         }
         $where['zxt_appopen_setting.hid'] = $hid;
         $where['zxt_appopen_setting.status'] = 1;
         $where['zxt_appopen_setting.maclist'] = array('like','%'.$mac.'%');
-        $list = D('appopen_setting')->where($where)->select();
-        $this->Callback('200', $list);
+        $field = "zxt_appopen_setting.*,zxt_appopen_name.classname,zxt_appopen_name.packagename";
+        $list = D('appopen_setting')->where($where)
+                                    ->join('left join zxt_appopen_name on zxt_appopen_setting.appname_id=zxt_appopen_name.id')
+                                    ->field($field)
+                                    ->select();
+        if(!empty($list)){
+            $this->Callback('200', $list);
+        }else{
+            $this->Callback('404', 'the list is empty');
+        }
     }
 }
 ?>
