@@ -40,8 +40,9 @@
                           <th class="center"><input class="check-all" type="checkbox" value=""></th>
                           <th class="col-xs-1">酒店编号</th>
                           <th class="col-xs-3">酒店名称</th>
-                          <th class="col-xs-5">跳转设置</th>
-                          <th class="col-xs-3">操作</th>
+                          <th class="col-xs-4">跳转设置</th>
+                            <!--<th class="col-xs-2">定时设置</th>-->
+                            <th class="col-xs-2">操作</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -51,6 +52,14 @@
                           <td>{$val['hid']}</td>
                           <td>{$val['hid']|getHotelnameByHid}</td>
                           <td>{$val['jumpinfo']}</td>
+                          <td>
+                              <if condition="$val['timing_set'] eq 0">
+                                未设置
+                              </if>
+                              <if condition="$val['timing_set'] eq 1">
+                                  {$val['setting_time']}
+                              </if>
+                          </td>
                           <th>
                             <a class="label label-xlg label-warning resource" href="javascript:;" resourcehid="{$val['hid']}" resourceid="{$val['id']}" val="{:U('resource')}" ><i class="ace-icon fa fa-list bigger-100"></i>&nbsp;查看资源</a>
                         </th>

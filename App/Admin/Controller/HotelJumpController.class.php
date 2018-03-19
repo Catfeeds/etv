@@ -73,6 +73,7 @@ class HotelJumpController extends ComController {
         $this -> display();
     }
     public function _before_add(){
+        $this->_assign_hour_minute_second();
         $this->isHotelMenber();
         $hotelid = 0;
         $data = session(session_id());
@@ -89,13 +90,17 @@ class HotelJumpController extends ComController {
 
     //修改
     public function edit(){
+        $this->_assign_hour_minute_second();
         $model = M(CONTROLLER_NAME);
         $ids = isset($_REQUEST['ids'])?$_REQUEST['ids']:false;
         if(count($ids)!=1){
             $this->error('参数错误，每次只能修改一条内容！');
         }
         $var = $model->getById($ids[0]);
-        
+        $var['sdate'] = date("Y-m-d", strtotime($var['setting_time']));
+        $var['sh'] = date("H", strtotime($var['setting_time']));
+        $var['sm'] = date("i", strtotime($var['setting_time']));
+        $var['ss'] = date("s", strtotime($var['setting_time']));
         $hotelname = D("hotel")->where("hid='".$var['hid']."'")->field('hotelname')->find();
 
         $this->assign('vo',$var);
@@ -113,11 +118,21 @@ class HotelJumpController extends ComController {
         $data['isjump'] = I('post.isjump','','intval'); //是否跳转
         $data['staytime'] = I('post.staytime','','intval');  //跳转时间
         $data['video_set'] = I('post.video_set','','intval'); //跳转选项设置
-    
+        $data['timing_set'] = I('post.timing_set','0','intval');//定时设置
+
         if($data['isjump']==0){
             $data['staytime']=-1;
         }else if ($data['staytime']<=0) {
             $this->error('停留时间必须大于0！');
+        }
+        if($data['timing_set'] == 0){
+            $data['setting_time'] = date("Y-m-d H:i:s");
+        }else{
+            $shour = I('post.shour');
+            $sminute = I('post.sminute');
+            $ssecond = I('post.ssecond');
+            $setting_time= I('post.setting_time');
+            $data['setting_time'] = $setting_time." ".$shour.":".$sminute.":".$ssecond;
         }
 
         $logText='';
@@ -383,5 +398,30 @@ class HotelJumpController extends ComController {
             D('hotel_jump_resource')->rollback();
             $this->error('操作失败！',U('resource',array('resourceid'=>$_POST['resourceid'], 'resourcehid'=>$_POST['hid']) ));
         }
+    }
+
+    public function _assign_hour_minute_second(){
+        $hour = array();
+        for ($i = 0; $i < 24; $i++) {
+            if ($i<10) {
+                $hour[] = "0".$i;
+            }else{
+                $hour[] = $i;
+            }
+        }
+        $minute = array();
+        $second = array();
+        for ($j = 0; $j < 60; $j++) {
+            if ($j<10) {
+                $minute[] = "0".$j;
+                $second[] = "0".$j;
+            }else{
+                $minute[] = $j;
+                $second[] = $j;
+            }
+        }
+        $this->assign("hour",$hour);
+        $this->assign("minute",$minute);
+        $this->assign("second",$second);
     }
 }

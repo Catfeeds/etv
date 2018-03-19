@@ -7,7 +7,7 @@
         <div class="col-xs-12">
             <form class="form-horizontal" id="form" method="post" action="{:U('update')}" enctype="multipart/form-data">
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-0">酒店</label>
+                    <label class="col-sm-1 control-label no-padding-right">酒店</label>
                     <div class="col-sm-9">
                         <if condition="$personhid neq ''">
                         <select id="hid" name="hid" class="col-xs-10 col-sm-5 select2">
@@ -29,7 +29,7 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">跳转设置</label>
+                    <label class="col-sm-1 control-label no-padding-right">跳转设置</label>
                     <div class="col-sm-9">
                         <span><label style="width:50px;"><input type="radio" name="isjump" value="0" checked >（1）</label></span>
                         <span><label style="width:480px;">开机后，停留在欢迎页。</label></span>
@@ -37,7 +37,7 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">&nbsp;&nbsp;</label>
+                    <label class="col-sm-1 control-label no-padding-right">&nbsp;&nbsp;</label>
                     <div class="col-sm-9">
                         <span><label style="width:50px;"><input type="radio" name="isjump" value="1" >（2）</label></span>
                         <span><label style="width:130px;">开机后，欢迎页停留</label></span>
@@ -47,7 +47,7 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">跳转视频</label>
+                    <label class="col-sm-1 control-label no-padding-right">跳转视频</label>
                     <div class="col-sm-9">
                         <span><label style="width:50px;"><input type="radio" id="video_set_1" name="video_set" value="0" checked >（1）</label></span>
                         <span><label style="width:480px;">欢迎页前后都不播放视频。</label></span>
@@ -55,7 +55,7 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">&nbsp;&nbsp;</label>
+                    <label class="col-sm-1 control-label no-padding-right">&nbsp;&nbsp;</label>
                     <div class="col-sm-9">
                         <span><label style="width:50px;"><input type="radio" id="video_set_2" name="video_set" value="1" >（2）</label></span>
                         <span><label style="width:480px;">跳过欢迎页后，插播视频，再进入主页。</label></span>
@@ -63,14 +63,49 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">&nbsp;&nbsp;</label>
+                    <label class="col-sm-1 control-label no-padding-right">&nbsp;&nbsp;</label>
                     <div class="col-sm-9">
                         <span><label style="width:50px;"><input type="radio" id="video_set_3" name="video_set" value="3" >（3）</label></span>
                         <span><label style="width:480px;">强制播放视频后再进入主页。</label></span>
                     </div>
                 </div>
                 <div class="space-4"></div>
-               
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right">特殊设置</label>
+                    <div class="col-sm-9">
+                        <span><label style="width:20px;">
+                            <input type="radio" class="timing_set" name="timing_set" value="0" checked >
+                        </label></span>
+                        <span><label style="width:120px;">不做定时设置</label></span>
+                        <span><label style="width:20px;">
+                            <input type="radio" class="timing_set" name="timing_set" value="1">
+                        </label></span>
+                        <span><label style="width:80px;">定时设置</label></span>
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group" id="setting_time" style="display:none;">
+                    <label class="col-sm-1 control-label no-padding-right">具体日期:</label>
+                    <div class="col-sm-9">
+                        <input placeholder=" 年 / 月 / 日" class="date" name="setting_time" value="" type="text" data-date-format="yyyy-mm-dd" style="width: 150px;" /><span style="padding-right: 10px;"></span>
+                        <select name="shour" style="width:80px;margin-right:5px;">
+                            <volist name="hour" id="sh">
+                                <option value="{$sh}">{$sh}</option>
+                            </volist>
+                        </select>
+                        <select name="sminute" style="width:80px;margin-right:5px;">
+                            <volist name="minute" id="sm">
+                                <option value="{$sm}">{$sm}</option>
+                            </volist>
+                        </select>
+                        <select name="ssecond" style="width:80px;margin-right:5px;">
+                            <volist name="second" id="ss">
+                                <option value="{$ss}">{$ss}</option>
+                            </volist>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="col-md-offset-2 col-md-9">
                     <button class="btn btn-info submit" type="button">
                         <i class="icon-ok bigger-110"></i>提交
@@ -85,14 +120,56 @@
     </div>
 </block>
 <block name="currentPageJS">
+<script src="__PUBLIC__/hyadmin/js/date-time/bootstrap-datepicker.js"></script>
 <script type="text/javascript">
 	$('#hid').select2({ placeholder : '--请选择--' });
+    jQuery(function($){
+        $('.date').datepicker({
+            format: 'yyyy-mm-dd',
+            weekStart: 1,
+            autoclose: true,
+            todayBtn: 'linked',
+            language: 'cn'
+        });
+    });
+    $(".timing_set").click(function(){
+        var timing_set_val = $(this).val();
+        if(timing_set_val == 1){
+            $("#setting_time").show();
+        }else{
+            $('#setting_time').hide();
+        }
+    });
 
 	$(".btn-info.submit").click(function(){
         var hid = $("#hid").val();
         var isjump = $("input[name='isjump']:checked").val();
         var staytime = $("input[name='staytime']").val();
         var re = /^[1-9]\d*|0$/;
+        var timing_set = $("input[name='timing_set']:checked").val();
+//        if(timing_set ==1){
+//            var sh = $("select[name='shour']").val();
+//            var sm = $("select[name='sminute']").val();
+//            var ss = $("select[name='ssecond']").val();
+//            var eh = $("select[name='ehour']").val();
+//            var em = $("select[name='eminute']").val();
+//            var es = $("select[name='esecond']").val();
+//            var startdate = (new Date("2018-03-19 "+sh+":"+sm+":"+ss)).valueOf();
+//            var enddate = (new Date("2018-03-19 "+eh+":"+em+":"+es)).valueOf();
+//            if(startdate>enddate){
+//                bootbox.dialog({
+//                    title: '友情提示：',
+//                    message: "具体定时时间设置有误",
+//                    buttons: {
+//                        "success" : {
+//                            "label" : "确定",
+//                            "className" : "btn-danger"
+//                        }
+//                    }
+//                });
+//                return;
+//            }
+//        }
         if(hid==''){
             bootbox.dialog({
                 title: '友情提示：',
