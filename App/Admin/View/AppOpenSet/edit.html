@@ -52,7 +52,7 @@
                 <div class="form-group" id="repeattime0" <if condition="$vo['repeat_set'] neq 0"> style="display:none;" </if> >
                     <label class="col-sm-1 control-label no-padding-right">具体日期:</label>
                     <div class="col-sm-9">
-                        <input class="date" name="norepeat_time" value="" type="text" data-date-format="yyyy-mm-dd" style="width: 150px;" value="{$vo.norepeat_time}" />
+                        <input class="date" name="norepeat_time" type="text" data-date-format="yyyy-mm-dd" style="width: 150px;" value="{$vo.norepeat_time}" />
                     </div>
                 </div>
                 <div class="space-4"></div>
@@ -84,6 +84,11 @@
                                 <option value="{$sm}" <if condition="$sm eq $vo['startminute']">selected</if>>{$sm}</option>
                             </volist>
                         </select>
+                        <select name="startsecond" style="width:80px;margin-right:5px;">
+                            <volist name="minute" id="ss">
+                                <option value="{$ss}" <if condition="$ss eq $vo['startsecond']">selected</if>>{$ss}</option>
+                            </volist>
+                        </select>
                     </div>
                 </div>
                 <div class="space-4"></div>
@@ -99,6 +104,11 @@
                         <select name="endminute" style="width:80px;margin-right:5px;">
                             <volist name="minute" id="sm">
                                 <option value="{$sm}" <if condition="$sm eq $vo['endminute']">selected</if> >{$sm}</option>
+                            </volist>
+                        </select>
+                        <select name="endsecond" style="width:80px;margin-right:5px;">
+                            <volist name="minute" id="ss">
+                                <option value="{$ss}" <if condition="$ss eq $vo['endsecond']">selected</if>>{$ss}</option>
                             </volist>
                         </select>
                     </div>

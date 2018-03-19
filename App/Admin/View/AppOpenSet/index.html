@@ -92,7 +92,7 @@
             $("#unlock").click(function(){
                 bootbox.confirm({
                     title: "系统提示",
-                    message: "是否要启用所选图片？",
+                    message: "是否要启用所选数据？",
                     callback:function(result){
                         if(result){
                             $("#form").attr("action",$("#unlock").attr("val"));
@@ -111,7 +111,7 @@
             $("#lock").click(function(){
                 bootbox.confirm({
                     title: "系统提示",
-                    message: "是否要禁用所选图片？",
+                    message: "是否要禁用所选数据？",
                     callback:function(result){
                         if(result){
                             $("#form").attr("action",$("#lock").attr("val"));

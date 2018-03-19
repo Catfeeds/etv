@@ -7,7 +7,7 @@
         <div class="col-xs-12">
             <form class="form-horizontal" id="form" method="post" action="{:U('update')}" enctype="multipart/form-data">
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-0">酒店</label>
+                    <label class="col-sm-1 control-label no-padding-right">酒店</label>
                     <div class="col-sm-9">
                         <if condition="$personhid neq ''">
                         <select id="hid" name="hid" class="col-xs-10 col-sm-5 select2">
@@ -29,7 +29,7 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">广告时间</label>
+                    <label class="col-sm-1 control-label no-padding-right">广告时间</label>
                     <div class="col-sm-9">
                         <span style="padding-top:5px;" class="text-error"></span>
                         <select name="hour" style="width:80px;">
@@ -48,7 +48,7 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">广告类型</label>
+                    <label class="col-sm-1 control-label no-padding-right" >广告类型</label>
                     <div class="col-sm-9">
                         <select name="ad_type" class="ad_type" style="width: 100px;">
                             <option value="0">请选择</option>
@@ -60,7 +60,7 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">设置退出</label>
+                    <label class="col-sm-1 control-label no-padding-right">设置退出</label>
                     <div class="col-sm-9">
                         <input type="radio" class="can_quit" name="can_quit" value="0" >禁止
                         <input type="radio" class="can_quit" name="can_quit" value="1" >允许
@@ -68,7 +68,15 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">停留时间</label>
+                    <label class="col-sm-1 control-label no-padding-right" >资源保存地址</label>
+                    <div class="col-sm-9">
+                        <input type="radio" name="save_postion" value="0" >本地
+                        <input type="radio" name="save_postion" value="1" checked>外置拓展(SD卡)
+                    </div>
+                </div>
+                <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right">停留时间</label>
                     <div class="col-sm-9">
                         <input type="text" name="play_time" id="play_time" placeholder="广告至少停留时间" class="col-xs-10 col-sm-5" onkeyup="this.value=this.value.replace(/[^0-9-]+/,'');">
                         <span class="help-inline col-xs-12 col-sm-7">
@@ -108,7 +116,7 @@
                 <div class="ad_type_2" style="display: none;">
                     <div class="space-4"></div>
                     <div class="form-group">
-                        <label class="col-sm-1 control-label no-padding-right" for="form-field-1">弹窗图片：</label>
+                        <label class="col-sm-1 control-label no-padding-right">弹窗图片：</label>
                         <div class="col-sm-9">
                             <select class="macimageselect" name="imageid" style="width:180px;">
                                 <volist name="image_resourceList" id="irList">  
@@ -119,7 +127,7 @@
                     </div>
                     <div class="space-4"></div>
                     <div class="form-group">
-                        <label class="col-sm-1 control-label no-padding-right" for="form-field-1">弹窗方位：</label>
+                        <label class="col-sm-1 control-label no-padding-right">弹窗方位：</label>
                         <div class="col-sm-9">
                             <select name="video_ad_position" style="width:180px;">
                                 <option value="1">屏幕左上方</option>
@@ -131,7 +139,7 @@
                     </div>
                     <div class="space-4"></div>
                     <div class="form-group">
-                        <label class="col-sm-1 control-label no-padding-right" for="form-field-1">图片：</label>
+                        <label class="col-sm-1 control-label no-padding-right">图片：</label>
                         <div class="col-sm-9" >
                             <img id="selectimage" class="img-polaroid" src="{:C('UPLOADPATH')}{$image_resourceList['0']['filepath']}" style="width:240px;height:135px;background:#ccc;" />
                         </div>
@@ -141,14 +149,14 @@
                 <div class="ad_type_3" style="display: none;">
                     <div class="space-4"></div>
                     <div class="form-group">
-                        <label class="col-sm-1 control-label no-padding-right" for="form-field-1">弹窗文字：</label>
+                        <label class="col-sm-1 control-label no-padding-right">弹窗文字：</label>
                         <div class="col-sm-9">
                             <textarea name="ad_word" maxlength="100" placeholder="最大长度100个字" style="height: 120px;width:500px;"></textarea>
                         </div>
                     </div>
                     <div class="space-4"></div>
                     <div class="form-group">
-                        <label class="col-sm-1 control-label no-padding-right" for="form-field-1">弹窗方位：</label>
+                        <label class="col-sm-1 control-label no-padding-right">弹窗方位：</label>
                         <div class="col-sm-9">
                             <select name="word_ad_position" style="width:180px;">
                                 <option value="1">屏幕左上方</option>

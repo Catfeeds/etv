@@ -378,6 +378,7 @@ class HotelAdsetController extends ComController {
     private function filterDate(){
         $data['hid'] = I('post.hid','','strip_tags');
         $data['ad_type'] = I('post.ad_type','','intval');
+        $data['save_postion'] = I('post.save_postion','1','intval');
         if(empty($data['hid'])){
             $this->error('系统提示：请选择酒店!');
         }

@@ -53,8 +53,10 @@ class AppOpenSetController extends ComController{
 		$endtime = explode(":", $vo['end_time']);
 		$vo['starthour'] = $starttime['0'];
 		$vo['startminute'] = $starttime['1'];
+		$vo['startsecond'] = $starttime['2'];
 		$vo['endhour'] = $endtime['0'];
 		$vo['endminute'] = $endtime['1'];
+		$vo['endsecond'] = $endtime['2'];
 		if(!empty($vo['maclist'])){
 			$device_where['hid'] = $vo['hid'];
 			$macarr = explode(",", $vo['maclist']);
@@ -88,8 +90,8 @@ class AppOpenSetController extends ComController{
 		$params = I('post.');
 		$allowfield = "hid,appname_id,title,content,repeat_set,weekday,norepeat_time,start_time,end_time,outtolink,createtime,status,maclist";
 		$params['createtime'] = date("Y-m-d H:i:s");
-		$params['start_time'] = $params['starthour'].":".$params['startminute'];
-		$params['end_time'] = $params['endhour'].":".$params['endminute'];
+		$params['start_time'] = $params['starthour'].":".$params['startminute'].":".$params['startsecond'];
+		$params['end_time'] = $params['endhour'].":".$params['endminute'].":".$params['endsecond'];
 		if($params['repeat_set'] == 3){
 			$params['weekday'] = implode(",", $params['weekday']);
 		}else{

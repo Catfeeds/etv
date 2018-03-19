@@ -11,14 +11,14 @@
                 <input type="hidden" name="filepath" value="{$vo.filepath}">
                 <input type="hidden" name="size" id="size" value="{$vo.size}">
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-0">酒店 </label>
+                    <label class="col-sm-1 control-label no-padding-right">酒店 </label>
                     <div class="col-sm-9">
                         <input type="text" readonly="true" value="{$hotelname}" />
                      </div>
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">跳转设置</label>
+                    <label class="col-sm-1 control-label no-padding-right">跳转设置</label>
                     <div class="col-sm-9">
                         <span><label style="width:50px;"><input type="radio" name="isjump" value="0" <eq name="vo.isjump" value="0">checked</eq> >（1）</label></span>
                         <span><label style="width:480px;">开机后，停留在欢迎页。</label></span>
@@ -26,7 +26,7 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">&nbsp;&nbsp;</label>
+                    <label class="col-sm-1 control-label no-padding-right">&nbsp;&nbsp;</label>
                     <div class="col-sm-9">
                         <span><label style="width:50px;"><input type="radio" name="isjump" value="1" <eq name="vo.isjump" value="1">checked</eq> >（2）</label></span>
                         <span><label style="width:130px;">开机后，欢迎页停留</label></span>
@@ -36,7 +36,7 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">跳转视频</label>
+                    <label class="col-sm-1 control-label no-padding-right">跳转视频</label>
                     <div class="col-sm-9">
                         <span><label style="width:50px;"><input type="radio" id="video_set_1" name="video_set" value="0" <eq name="vo.video_set" value="0">checked</eq> >（1）</label></span>
                         <span><label style="width:480px;">欢迎页前后都不播放视频。</label></span>
@@ -44,7 +44,7 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">&nbsp;&nbsp;</label>
+                    <label class="col-sm-1 control-label no-padding-right">&nbsp;&nbsp;</label>
                     <div class="col-sm-9">
                         <span><label style="width:50px;"><input type="radio" id="video_set_2" name="video_set" value="1" <eq name="vo.video_set" value="1">checked</eq> >（2）</label></span>
                         <span><label style="width:480px;">跳过欢迎页后，插播视频，再进入主页。</label></span>
@@ -52,13 +52,20 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-1">&nbsp;&nbsp;</label>
+                    <label class="col-sm-1 control-label no-padding-right">&nbsp;&nbsp;</label>
                     <div class="col-sm-9">
                         <span><label style="width:50px;"><input type="radio" id="video_set_3" name="video_set" value="3" <eq name="vo.video_set" value="3">checked</eq> >（3）</label></span>
                         <span><label style="width:480px;">强制播放视频后再进入主页。</label></span>
                     </div>
-                </div>             
+                </div>
                 <div class="space-4"></div>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label no-padding-right" >资源保存地址</label>
+                    <div class="col-sm-9">
+                        <input type="radio" name="save_postion" value="0" <if condition="$vo['save_postion'] eq 0">checked</if> >本地
+                        <input type="radio" name="save_postion" value="1" <if condition="$vo['save_postion'] eq 1">checked</if> >外置拓展(SD卡)
+                    </div>
+                </div>
                 <div class="col-md-offset-2 col-md-9">
                     <button class="btn btn-info submit" type="button">
                         <i class="icon-ok bigger-110"></i>提交

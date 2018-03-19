@@ -102,6 +102,11 @@
                                 <option value="{$sm}">{$sm}</option>
                             </volist>
                         </select>
+                        <select name="startsecond" style="width:80px;margin-right:5px;">
+                            <volist name="minute" id="ss">
+                                <option value="{$ss}">{$ss}</option>
+                            </volist>
+                        </select>
                     </div>
                 </div>
                 <div class="space-4"></div>
@@ -117,6 +122,11 @@
                         <select name="endminute" style="width:80px;margin-right:5px;">
                             <volist name="minute" id="sm">
                                 <option value="{$sm}">{$sm}</option>
+                            </volist>
+                        </select>
+                        <select name="endsecond" style="width:80px;margin-right:5px;">
+                            <volist name="minute" id="ss">
+                                <option value="{$ss}">{$ss}</option>
                             </volist>
                         </select>
                     </div>

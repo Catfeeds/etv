@@ -113,7 +113,8 @@ class HotelJumpController extends ComController {
         $data['isjump'] = I('post.isjump','','intval'); //是否跳转
         $data['staytime'] = I('post.staytime','','intval');  //跳转时间
         $data['video_set'] = I('post.video_set','','intval'); //跳转选项设置
-    
+        $data['save_postion'] = I('post.save_postion','0','intval');
+
         if($data['isjump']==0){
             $data['staytime']=-1;
         }else if ($data['staytime']<=0) {
