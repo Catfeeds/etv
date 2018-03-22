@@ -32,9 +32,9 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-2">客户全称</label>
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-2">名称</label>
                     <div class="col-sm-9">
-                        <input type="text" name="hotelname" id="hotelname" placeholder="客户全称" class="col-xs-10 col-sm-5" value="{$vo.hotelname}">
+                        <input type="text" name="hotelname" id="hotelname" placeholder="名称" class="col-xs-10 col-sm-5" value="{$vo.hotelname}">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"><span class="red"> * </span>必填</span>
                         </span>
@@ -112,9 +112,9 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7">客户电话</label>
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7">电话</label>
                     <div class="col-sm-9">
-                        <input type="text" name="tel" id="tel" placeholder="客户电话" class="col-xs-10 col-sm-5" value="{$vo.tel}">
+                        <input type="text" name="tel" id="tel" placeholder="电话" class="col-xs-10 col-sm-5" value="{$vo.tel}">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"><span class="red"> * </span>必填</span>
                         </span>
@@ -174,7 +174,7 @@
                 <if condition="$vo['huid'] eq ''">
                 <input type="hidden" name="isinsert" value="1">
                 <div style="padding:3px 0px;border-bottom: 1px dotted #e2e2e2;"></div>
-                <h4>客户管理员帐号</h4><hr>
+                <h4>管理员帐号</h4><hr>
                 <div class="space-4"></div>
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-1">用户名</label>
@@ -250,7 +250,7 @@
             if(hotelname==''){
                 bootbox.dialog({
                     title: '友情提示：',
-                    message: "酒店名称必须填写", 
+                    message: "名称必须填写", 
                     buttons: {
                         "success" : {
                             "label" : "确定",
@@ -276,7 +276,7 @@
             if(manager==''){
                 bootbox.dialog({
                     title: '友情提示：',
-                    message: "酒店联系人必须填写", 
+                    message: "联系人必须填写", 
                     buttons: {
                         "success" : {
                             "label" : "确定",
@@ -289,7 +289,7 @@
             if(mobile==''){
                 bootbox.dialog({
                     title: '友情提示：',
-                    message: "酒店联系人联系电话必须填写", 
+                    message: "联系人联系电话必须填写", 
                     buttons: {
                         "success" : {
                             "label" : "确定",

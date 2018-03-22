@@ -1059,7 +1059,7 @@ class HotelController extends ComController {
      * @return [array]       [酒店表hotel数据]
      */
     private function getlasthotel($data){
-        $field = "hid,name,hotelname,manager,mobile,tel,address,intro,status,provinceid,cityid,create_time,update_time,space,ad_space,carousel_space,skinid,launcher_skinid,pid,longitude,latitude";
+        $field = "hid,name,hotelname,manager,mobile,tel,address,intro,status,provinceid,cityid,create_time,update_time,space,ad_space,carousel_space,skinid,pid,longitude,latitude";
         $list = array();
         foreach ($data as $key => $value) {
             if(!empty($value['listid'])){
@@ -1086,7 +1086,6 @@ class HotelController extends ComController {
             $adddata[$key]['name'] = $value['name'].'(copy)';
             $adddata[$key]['hotelname'] = $value['hotelname'].'(copy)';
             $adddata[$key]['update_time'] = time();
-            $adddata[$key]['launcher_skinid'] = 0;
             $adddata[$key]['longitude'] = 0;
             $adddata[$key]['latitude'] = 0;
         }

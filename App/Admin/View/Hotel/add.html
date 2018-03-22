@@ -30,9 +30,9 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-2">客户全称</label>
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-2">名称</label>
                     <div class="col-sm-9">
-                        <input type="text" name="hotelname" id="hotelname" placeholder="客户全称" class="col-xs-10 col-sm-5" value="">
+                        <input type="text" name="hotelname" id="hotelname" placeholder="名称" class="col-xs-10 col-sm-5" value="">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"><span class="red"> * </span>必填</span>
                         </span>
@@ -90,21 +90,6 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-4">Launcher皮肤</label>
-                    <div class="col-sm-9">
-                        <select id="skinid" name="launcher_skinid" class="col-xs-10 col-sm-5">
-                            <option value="0">--请选择--</option>
-                            <volist name="launcherSkin" id="sl">
-                                <option value="{$sl['id']}">{$sl['name']}</option>
-                            </volist>
-                         </select>
-                        <span class="help-inline col-xs-12 col-sm-7">
-                            <span class="middle"><span class="red"> * </span>Launcher网页版皮肤,该功能暂未开放</span>
-                        </span>
-                    </div>
-                </div>
-                <div class="space-4"></div>
-                <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-5">联系人</label>
                     <div class="col-sm-9">
                         <input type="text" name="manager" id="manager" placeholder="联系人" class="col-xs-10 col-sm-5" value="">
@@ -125,9 +110,9 @@
                 </div>
                 <div class="space-4"></div>
                 <div class="form-group">
-                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7">客户电话</label>
+                    <label class="col-sm-1 control-label no-padding-right" for="form-field-7">电话</label>
                     <div class="col-sm-9">
-                        <input type="text" name="tel" id="tel" placeholder="客户电话" class="col-xs-10 col-sm-5" value="">
+                        <input type="text" name="tel" id="tel" placeholder="电话" class="col-xs-10 col-sm-5" value="">
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"></span>
                         </span>
@@ -175,7 +160,7 @@
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-10">简介</label>
                     <div class="col-sm-9">
-                        <textarea name="intro" id="intro" placeholder="酒店简介" class="col-xs-10 col-sm-5" rows="5"></textarea>
+                        <textarea name="intro" id="intro" placeholder="简介" class="col-xs-10 col-sm-5" rows="5"></textarea>
                         <span class="help-inline col-xs-12 col-sm-7">
                             <span class="middle"></span>
                         </span>
@@ -183,7 +168,7 @@
                 </div>
                 
                 <div style="padding:3px 0px;border-bottom: 1px dotted #e2e2e2;"></div>
-                <h4>客户管理员帐号</h4><hr>
+                <h4>酒店管理员帐号</h4><hr>
                 <div class="space-4"></div>
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right" for="form-field-1">用户名</label>
@@ -272,7 +257,7 @@
             if(hotelname==''){
                 bootbox.dialog({
                     title: '友情提示：',
-                    message: "酒店名称必须填写", 
+                    message: "名称必须填写", 
                     buttons: {
                         "success" : {
                             "label" : "确定",
@@ -285,7 +270,7 @@
             if(hid==''){
                 bootbox.dialog({
                     title: '友情提示：',
-                    message: "酒店编号必须填写", 
+                    message: "编号必须填写", 
                     buttons: {
                         "success" : {
                             "label" : "确定",
@@ -311,7 +296,7 @@
             if(manager==''){
                 bootbox.dialog({
                     title: '友情提示：',
-                    message: "酒店联系人必须填写", 
+                    message: "联系人必须填写", 
                     buttons: {
                         "success" : {
                             "label" : "确定",
@@ -324,7 +309,7 @@
             if(mobile==''){
                 bootbox.dialog({
                     title: '友情提示：',
-                    message: "酒店联系人联系电话必须填写", 
+                    message: "联系人联系电话必须填写", 
                     buttons: {
                         "success" : {
                             "label" : "确定",
@@ -376,7 +361,7 @@
             if(user==''){
                 bootbox.dialog({
                     title: '友情提示：',
-                    message: "酒店管理员姓名必须填写", 
+                    message: "管理员姓名必须填写", 
                     buttons: {
                         "success" : {
                             "label" : "确定",
@@ -389,7 +374,7 @@
             if(phone==''){
                 bootbox.dialog({
                     title: '友情提示：',
-                    message: "酒店管理员电话号码必须填写", 
+                    message: "管理员电话号码必须填写", 
                     buttons: {
                         "success" : {
                             "label" : "确定",
@@ -402,7 +387,7 @@
             if(password==''){
                 bootbox.dialog({
                     title: '友情提示：',
-                    message: "酒店管理员登陆密码不能为空", 
+                    message: "管理员登陆密码不能为空", 
                     buttons: {
                         "success" : {
                             "label" : "确定",
@@ -415,7 +400,7 @@
             if(password2==''){
                 bootbox.dialog({
                     title: '友情提示：',
-                    message: "酒店管理员确认密码不能为空", 
+                    message: "管理员确认密码不能为空", 
                     buttons: {
                         "success" : {
                             "label" : "确定",
@@ -448,7 +433,7 @@
                 if(data==0){
                     bootbox.dialog({
                         title: '友情提示：',
-                        message: "该酒店管理员名称已存在", 
+                        message: "该管理员名称已存在", 
                         buttons: {
                             "success" : {
                                 "label" : "确定",

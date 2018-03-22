@@ -50,7 +50,13 @@ class ChgController extends ComController {
 
     public function index(){
     	$model = D("hotel_chg_category");
-        $map = $this->_map();
+        $array = $this->_map();
+        $hid_condition = $this->isHotelMenber();
+        if($hid_condition && empty($array['hotelid'])){
+            $map['hid'] = $hid_condition['1']['0'];
+        }else{
+            $map['hid'] = $array['hid'];
+        }
         $this->assign('hid',$map['hid']);
         $list = $model ->where($map)->order("sort asc")->select();
         $volist = $this->list_to_tree($list, 'id', 'pid', '_child', 0);

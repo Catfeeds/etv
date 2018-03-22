@@ -1347,17 +1347,17 @@ class ApiController extends Controller{
         $hid = empty($_REQUEST['hid'])?"":strtoupper($_REQUEST["hid"]);
         $room = empty($_REQUEST['room'])?"":$_REQUEST["room"];
         $mac = empty($_REQUEST['mac'])?"":$_REQUEST["mac"];
-        if (empty($hid)) {
-            $this->errorCallback(404, "Error: hid param is needed!");
-        }
-        if (empty($room)) {
-            $this->errorCallback(404, "Error: room param is needed!");
-        }
+//        if (empty($hid)) {
+//            $this->errorCallback(404, "Error: hid param is needed!");
+//        }
+//        if (empty($room)) {
+//            $this->errorCallback(404, "Error: room param is needed!");
+//        }
         if (empty($mac)) {
             $this->errorCallback(404, "Error: mac param is needed!");
         }
-        $Device = D("Device");
-        $stbinfo=$Device->getByMac($mac);
+        $where['mac'] = $mac;
+        $stbinfo = D('Device')->where($where)->field('command,command_result')->find();
         if (empty($stbinfo)){
             $this->errorCallback(404, "Error:The stb info is empty!");
         }else if(intval($stbinfo['command_result'])!=-1 || empty($stbinfo['command'])){
@@ -1391,12 +1391,12 @@ class ApiController extends Controller{
         $mac = empty($_REQUEST['mac'])?"":$_REQUEST["mac"];
         $command_name = empty($_REQUEST['command_name'])?"":$_REQUEST["command_name"];
         $command_result = empty($_REQUEST['command_result'])?0:$_REQUEST["command_result"];
-        if (empty($hid)) {
-            $this->errorCallback(404, "Error: hid param is needed!");
-        }
-        if (empty($room)) {
-            $this->errorCallback(404, "Error: room param is needed!");
-        }
+//        if (empty($hid)) {
+//            $this->errorCallback(404, "Error: hid param is needed!");
+//        }
+//        if (empty($room)) {
+//            $this->errorCallback(404, "Error: room param is needed!");
+//        }
         if (empty($mac)) {
             $this->errorCallback(404, "Error: mac param is needed!");
         }
@@ -1673,7 +1673,8 @@ class ApiController extends Controller{
         $map['hid']=$hid;
         $map['room']=$room;
         $map['mac']=$mac;
-        $list=$Device->where($map)->find();
+        $field = "sleep_status,wifi_order,sleep_time,sleep_marked_word,sleep_countdown_time,sleep_imageid";
+        $list=$Device->where($map)->field($field)->find();
         $imagelist = $Device_mac_image->select();
         foreach ($imagelist as $key => $value) {
             $imagelistbykey[$value['id']] = $value;
@@ -1689,9 +1690,16 @@ class ApiController extends Controller{
             $json['sleep_marked_word']=$list['sleep_marked_word'];
             $json['sleep_countdown_time']=$list['sleep_countdown_time'];
             if(!empty($list['sleep_imageid'])){
-                $json['image_path'] = self::$serverUrl.$imagelistbykey[$list['sleep_imageid']]['image_path'];
+                $imagelist = $Device_mac_image->where('id='.$list['sleep_imageid'])->field('image_path')->find();
+                if(!empty($imagelist)){
+                    $json['image_path'] = self::$serverUrl.$imagelist['image_path'];
+                }else{
+                    $imagelist = $Device_mac_image->find();
+                    $json['image_path'] = self::$serverUrl.$imagelist['image_path'];
+                }
             }else{
-                $json['image_path'] =self::$serverUrl.$imagelist[0]['image_path'];
+                $imagelist = $Device_mac_image->find();
+                $json['image_path'] = self::$serverUrl.$imagelist['image_path'];
             }
         }
         header('Content-Type: application/json; charset=utf-8');
@@ -2194,7 +2202,6 @@ class ApiController extends Controller{
         $map['status'] = 1;
         $field = "id,hid,cid,ctype,title,sort,filepath,video_image,size";
         $list = D("hotel_carousel_resource")->where($map)->field($field)->select();
-
         if(!empty($list)){
             foreach ($list as $key => $value) {
                 $list[$key]['getfilepath'] = self::$serverUrl.$value['filepath'];

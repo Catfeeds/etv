@@ -3,6 +3,7 @@ namespace Admin\Controller;
 use Admin\Controller\ComController;
 
 use Vendor\File;
+use Wechat\Jssdk;
 
 class TestController extends comController {
 
@@ -458,4 +459,10 @@ class TestController extends comController {
 	}
 	/*********************悠趣结束************/
 
+	public function delsession()
+	{
+		$sessionID = session_id();
+		unset($_SESSION[$sessionID]);
+		var_dump('ok');
+	}
 }

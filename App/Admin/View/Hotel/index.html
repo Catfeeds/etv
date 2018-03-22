@@ -50,10 +50,10 @@
                 <a class="label label-xlg label-info" href="javascript:;" id="unlock" val="{:U('unlock')}" ><i class="ace-icon fa fa-unlock bigger-100"></i>&nbsp;启用</a>
                 <a class="label label-xlg label-warning" href="javascript:;" id="lock" val="{:U('lock')}" ><i class="ace-icon fa fa-lock bigger-100"></i>&nbsp;禁用</a>
                 <a class="label label-xlg label-danger" href="javascript:;" id="delete" val="{:U('delete')}" ><i class="ace-icon fa fa-trash-o bigger-100"></i>&nbsp;删除</a>
+                <a class="label label-xlg label-yellow" href="javascript:;" id="copy"><i class="ace-icon fa fa-leaf bigger-100"></i>&nbsp;复制酒店</a>
                 <a class="label label-xlg label-primary" href="javascript:;" id="relatetopic" val="{:U('relatetopic')}"><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;关联专题</a>
                 <a class="label label-xlg label-primary" href="javascript:;" id="relatechg" val="{:U('relatechg')}"><i class="ace-icon fa fa-plus bigger-100"></i>&nbsp;关联集团栏目</a>
-                <a class="label label-xlg label-success" href="javascript:;" target="_blank" id="launchershow"><i class="glyphicon glyphicon-film"></i>&nbsp;Launcher演示</a>
-                <a class="label label-xlg label-inverse" href="javascript:;" id="copy" val="{:U('copy')}"><i class="ace-icon fa fa-copy bigger-100"></i>&nbsp;酒店复制</a>
+            </div>
             <div class="space-8"></div>
             <div class="row">
                 <form id="form" method="post" action="">
@@ -278,73 +278,63 @@
 				}
 			});
 		});
-    //launcher演示
-    $("#launchershow").click(function(event) {
-      var checkinput = $("input[name='ids[]']:checked");
-      var len = checkinput.length;
-      if(len!=1){
-          bootbox.confirm({
-          title: "系统提示",
-          message: "仅能对一条数据进行操作", 
-          callback:function(result){},
-              buttons: {
-                  "cancel" : {"label" : "取消"},
-                  "confirm" : {
-                      "label" : "确定",
-                      "className" : "btn-danger"
-                  }
-              }
-          });
-          return;
-      }
-      var ids = checkinput.val();
-      var $url = "{:U('Templet/gettemplet')}?id="+ids;
-      $(this).attr("href",$url);
+    //复制酒店信息
+    $("#copy").click(function(){
+        var len = $("input[name='ids[]']:checked").length;
+        if(len>1){
+            bootbox.confirm({
+                title: "系统提示",
+                message: "针对一家酒店进行复制，请不要多选！", 
+                callback:function(result){},
+                buttons: {
+                    "cancel" : {"label" : "取消"},
+                    "confirm" : {
+                        "label" : "确定",
+                        "className" : "btn-danger"
+                    }
+                }
+            });
+        }else if(len<1){
+            bootbox.confirm({
+                title: "系统提示",
+                message: "请选择需要复制的酒店", 
+                callback:function(result){},
+                buttons: {
+                    "cancel" : {"label" : "取消"},
+                    "confirm" : {
+                        "label" : "确定",
+                        "className" : "btn-danger"
+                    }
+                }
+            });
+        }else{
+            var ids = $("input[name='ids[]']:checked").val();
+            $(".copyid").attr('value', ids);
+            $('div#COPYMODAL').modal('show');  
+        }
     });
    
 	});
-  function changeCity() {
-      var pid = parseInt($("#province").val());
-      $.ajax({
-          type : "get",
-          url : "{:U('get_city')}?pid=" + pid,
-          dataType : "json",
-          success : function(jsondata) {
-              var options = '<option value="">市区</option>';
-              if (jsondata) {
-                  $.each(jsondata, function(i, item) {
-                      options += '<option value="'+item.id+'">' + item.name
-                              + '</option>';
-                  });
-              }
-              $("#city").html(options);
-          },
-          error : function() {
-              alert("ajaxError");
-          }
-      });
-  }
-  //复制酒店信息
-  $("#copy").click(function() {
-    var checkinput = $("input[name='ids[]']:checked");
-    var len = checkinput.length;
-    if(len!=1){
-        bootbox.confirm({
-        title: "系统提示",
-        message: "仅能对一条数据进行操作", 
-        callback:function(result){},
-            buttons: {
-                "cancel" : {"label" : "取消"},
-                "confirm" : {
-                    "label" : "确定",
-                    "className" : "btn-danger"
-                }
+function changeCity() {
+    var pid = parseInt($("#province").val());
+    $.ajax({
+        type : "get",
+        url : "{:U('get_city')}?pid=" + pid,
+        dataType : "json",
+        success : function(jsondata) {
+            var options = '<option value="">市区</option>';
+            if (jsondata) {
+                $.each(jsondata, function(i, item) {
+                    options += '<option value="'+item.id+'">' + item.name
+                            + '</option>';
+                });
             }
-        });
-        return;
-    }
-    $("#form").attr("action",$("#copy").attr("val"));
-    $("#form").submit();
-  });
-  </script>
+            $("#city").html(options);
+        },
+        error : function() {
+            alert("ajaxError");
+        }
+    });
+}
+    </script>
 </block>
