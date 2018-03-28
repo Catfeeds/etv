@@ -78,7 +78,7 @@ class AppOpenSetController extends ComController{
 			$vo['room'] = '';
 			$roomList = [];
 		}
-		$appname = D('appopen_name')->where('hid='.$vo['hid'])->field('id,title')->select();
+		$appname = D('appopen_name')->where('hid="'.$vo['hid'].'"')->field('id,title')->select();
 		$this->assign('roomList', $roomList);
 		$this->assign('vo', $vo);
 		$this->assign('appname', $appname);
