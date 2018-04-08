@@ -1473,7 +1473,7 @@ class ApiController extends Controller{
         $stbData['room']=$arrayData['room'];
         $stbData['mac']=$arrayData['mac'];
         $stbData['aaa_account']=$arrayData['aaa_account'];
-        $stbData['aaa_passwd']=$arrayData['aaa_passwd'];
+        $stbData['aaa_passwd']=$arrayData['aaa_password'];
         $stbData['dev_desc']=$arrayData['dev_desc'];
         $stbData['firmware_version']=$arrayData['firmware_version'];
         $stbData['model']=$arrayData['model'];
@@ -1659,19 +1659,19 @@ class ApiController extends Controller{
         $hid = empty($_REQUEST['hid'])?"":strtoupper($_REQUEST["hid"]);
         $room = empty($_REQUEST['room'])?"":$_REQUEST["room"];
         $mac = empty($_REQUEST['mac'])?"":$_REQUEST["mac"];
-        if (empty($hid)) {
-            $this->errorCallback(404, "Error: hid param is needed");
-        }
-        if (empty($room)) {
-            $this->errorCallback(404, "Error: room param is needed");
-        }
+        // if (empty($hid)) {
+        //     $this->errorCallback(404, "Error: hid param is needed");
+        // }
+        // if (empty($room)) {
+        //     $this->errorCallback(404, "Error: room param is needed");
+        // }
         if (empty($mac)) {
             $this->errorCallback(404, "Error: mac param is needed");
         }
         $Device = D("Device");
         $Device_mac_image = D("DeviceMacImage");
-        $map['hid']=$hid;
-        $map['room']=$room;
+        // $map['hid']=$hid;
+        // $map['room']=$room;
         $map['mac']=$mac;
         $field = "sleep_status,wifi_order,sleep_time,sleep_marked_word,sleep_countdown_time,sleep_imageid";
         $list=$Device->where($map)->field($field)->find();
@@ -1711,12 +1711,12 @@ class ApiController extends Controller{
         $hid = I('post.hid','','strtoupper');
         $room = I('post.room','','strip_tags');
         $mac = I('post.mac','','strtoupper');
-        if (empty($hid)) {
-            $this->errorCallback(404, "Error: hid param is needed");
-        }
-        if (empty($room)) {
-            $this->errorCallback(404, "Error: room param is needed");
-        }
+        // if (empty($hid)) {
+        //     $this->errorCallback(404, "Error: hid param is needed");
+        // }
+        // if (empty($room)) {
+        //     $this->errorCallback(404, "Error: room param is needed");
+        // }
         if (empty($mac)) {
             $this->errorCallback(404, "Error: mac param is needed");
         }

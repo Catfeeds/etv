@@ -143,11 +143,11 @@
                         <div class="row">
                             <div class="col-xs-12">
                                 <div class="panel-group" id="accordion">
-                                    <div class="panel panel-default">
+                                    <!-- <div class="panel panel-default">
                                         <div class="panel-heading">
                                             <h4 class="panel-title"><input type="checkbox" name="allHotel" id="allDevice" class="checkDeviceAll" value="allDevice" >&nbsp;&nbsp;全部</h4>
                                         </div>
-                                    </div>
+                                    </div> -->
                                     <volist name="menuTree" id="list">
                                     <div class="panel panel-default hotelHidval" val="{$list['hid']}">
                                         <div class="panel-heading">
@@ -315,7 +315,7 @@
         var roomIDs=[];
         var roomNames=[];
         var i=0;
-        var allischecked = $("input[type=checkbox].checkDeviceAll").is(':checked');//所有选中
+        // var allischecked = $("input[type=checkbox].checkDeviceAll").is(':checked');//所有选中
         $("input[type=checkbox].checkAccessSingle ").each(function(){
             if(this.checked){
                 roomIDs[i]=$(this).val();
@@ -323,12 +323,12 @@
                 i++;
             }
         });
-        if(roomNames.join()=="" || roomNames.join()=="NULL" || allischecked){
+        if(roomNames.join()=="" || roomNames.join()=="NULL"){
             $("textarea[name=room]").val("不选择则不进行推送");
         }else{
             $("textarea[name=room]").val(roomNames.join());
         }
-        if(roomNames.join()=="" || roomNames.join()=="NULL" || allischecked){
+        if(roomNames.join()=="" || roomNames.join()=="NULL"){
             $("input[name=maclist]").val(" ");
         }else{
             $("input[name=maclist]").val(roomIDs.join());

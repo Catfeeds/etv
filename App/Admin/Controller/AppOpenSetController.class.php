@@ -88,6 +88,7 @@ class AppOpenSetController extends ComController{
 
 	public function update(){
 		$params = I('post.');
+		$params['status'] = 0; 
 		$allowfield = "hid,appname_id,title,content,repeat_set,weekday,norepeat_time,start_time,end_time,outtolink,createtime,status,maclist";
 		$params['createtime'] = date("Y-m-d H:i:s");
 		$params['start_time'] = $params['starthour'].":".$params['startminute'].":".$params['startsecond'];

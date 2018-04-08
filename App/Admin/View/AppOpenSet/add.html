@@ -59,11 +59,12 @@
                 <div class="space-4"></div>
                 <div class="form-group">
                     <label class="col-sm-1 control-label no-padding-right">重复设置</label>
-                    <div class="col-sm-8" style="padding-top:0.5%;font-size: 14px;">
+                    <div class="col-sm-4" style="padding-top:0.7%;font-size: 14px;">
                         <input type="radio" name="repeat_set" id="repeat_set0" value="0" />不重复 &nbsp;&nbsp;&nbsp;
                         <input type="radio" name="repeat_set" id="repeat_set1" value="1" />每天 &nbsp;&nbsp;&nbsp;
                         <input type="radio" name="repeat_set" id="repeat_set2" value="2" />周一到周五 &nbsp;&nbsp;&nbsp;
                         <input type="radio" name="repeat_set" id="repeat_set3" value="3" />自定义
+                        <span  style="padding-left:10%;font-size: 14px;">(必选)</span>
                     </div>
                 </div>
                 <div class="space-4"></div>
@@ -226,8 +227,24 @@
         });
         $(function () {
             $(".btn-info.submit").click(function(){
+                var hid = $("#hid").val();
                 var title = $("#title").val();
                 var content = $("#content").val();
+                var repeat_set = $("input[name='repeat_set']:checked").val();
+                
+                if(hid==''){
+                    bootbox.dialog({
+                        title: '友情提示：',
+                        message: "客户必须选择！",
+                        buttons: {
+                            "success" : {
+                                "label" : "确定",
+                                "className" : "btn-danger"
+                            }
+                        }
+                    });
+                    return;
+                }
                 if(title==''){
                     bootbox.dialog({
                         title: '友情提示：',
@@ -245,6 +262,19 @@
                     bootbox.dialog({
                         title: '友情提示：',
                         message: "内容必须填写！",
+                        buttons: {
+                            "success" : {
+                                "label" : "确定",
+                                "className" : "btn-danger"
+                            }
+                        }
+                    });
+                    return;
+                }
+                if(typeof(repeat_set)=='undefined'){
+                    bootbox.dialog({
+                        title: '友情提示：',
+                        message: "重复设置必须选择！",
                         buttons: {
                             "success" : {
                                 "label" : "确定",

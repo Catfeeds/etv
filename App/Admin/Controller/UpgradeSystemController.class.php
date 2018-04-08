@@ -43,14 +43,8 @@ class UpgradeSystemController extends ComController {
 
         $macArr=array();
         $room = '';
-        if ($vo['maclist']=="all") {
-            $volist=$Device->field("room,mac")->select();
-            if (!empty($volist)) {
-                foreach ($volist as $kk => $vv) {
-                    $macArr[$kk]=$vv['mac'];
-                }
-            }
-            $room = '全部房间';
+        if (empty($vo['maclist'])) {
+            $room = '';
         }else{
             $macArr=explode(',', $vo['maclist']);
             foreach ($macArr as $key => $value) {
@@ -80,8 +74,6 @@ class UpgradeSystemController extends ComController {
             $this->error('请上传升级包！');
             die();
         }
-        $filepath=FILE_UPLOAD_ROOTPATH.$data['filename'];
-        $data['md5_file'] = md5_file($filepath);
         $data['version'] = I('post.version','','strip_tags');
         if (empty($data['version'])) {
             $this->error('获取版本号错误，请检查上传文件是否正确');
@@ -100,6 +92,8 @@ class UpgradeSystemController extends ComController {
             $vo = $model->getById($data['id']);
             if ($data['filename'] != $vo['filename']) {
                 $data['upload_time']=time();
+                $filepath=FILE_UPLOAD_ROOTPATH.$data['filename'];
+                $data['md5_file'] = md5_file($filepath);
             }
             $result = $model->data($data)->where('id='.$data['id'])->save();
             addlog('修改系统升级包信息，ID：'.$data['id']);
@@ -123,7 +117,7 @@ class UpgradeSystemController extends ComController {
             $this->success('操作失败',U('index'));
         }else{
             $model->commit();
-            if ($data['id']) {
+            if ($data['id'] && $data['filename'] != $vo['filename']) {
                 @unlink(FILE_UPLOAD_ROOTPATH.$vo['filename']);
             }
             $this->success('恭喜，操作成功！',U('index'));
